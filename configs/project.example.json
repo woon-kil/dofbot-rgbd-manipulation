@@ -1,0 +1,45 @@
+{
+  "project": "dofbot-rgbd-manipulation",
+  "execution": {
+    "dry_run": true,
+    "hardware_enabled": false,
+    "requires_operator_approval": true,
+    "calibration_motion_approved": false
+  },
+  "robot": {
+    "sku": null,
+    "sdk_version": null,
+    "arm_joint_count": null,
+    "gripper_joint_count": null,
+    "urdf_path": null
+  },
+  "calibration": {
+    "gemini_base_verified": false,
+    "dabai_hand_eye_verified": false,
+    "cross_camera_verified": false,
+    "id": null
+  },
+  "planning": {
+    "collision_model_verified": false
+  },
+  "cameras": {
+    "gemini_335l": {
+      "required": true,
+      "role": "eye_to_hand",
+      "model": "Orbbec Gemini 335L",
+      "mount": "fixed_do_not_move",
+      "serial": null,
+      "rgbd_alignment_verified": false,
+      "base_extrinsic_verified": false,
+      "workspace_visible_verified": false
+    },
+    "dabai": {
+      "required": true,
+      "role": "eye_in_hand",
+      "model": null,
+      "serial": null,
+      "rgbd_alignment_verified": false,
+      "hand_eye_verified": false
+    }
+  }
+}
