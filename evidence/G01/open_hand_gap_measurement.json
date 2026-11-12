@@ -31,6 +31,9 @@
         48.5,
         49.5
       ],
+      "99": [
+        50.0
+      ],
       "95": [
         51.0
       ],
@@ -41,6 +44,7 @@
     "direction": "각도 감소 = 벌어짐(개방)",
     "slope_mm_per_deg_both_jaws": 0.4,
     "repeatability_note": "같은 회독 100에서 48.5(dry_run 입력)와 49.5(실제 시험 입력)로 1.0 mm 차이. 측정 반복성 약 1 mm로 본다. 측정면과 3회 판독은 미확인.",
-    "source": "evidence/G01/g01_5a_analysis.json"
+    "source": "evidence/G01/g01_5a_analysis.json",
+    "return_check": "복귀 명령 100 후 dry_run 읽기 99(잔차 1°, 허용 3° 이내), 이때 캘리퍼 50.0 mm. 재위치 오차 약 1° ≈ 간격 0.4 mm."
   }
 }
