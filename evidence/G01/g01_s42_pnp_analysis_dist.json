@@ -1,0 +1,232 @@
+{
+ "K_approx": [
+  [
+   479.07,
+   0.0,
+   315.07
+  ],
+  [
+   0.0,
+   478.98,
+   237.41
+  ],
+  [
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "n_poses": 12,
+ "per_pose": [
+  {
+   "pose": 0,
+   "exp": "exp_35",
+   "corners": 20,
+   "reproj_mean_px": 0.113,
+   "reproj_max_px": 0.244,
+   "board_dist_mm": 192.8,
+   "board_base_xyz_mm": [
+    54.3,
+    193.7,
+    3.1
+   ],
+   "normal_tilt_from_vertical_deg": 0.67,
+   "pos_dev_from_mean_mm": 1.8
+  },
+  {
+   "pose": 7,
+   "exp": "exp_25",
+   "corners": 20,
+   "reproj_mean_px": 0.11,
+   "reproj_max_px": 0.212,
+   "board_dist_mm": 197.3,
+   "board_base_xyz_mm": [
+    54.0,
+    191.8,
+    1.1
+   ],
+   "normal_tilt_from_vertical_deg": 0.44,
+   "pos_dev_from_mean_mm": 4.4
+  },
+  {
+   "pose": 18,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.177,
+   "reproj_max_px": 0.394,
+   "board_dist_mm": 200.5,
+   "board_base_xyz_mm": [
+    54.1,
+    193.8,
+    5.7
+   ],
+   "normal_tilt_from_vertical_deg": 1.39,
+   "pos_dev_from_mean_mm": 1.9
+  },
+  {
+   "pose": 2,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.138,
+   "reproj_max_px": 0.267,
+   "board_dist_mm": 198.8,
+   "board_base_xyz_mm": [
+    54.4,
+    192.8,
+    6.4
+   ],
+   "normal_tilt_from_vertical_deg": 0.95,
+   "pos_dev_from_mean_mm": 3.2
+  },
+  {
+   "pose": 5,
+   "exp": "exp_25",
+   "corners": 18,
+   "reproj_mean_px": 0.116,
+   "reproj_max_px": 0.205,
+   "board_dist_mm": 217.3,
+   "board_base_xyz_mm": [
+    54.3,
+    196.3,
+    7.0
+   ],
+   "normal_tilt_from_vertical_deg": 2.16,
+   "pos_dev_from_mean_mm": 3.1
+  },
+  {
+   "pose": 11,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.159,
+   "reproj_max_px": 0.28,
+   "board_dist_mm": 204.8,
+   "board_base_xyz_mm": [
+    53.1,
+    196.1,
+    3.6
+   ],
+   "normal_tilt_from_vertical_deg": 0.69,
+   "pos_dev_from_mean_mm": 1.4
+  },
+  {
+   "pose": 15,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.152,
+   "reproj_max_px": 0.32,
+   "board_dist_mm": 207.8,
+   "board_base_xyz_mm": [
+    52.5,
+    197.3,
+    3.4
+   ],
+   "normal_tilt_from_vertical_deg": 0.62,
+   "pos_dev_from_mean_mm": 2.7
+  },
+  {
+   "pose": 14,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.189,
+   "reproj_max_px": 0.408,
+   "board_dist_mm": 181.8,
+   "board_base_xyz_mm": [
+    53.9,
+    195.0,
+    4.5
+   ],
+   "normal_tilt_from_vertical_deg": 1.19,
+   "pos_dev_from_mean_mm": 0.3
+  },
+  {
+   "pose": 4,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.157,
+   "reproj_max_px": 0.294,
+   "board_dist_mm": 186.7,
+   "board_base_xyz_mm": [
+    53.1,
+    196.9,
+    4.0
+   ],
+   "normal_tilt_from_vertical_deg": 0.57,
+   "pos_dev_from_mean_mm": 2.0
+  },
+  {
+   "pose": 9,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.175,
+   "reproj_max_px": 0.327,
+   "board_dist_mm": 185.7,
+   "board_base_xyz_mm": [
+    52.6,
+    197.0,
+    4.1
+   ],
+   "normal_tilt_from_vertical_deg": 0.93,
+   "pos_dev_from_mean_mm": 2.3
+  },
+  {
+   "pose": 8,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.137,
+   "reproj_max_px": 0.293,
+   "board_dist_mm": 177.1,
+   "board_base_xyz_mm": [
+    54.0,
+    195.3,
+    4.1
+   ],
+   "normal_tilt_from_vertical_deg": 0.99,
+   "pos_dev_from_mean_mm": 0.4
+  },
+  {
+   "pose": 3,
+   "exp": "exp_15",
+   "corners": 20,
+   "reproj_mean_px": 0.142,
+   "reproj_max_px": 0.279,
+   "board_dist_mm": 170.5,
+   "board_base_xyz_mm": [
+    54.3,
+    194.0,
+    3.7
+   ],
+   "normal_tilt_from_vertical_deg": 0.78,
+   "pos_dev_from_mean_mm": 1.3
+  }
+ ],
+ "nominal": {
+  "board_origin_mean_base_mm": [
+   53.7,
+   195.0,
+   4.2
+  ],
+  "pos_dev_mean_mm": 2.1,
+  "pos_dev_max_mm": 4.4,
+  "normal_spread_mean_deg": 0.41,
+  "normal_spread_max_deg": 1.24,
+  "normal_tilt_mean_deg": 0.95
+ },
+ "feasibility_extrinsic_correction": {
+  "note": "타당성 확인만(보정 결과 아님, 외부 파라미터 6자유도 최소제곱, 과적합 가능)",
+  "rotvec_deg": [
+   0.35,
+   -0.14,
+   -0.72
+  ],
+  "trans_mm": [
+   -11.0,
+   -4.0,
+   -5.1
+  ],
+  "pos_dev_mean_mm": 1.3,
+  "pos_dev_max_mm": 4.3,
+  "normal_spread_mean_deg": 0.4,
+  "normal_spread_max_deg": 1.25,
+  "normal_tilt_mean_deg": 1.34
+ }
+}
