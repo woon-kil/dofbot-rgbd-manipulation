@@ -52,14 +52,15 @@
 - [x] `src/transforms/se3.py`: 강체 검증(직교성·det), `inverse`
 - [x] 비자명 회전·역변환·반사 거부 테스트
 - [x] `scripts/validate_design.py`: 필수 파일 + README 링크 검사
-- [ ] camera / perception / calibration / kinematics / planning / control / verification 구현 (모두 빈 패키지)
+- [~] control: 그리퍼 시험 어댑터 작성(하드웨어 미연결). camera / perception / calibration / kinematics / planning / verification은 빈 패키지
 - [ ] 의존성 고정(Python 버전, SDK 버전)
 
 ### 실기기 Gate (모두 미수행)
 - [x] ADR-006 p620 활용·docker 격리 반영 (`docs/adr/ADR-006-p620-docker.md`)
 - [~] G00 장치 인벤토리: **읽기 전용 범위 완료 (PARTIAL_READONLY)**. 이월: 관절 회독 길이·서보별 움직임·FK 검증·토크 해제 회독·`time` 단위 확정(G02), Gemini 펌웨어(G01)
 - [ ] G01 두 RGB-D 취득, Gemini 시야 (깊이 스트림 해상도·시차 탐색 폭·정합 모드·유효율 기록)
-- [ ] G01.5a 소각도 시험 승인, G01.5b 보정 이동 안전 승인
+- [~] G01.5a 소각도 시험 승인: 승인 문서 초안(`docs/gates/G01.5a-승인-문서-초안.md`)과 어댑터(`src/control/gripper_adapter.py`, 단위 테스트 통과) 작성. 남은 것: 시험 실행 스크립트, 사용자 값 확인·승인
+- [ ] G01.5b 보정 이동 안전 승인
 - [x] 도달 포락선 산정(URDF 이론값, 실물 이동 없음)
 - [x] 시험 영역·파지 접근 기울기 한도: **결정 A (≤15°, 시험 영역 ⊂ 마스크 ∩ 이론 반경 약 203 mm 안쪽)**, 안쪽 여유 폭은 G02·G03 후 — `docs/adr/ADR-007-approach-tilt-and-test-area.md`
 - [ ] G02 회독↔FK/URDF 검증
