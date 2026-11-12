@@ -1,0 +1,172 @@
+{
+ "rows": [
+  {
+   "exposure": 15,
+   "mean": 98.3,
+   "sat_ratio": 0.0,
+   "markers": 14,
+   "corners": 16,
+   "center_px": [
+    372,
+    280
+   ],
+   "marker_ids": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44
+   ]
+  },
+  {
+   "exposure": 25,
+   "mean": 148.4,
+   "sat_ratio": 0.0,
+   "markers": 15,
+   "corners": 20,
+   "center_px": [
+    361,
+    286
+   ],
+   "marker_ids": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44
+   ]
+  },
+  {
+   "exposure": 35,
+   "mean": 181.2,
+   "sat_ratio": 0.015,
+   "markers": 12,
+   "corners": 15,
+   "center_px": [
+    360,
+    293
+   ],
+   "marker_ids": [
+    30,
+    31,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    40,
+    41,
+    42,
+    44
+   ]
+  },
+  {
+   "exposure": 50,
+   "mean": 213.6,
+   "sat_ratio": 0.264,
+   "markers": 11,
+   "corners": 13,
+   "center_px": [
+    368,
+    281
+   ],
+   "marker_ids": [
+    30,
+    33,
+    34,
+    35,
+    36,
+    37,
+    40,
+    41,
+    42,
+    43,
+    44
+   ]
+  },
+  {
+   "exposure": 70,
+   "mean": 230.7,
+   "sat_ratio": 0.286,
+   "markers": 9,
+   "corners": 8,
+   "center_px": [
+    369,
+    280
+   ],
+   "marker_ids": [
+    30,
+    32,
+    33,
+    34,
+    37,
+    40,
+    41,
+    42,
+    43
+   ]
+  },
+  {
+   "exposure": 100,
+   "mean": 244.3,
+   "sat_ratio": 0.722,
+   "markers": 1,
+   "corners": 0,
+   "center_px": [
+    402,
+    234
+   ],
+   "marker_ids": [
+    42
+   ]
+  }
+ ],
+ "best": {
+  "exposure": 25,
+  "mean": 148.4,
+  "sat_ratio": 0.0,
+  "markers": 15,
+  "corners": 20,
+  "center_px": [
+   361,
+   286
+  ],
+  "marker_ids": [
+   30,
+   31,
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44
+  ]
+ }
+}
