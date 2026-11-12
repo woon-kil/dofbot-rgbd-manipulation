@@ -1,0 +1,179 @@
+{
+ "model": "외부 6자유도 + J1 영점 오프셋, 보드 xy 실측 prior σ1.5 mm, z σ10 mm",
+ "result": {
+  "pilot12": {
+   "rot_sigma_deg": [
+    1.77,
+    1.96,
+    1.28
+   ],
+   "trans_sigma_mm": [
+    6.3,
+    8.1,
+    3.1
+   ],
+   "j1_zero_sigma_deg": 2.43,
+   "pred_mean_mm": 8.16
+  },
+  "+1": {
+   "rot_sigma_deg": [
+    1.57,
+    1.67,
+    1.13
+   ],
+   "trans_sigma_mm": [
+    5.4,
+    7.3,
+    2.8
+   ],
+   "j1_zero_sigma_deg": 2.08,
+   "pred_mean_mm": 7.51,
+   "pose": [
+    90,
+    75,
+    30,
+    10
+   ]
+  },
+  "+2": {
+   "rot_sigma_deg": [
+    1.4,
+    1.42,
+    1.07
+   ],
+   "trans_sigma_mm": [
+    4.7,
+    6.9,
+    2.4
+   ],
+   "j1_zero_sigma_deg": 1.91,
+   "pred_mean_mm": 7.13,
+   "pose": [
+    90,
+    90,
+    10,
+    10
+   ]
+  },
+  "+3": {
+   "rot_sigma_deg": [
+    1.36,
+    1.3,
+    1.02
+   ],
+   "trans_sigma_mm": [
+    4.4,
+    6.7,
+    2.4
+   ],
+   "j1_zero_sigma_deg": 1.78,
+   "pred_mean_mm": 6.91,
+   "pose": [
+    90,
+    90,
+    10,
+    20
+   ]
+  },
+  "+4": {
+   "rot_sigma_deg": [
+    1.26,
+    1.18,
+    1.0
+   ],
+   "trans_sigma_mm": [
+    4.1,
+    6.4,
+    2.1
+   ],
+   "j1_zero_sigma_deg": 1.72,
+   "pred_mean_mm": 6.69,
+   "pose": [
+    85,
+    90,
+    10,
+    10
+   ]
+  },
+  "+5": {
+   "rot_sigma_deg": [
+    1.25,
+    1.17,
+    0.99
+   ],
+   "trans_sigma_mm": [
+    4.1,
+    6.2,
+    2.1
+   ],
+   "j1_zero_sigma_deg": 1.71,
+   "pred_mean_mm": 6.51,
+   "pose": [
+    80,
+    80,
+    20,
+    10
+   ]
+  },
+  "+6": {
+   "rot_sigma_deg": [
+    1.21,
+    1.14,
+    0.97
+   ],
+   "trans_sigma_mm": [
+    4.0,
+    6.1,
+    2.0
+   ],
+   "j1_zero_sigma_deg": 1.66,
+   "pred_mean_mm": 6.37,
+   "pose": [
+    85,
+    80,
+    25,
+    10
+   ]
+  },
+  "+7": {
+   "rot_sigma_deg": [
+    1.17,
+    1.06,
+    0.89
+   ],
+   "trans_sigma_mm": [
+    3.6,
+    6.0,
+    2.0
+   ],
+   "j1_zero_sigma_deg": 1.53,
+   "pred_mean_mm": 6.24,
+   "pose": [
+    100,
+    90,
+    10,
+    10
+   ]
+  },
+  "+8": {
+   "rot_sigma_deg": [
+    1.13,
+    1.03,
+    0.88
+   ],
+   "trans_sigma_mm": [
+    3.6,
+    5.8,
+    1.9
+   ],
+   "j1_zero_sigma_deg": 1.5,
+   "pred_mean_mm": 6.12,
+   "pose": [
+    95,
+    80,
+    25,
+    10
+   ]
+  }
+ }
+}

@@ -1,0 +1,179 @@
+{
+ "model": "외부 6자유도 + J1 영점, 보드1(x=0)·보드2(x=+50) xy 실측 prior σ1.5, z σ10",
+ "result": {
+  "pilot12_board1": {
+   "rot_sigma_deg": [
+    1.77,
+    1.96,
+    1.28
+   ],
+   "trans_sigma_mm": [
+    6.3,
+    8.1,
+    3.1
+   ],
+   "j1_zero_sigma_deg": 2.43,
+   "pred_mean_mm": 8.16
+  },
+  "+1(보드2)": {
+   "rot_sigma_deg": [
+    1.42,
+    1.86,
+    1.22
+   ],
+   "trans_sigma_mm": [
+    6.0,
+    6.1,
+    2.8
+   ],
+   "j1_zero_sigma_deg": 2.39,
+   "pred_mean_mm": 6.16,
+   "pose": [
+    75,
+    90,
+    10,
+    10
+   ]
+  },
+  "+2(보드2)": {
+   "rot_sigma_deg": [
+    1.17,
+    1.44,
+    1.08
+   ],
+   "trans_sigma_mm": [
+    4.9,
+    5.6,
+    2.3
+   ],
+   "j1_zero_sigma_deg": 1.94,
+   "pred_mean_mm": 5.82,
+   "pose": [
+    90,
+    75,
+    30,
+    10
+   ]
+  },
+  "+3(보드2)": {
+   "rot_sigma_deg": [
+    1.16,
+    1.36,
+    1.04
+   ],
+   "trans_sigma_mm": [
+    4.7,
+    5.4,
+    2.1
+   ],
+   "j1_zero_sigma_deg": 1.86,
+   "pred_mean_mm": 5.63,
+   "pose": [
+    80,
+    105,
+    10,
+    10
+   ]
+  },
+  "+4(보드2)": {
+   "rot_sigma_deg": [
+    1.08,
+    1.22,
+    1.01
+   ],
+   "trans_sigma_mm": [
+    4.3,
+    5.2,
+    1.9
+   ],
+   "j1_zero_sigma_deg": 1.77,
+   "pred_mean_mm": 5.45,
+   "pose": [
+    80,
+    90,
+    10,
+    10
+   ]
+  },
+  "+5(보드2)": {
+   "rot_sigma_deg": [
+    1.03,
+    1.14,
+    0.96
+   ],
+   "trans_sigma_mm": [
+    4.1,
+    5.1,
+    1.9
+   ],
+   "j1_zero_sigma_deg": 1.65,
+   "pred_mean_mm": 5.32,
+   "pose": [
+    85,
+    75,
+    30,
+    10
+   ]
+  },
+  "+6(보드2)": {
+   "rot_sigma_deg": [
+    0.98,
+    1.05,
+    0.92
+   ],
+   "trans_sigma_mm": [
+    3.8,
+    4.9,
+    1.8
+   ],
+   "j1_zero_sigma_deg": 1.56,
+   "pred_mean_mm": 5.2,
+   "pose": [
+    85,
+    90,
+    10,
+    10
+   ]
+  },
+  "+7(보드2)": {
+   "rot_sigma_deg": [
+    0.96,
+    1.0,
+    0.91
+   ],
+   "trans_sigma_mm": [
+    3.7,
+    4.8,
+    1.7
+   ],
+   "j1_zero_sigma_deg": 1.52,
+   "pred_mean_mm": 5.07,
+   "pose": [
+    90,
+    90,
+    10,
+    20
+   ]
+  },
+  "+8(보드2)": {
+   "rot_sigma_deg": [
+    0.96,
+    0.97,
+    0.88
+   ],
+   "trans_sigma_mm": [
+    3.6,
+    4.7,
+    1.6
+   ],
+   "j1_zero_sigma_deg": 1.48,
+   "pred_mean_mm": 4.98,
+   "pose": [
+    85,
+    105,
+    10,
+    10
+   ]
+  }
+ }
+}
