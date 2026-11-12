@@ -1,0 +1,17 @@
+{
+ "mode": "pilot",
+ "n_poses": 12,
+ "metrics": {
+  "dev_mean": 2.075,
+  "dev_max": 4.442,
+  "pred_mean": 2.075,
+  "pred_max": 4.441,
+  "normal_mean": 0.412,
+  "normal_max": 1.244
+ },
+ "hashes": {
+  "evidence/G02/pilot_pnp.json": "303972bbcb753511",
+  "evidence/G02/dabai_color_camera_info.json": "91779cbb3fda09d4",
+  "docs/gates/G02-동결-임계값.md": "4719f727592637d2"
+ }
+}
