@@ -2,7 +2,7 @@
 
 프로젝트 진행 상황의 단일 진실의 원천(SSOT). 마지막 갱신: 2026-11-12 (G00 읽기 전용 인벤토리, G01 취득 완료, ADR-006 p620 활용).
 
-**한 줄 상태:** 설계 초안 + 정적 검증 단계. G00 `PARTIAL_READONLY`(관절 회독·FK는 G02 이월), G01 `PROVISIONAL`(두 카메라 취득 완료, 작업영역 마스크 사용자 확인 대기). 로봇 이동·쓰기 호출은 0건이다. 코드는 SE(3) 변환 계약뿐이다.
+**한 줄 상태:** 설계 초안 + 정적 검증 단계. G00 `PARTIAL_READONLY`(관절 회독·FK는 G02 이월), G01 `PROVISIONAL`(두 카메라 취득 완료, 작업영역 마스크 v1 사용자 확인·동결). 로봇 이동·쓰기 호출은 0건이다. 코드는 SE(3) 변환 계약뿐이다.
 
 ## 품질 지표
 | 지표 | 값 | 출처 |
@@ -40,7 +40,7 @@
 - [x] G01.5 "보정 이동 안전 승인" Gate 신설
 - [x] ADR-005 결정 3, 4 반영 (3-A, 임계값 동결 절차), G01.5 승인 문서 양식
 - [ ] 열린 손 간격 캘리퍼 재측정(사용자 협조, 오차 예산 선행 조건, 안내 도식 `results/caliper-open-hand-gap-diagram.svg`)
-- [ ] Gemini 작업영역 마스크 초안 사용자 확인(그림: `evidence/G01/raw/gemini/registered/workspace-mask-draft.svg`, gitignore)
+- [x] Gemini 작업영역 마스크 v1 사용자 확인·동결 (`evidence/G01/workspace_mask_v1.json`)
 - [ ] 오차 예산표 작성, 합격 임계값 동결 (`docs/validation/acceptance-matrix.md`)
 - [ ] 증거 manifest 스키마 파일 (`evidence/`)
 - [ ] 실행 호스트·SDK 호환성 표 (R18)
@@ -71,7 +71,7 @@
 - [x] LICENSE: MIT (저작권자 표기 `woon-kil`, 변경 가능)
 
 ## 다음 작업 후보
-1. 사용자 확인 2건(작업영역 마스크, 열린 손 간격 재측정) 후 G01을 확정한다. Jetson 디스크 여유 8.6 GB 주의.
+1. 사용자 협조 1건(열린 손 간격 재측정)과 PASS 임계값 동결 후 G01을 확정한다. Jetson 디스크 여유 8.6 GB 주의.
 2. G01.5a/b: 승인 문서(`docs/gates/G01.5-승인-문서-양식.md`)를 채우고 소각도 실측으로 상한을 동결한다.
 3. 열린 손 간격 재측정 → 오차 예산 → 파일럿 → G03 시험 전 임계값 동결.
 

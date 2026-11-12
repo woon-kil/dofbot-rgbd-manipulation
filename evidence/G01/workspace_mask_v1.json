@@ -1,0 +1,11 @@
+{
+  "mask_id": "gemini_workspace_v1",
+  "status": "USER_CONFIRMED (2026-11-12, 초록 사각형이 작업 영역과 맞음)",
+  "camera": "gemini_335l",
+  "image": "정합 컬러 camera_color_optical_frame, 1280x720",
+  "rectangle_px": {"x0": 550, "x1": 830, "y0": 190, "y1": 395},
+  "meaning": "용지 영역(로봇 베이스 앞). 위쪽 경계는 베이스 플레이트와 겹치는 선까지.",
+  "valid_only_for": "Gemini 고정 위치와 촬영 설정이 G01 취득 때와 같을 때. 카메라가 움직이거나 해상도·정합 설정이 바뀌면 무효이며 새 버전을 만든다.",
+  "depth_stats_at_capture": {"config": "registered", "valid_ratio": 1.0, "median_mm": 487, "p05_p95_mm": [450, 533], "pixels": 57400},
+  "change_rule": "동결. 변경은 새 버전(v2)으로만 한다."
+}

@@ -1,7 +1,7 @@
 {
   "gate": "G01",
   "run_date": "2026-11-12",
-  "verdict": "PROVISIONAL (임계값 미동결, 마스크 사용자 확인 대기)",
+  "verdict": "PROVISIONAL (임계값 미동결)",
   "robot_motion_or_write_commands": 0,
   "note": "영상·깊이·드라이버 로그 원문은 evidence/G01/raw/(gitignore). 장치 시리얼·호스트 주소는 마스킹. 해시는 앞 16자.",
   "arm_pose_during_capture": "현재 자세 유지(직립 park, 이동 없음)",
@@ -99,5 +99,6 @@
     "gemini/registered/probe.json": "a1afdccc95d870c4",
     "gemini/registered/color.png": "14e66310327ebc03",
     "gemini/registered/depth_mm.npy": "ed497eaef46db633"
-  }
+  },
+  "workspace_mask": "evidence/G01/workspace_mask_v1.json (사용자 확인 2026-11-12)"
 }
