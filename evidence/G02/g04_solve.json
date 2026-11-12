@@ -1,0 +1,154 @@
+{
+ "n_train": 22,
+ "calibrateHandEye": {
+  "PARK": {
+   "rot_deg": [
+    -0.51,
+    -1.4,
+    -0.11
+   ],
+   "trans_mm": [
+    -13.4,
+    11.7,
+    -9.5
+   ]
+  },
+  "TSAI": {
+   "rot_deg": [
+    -0.43,
+    -1.11,
+    -0.38
+   ],
+   "trans_mm": [
+    -12.4,
+    9.1,
+    -7.1
+   ]
+  },
+  "HORAUD": {
+   "rot_deg": [
+    -0.51,
+    -1.4,
+    -0.11
+   ],
+   "trans_mm": [
+    -13.4,
+    11.7,
+    -9.5
+   ]
+  },
+  "DANIILIDIS": {
+   "rot_deg": [
+    -0.59,
+    -1.33,
+    0.04
+   ],
+   "trans_mm": [
+    -13.3,
+    11.6,
+    -10.5
+   ]
+  }
+ },
+ "method_max_disagreement": {
+  "rot_deg": 0.5,
+  "trans_mm": 4.3
+ },
+ "priors_mm_deg": {
+  "S_POS": 2.5,
+  "S_NRM": 0.4,
+  "S_PRI": 1.5
+ },
+ "board_xy_prior_mm": [
+  0.0,
+  229.0
+ ],
+ "fit": {
+  "공칭": {
+   "rot_deg": [
+    -0.276,
+    -1.16,
+    -0.293
+   ],
+   "trans_mm": [
+    -13.6,
+    -0.78,
+    2.51
+   ],
+   "j1_zero_deg": 1.662,
+   "board_xyz_mm": [
+    0.0,
+    227.49,
+    5.5
+   ],
+   "chi2_red": 0.75,
+   "resid": {
+    "pos_mean_mm": 2.2,
+    "pos_max_mm": 5.04,
+    "normal_mean_deg": 0.41,
+    "normal_max_deg": 1.42
+   },
+   "sigma": {
+    "rot_deg": [
+     0.871,
+     1.656,
+     1.081
+    ],
+    "trans_mm": [
+     6.89,
+     6.84,
+     3.52
+    ],
+    "j1_zero_deg": 2.174,
+    "board_mm": [
+     1.5,
+     1.39,
+     7.45
+    ]
+   }
+  },
+  "PARK": {
+   "rot_deg": [
+    -0.276,
+    -1.161,
+    -0.293
+   ],
+   "trans_mm": [
+    -13.6,
+    -0.78,
+    2.51
+   ],
+   "j1_zero_deg": 1.662,
+   "board_xyz_mm": [
+    0.0,
+    227.49,
+    5.5
+   ],
+   "chi2_red": 0.75,
+   "resid": {
+    "pos_mean_mm": 2.2,
+    "pos_max_mm": 5.04,
+    "normal_mean_deg": 0.41,
+    "normal_max_deg": 1.42
+   },
+   "sigma": {
+    "rot_deg": [
+     0.871,
+     1.656,
+     1.081
+    ],
+    "trans_mm": [
+     6.89,
+     6.84,
+     3.52
+    ],
+    "j1_zero_deg": 2.174,
+    "board_mm": [
+     1.5,
+     1.39,
+     7.45
+    ]
+   }
+  }
+ }
+}
