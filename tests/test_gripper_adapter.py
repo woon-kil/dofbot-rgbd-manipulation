@@ -1,7 +1,7 @@
 import datetime, sys, unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
-from control.gripper_adapter import GripperTestAdapter, GripperTestError
+from control.gripper_adapter import GripperTestAdapter, GripperTestError, SixServoTestAdapter
 
 
 class FakeArm:
@@ -237,5 +237,71 @@ class TestSpeedAndStair(unittest.TestCase):
         with self.assertRaises(GripperTestError): ad.return_to_start(1500)   # 11 -> 91 = 80° / 1500 ms
         ad.confirm_hands_clear(); ad.return_to_start(8000)                    # 80° / 8000 ms = 100 ms/°
         self.assertEqual(arm.writes[-1], (3, 91, 8000))
+
+class FakeArm6:
+    """Arm_Lib 시그니처: Arm_serial_servo_read(id), Arm_serial_servo_write6(s1..s6, time). 단일 쓰기 API는 호출되면 실패한다."""
+    def __init__(self, vals=None): self.vals = dict(vals or {1: 90, 2: 91, 3: 91, 4: 91, 5: 90, 6: 99}); self.w6 = []; self.none_ids = set()
+    def Arm_serial_servo_read(self, id): return None if id in self.none_ids else self.vals[id]
+    def Arm_serial_servo_write6(self, s1, s2, s3, s4, s5, s6, time): self.w6.append(((s1, s2, s3, s4, s5, s6), time))
+    def __getattr__(self, n): raise AssertionError("허용되지 않은 SDK API 호출: " + n)
+
+
+class TestSixServo(unittest.TestCase):
+    def six(self, arm=None, dry=False, **kw):
+        arm = arm or FakeArm6()
+        a = dict(moving_ids=[3, 4], pattern="stair", delta_deg=20, stair_steps=4, direction=-1, angle_window=[10, 105], allowed_times_ms=[1500, 3000, 8000], first_move_min_ms=8000, max_writes=10); a.update(kw)
+        ad = SixServoTestAdapter(arm, approval(**a), today=TODAY, dry_run=dry); ad.read_start6(); ad.set_targets(ad.expected_targets()); return arm, ad
+    def go(self, ad, i, ms): ad.confirm_hands_clear(); ad.move6(ad.expected_targets()[i], ms)
+    def test_stair_writes_all_six_with_hold_values(self):
+        arm, ad = self.six()
+        for i, ms in enumerate([8000, 1500, 1500, 3000, 3000, 1500, 1500, 1500], 1): self.go(ad, i, ms)
+        self.assertEqual(arm.w6[0], ((90, 91, 71, 71, 90, 99), 8000)); self.assertEqual(arm.w6[3], ((90, 91, 11, 11, 90, 99), 3000)); self.assertEqual(arm.w6[-1], ((90, 91, 91, 91, 90, 99), 1500))
+        self.assertTrue(all(w[0][0] == 90 and w[0][1] == 91 and w[0][4] == 90 and w[0][5] == 99 for w in arm.w6))   # 움직이지 않는 서보는 시작값 그대로
+    def test_changing_a_hold_servo_rejected(self):
+        arm, ad = self.six(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move6((90, 92, 71, 71, 90, 99), 8000)
+        self.assertEqual(arm.w6, [])
+    def test_none_read_refused(self):
+        arm = FakeArm6(); arm.none_ids = {5}
+        with self.assertRaises(GripperTestError): SixServoTestAdapter(arm, approval(moving_ids=[3, 4], pattern="stair", delta_deg=20, stair_steps=4, direction=-1, angle_window=[10, 105]), today=TODAY).read_start6()
+    def test_first_move_needs_8000(self):
+        arm, ad = self.six(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move6(ad.expected_targets()[1], 1500)
+    def test_speed_limit_uses_max_joint_delta(self):
+        arm, ad = self.six(); self.go(ad, 1, 8000); self.go(ad, 2, 1500)    # 20°/1500 ms = 75 ms/° 허용
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start6(1500)   # 51 -> 91 = 40° / 1500 ms
+    def test_wrong_order_rejected(self):
+        arm, ad = self.six(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move6(ad.expected_targets()[2], 8000)
+    def test_hands_clear_required_and_single_use(self):
+        arm, ad = self.six()
+        with self.assertRaises(GripperTestError): ad.move6(ad.expected_targets()[1], 8000)
+        self.go(ad, 1, 8000)
+        with self.assertRaises(GripperTestError): ad.move6(ad.expected_targets()[2], 1500)
+    def test_dry_run_never_writes(self):
+        arm, ad = self.six(dry=True); self.go(ad, 1, 8000); self.assertEqual(arm.w6, []); self.assertEqual([l[0] for l in ad.log if l[0] == "write6"], ["write6"])
+    def test_return_to_start_writes_all_six_start_values(self):
+        arm, ad = self.six(); self.go(ad, 1, 8000); self.go(ad, 2, 1500); ad.confirm_hands_clear(); ad.return_to_start6(8000)
+        self.assertEqual(arm.w6[-1], ((90, 91, 91, 91, 90, 99), 8000))
+    def test_return_needs_prior_write(self):
+        arm, ad = self.six(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start6(8000)
+    def test_max_writes_cap(self):
+        arm, ad = self.six(max_writes=2); self.go(ad, 1, 8000); self.go(ad, 2, 1500); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move6(ad.expected_targets()[3], 1500)
+    def test_hold_pattern_is_noop_write6(self):
+        arm = FakeArm6(); ad = SixServoTestAdapter(arm, approval(moving_ids=[], pattern="hold", allowed_times_ms=[8000], first_move_min_ms=8000, max_writes=1), today=TODAY, dry_run=False)
+        ad.read_start6(); ad.set_targets(ad.expected_targets()); ad.confirm_hands_clear(); ad.move6(ad.expected_targets()[1], 8000)
+        self.assertEqual(arm.w6, [((90, 91, 91, 91, 90, 99), 8000)])
+    def test_hold_with_moving_ids_rejected(self):
+        with self.assertRaises(GripperTestError): SixServoTestAdapter(FakeArm6(), approval(moving_ids=[3], pattern="hold", allowed_times_ms=[8000]), today=TODAY)
+    def test_target_outside_window_rejected(self):
+        arm = FakeArm6({1: 90, 2: 91, 3: 91, 4: 91, 5: 90, 6: 99}); ad = SixServoTestAdapter(arm, approval(moving_ids=[3, 4], pattern="stair", delta_deg=20, stair_steps=4, direction=-1, angle_window=[20, 105], allowed_times_ms=[8000], first_move_min_ms=8000), today=TODAY)
+        ad.read_start6()
+        with self.assertRaises(GripperTestError): ad.set_targets(ad.expected_targets())   # S-80 = 11 < 20
+    def test_no_single_write_api_used(self):
+        arm, ad = self.six(); self.go(ad, 1, 8000)   # FakeArm6는 Arm_serial_servo_write를 호출하면 AssertionError
+        self.assertEqual(len(arm.w6), 1)
 
 if __name__ == '__main__': unittest.main()

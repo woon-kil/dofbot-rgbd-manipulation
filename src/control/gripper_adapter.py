@@ -165,3 +165,157 @@ class GripperTestAdapter:
 
 
 JointTestAdapter = GripperTestAdapter   # 일반 이름(허용 id는 ALLOWED_JOINTS)
+
+
+class SixServoTestAdapter:
+    """여섯 서보 동시 쓰기(제조사 `Arm_serial_servo_write6`) 어댑터. 움직일 서보(J3·J4 등)는 계단 목표만, 나머지는 **시작 읽기값 그대로**만 허용한다.
+    제조사 write6는 6개 값을 한 번에 보내므로 움직이지 않는 서보에도 현재값을 넣는다(2026-11-12 S3 후속: 개별 쓰기 연속 시 J4 누락 이슈).
+    쓰기 API는 write6 하나, 읽기 API는 read 하나뿐이다. 이동 폭 90° 이하, 이동 시간 60 ms/° 이상(직전 명령 기준 6축 중 최대 폭), 첫 이동 시간 하한, 쓰기 횟수 상한."""
+    def __init__(self, arm, approval, today=None, dry_run=True):
+        self._arm = arm
+        self._dry_run = bool(dry_run)
+        today = today or datetime.date.today()
+        if approval.get("approved") is not True:
+            raise GripperTestError("승인되지 않았다")
+        if datetime.date.fromisoformat(approval["expires"]) < today:
+            raise GripperTestError("승인이 만료되었다")
+        self._times = tuple(int(t) for t in approval["allowed_times_ms"])
+        if not self._times or any(t < 1500 for t in self._times):
+            raise GripperTestError("허용 이동 시간은 1500 ms 이상이어야 한다")
+        self._max_writes = int(approval["max_writes"])
+        fm = approval.get("first_move_min_ms")
+        self._first_min = int(fm) if fm is not None else None
+        if self._first_min is not None and self._first_min not in self._times:
+            raise GripperTestError("first_move_min_ms는 허용 이동 시간 목록에 있어야 한다")
+        self._moving = tuple(int(j) for j in approval.get("moving_ids", ()))
+        if any(j not in ALLOWED_JOINTS for j in self._moving):
+            raise GripperTestError("허용되지 않은 서보 id가 moving_ids에 있다")
+        self._pattern = approval.get("pattern", "stair")
+        if self._pattern not in ("stair", "hold"):
+            raise GripperTestError("pattern은 stair 또는 hold여야 한다")
+        if self._pattern == "hold" and self._moving:
+            raise GripperTestError("hold 패턴은 moving_ids가 비어 있어야 한다")
+        if self._pattern == "stair" and not self._moving:
+            raise GripperTestError("stair 패턴은 moving_ids가 필요하다")
+        self._delta = int(approval.get("delta_deg", 0))
+        self._stairs = int(approval.get("stair_steps", 0))
+        if self._pattern == "stair" and (self._delta <= 0 or self._stairs < 1):
+            raise GripperTestError("stair 패턴은 delta_deg > 0, stair_steps >= 1이 필요하다")
+        self._dir = int(approval.get("direction", -1))
+        if self._dir not in (-1, 1):
+            raise GripperTestError("direction은 -1 또는 +1이어야 한다")
+        window = approval.get("angle_window")
+        self._window = (int(window[0]), int(window[1])) if window else (0, 180)
+        self._hold_tol = int(approval.get("hold_tolerance_deg", 0))
+        self._max_move_deg = 90
+        self._min_ms_per_deg = 60
+        self._start = None      # {id: 회독값}
+        self._cur = None
+        self._expected = None
+        self._next = 0
+        self._writes = 0
+        self._hands_clear = False
+        self._returned = False
+        self.log = []
+
+    def read_start6(self):
+        """서보 1~6을 각 1회 읽는다. 하나라도 None이면 중단. 움직일 서보는 승인 범위 안이어야 한다."""
+        if self._start is not None:
+            raise GripperTestError("시작값은 한 번만 읽는다")
+        vals = {}
+        for i in range(1, 7):
+            v = self._arm.Arm_serial_servo_read(i)
+            self.log.append(("read", i, v))
+            if v is None or not isinstance(v, int):
+                raise GripperTestError("서보 %d 회독이 None이다" % i)
+            vals[i] = v
+        for j in self._moving:
+            if not self._window[0] <= vals[j] <= self._window[1]:
+                raise GripperTestError("서보 %d 회독 %d가 승인 범위 밖이다" % (j, vals[j]))
+        self._start = dict(vals); self._cur = dict(vals)
+        return dict(vals)
+
+    def expected_targets(self):
+        """승인된 6축 목표 목록(첫 항목은 시작 읽기값). 움직일 서보는 계단, 나머지는 시작값 그대로."""
+        if self._start is None:
+            raise GripperTestError("시작값을 먼저 읽어야 한다")
+        s = self._start; k = self._dir; d = self._delta
+        if self._pattern == "hold":
+            return [tuple(s[i] for i in range(1, 7)), tuple(s[i] for i in range(1, 7))]
+        n = self._stairs
+        seq = [0] + list(range(1, n + 1)) + list(range(n - 1, -1, -1))
+        return [tuple((s[i] + k * d * m) if i in self._moving else s[i] for i in range(1, 7)) for m in seq]
+
+    def set_targets(self, targets):
+        if self._expected is not None:
+            raise GripperTestError("목표 목록은 한 번만 설정한다")
+        exp = self.expected_targets()
+        if [tuple(t) for t in targets] != exp:
+            raise GripperTestError("목표 목록이 승인된 패턴(%s)과 다르다" % self._pattern)
+        for t in exp:
+            for j in self._moving:
+                if not self._window[0] <= t[j - 1] <= self._window[1]:
+                    raise GripperTestError("목표가 승인 범위 밖이다")
+        self._expected = tuple(exp); self._next = 1
+
+    def confirm_hands_clear(self):
+        self._hands_clear = True
+
+    def _check_speed(self, target6, time_ms):
+        dist = max(abs(int(target6[i - 1]) - int(self._cur[i])) for i in range(1, 7))
+        if dist > self._max_move_deg:
+            raise GripperTestError("이동 폭 %d°가 1회 상한 %d°를 넘는다" % (dist, self._max_move_deg))
+        if time_ms < self._min_ms_per_deg * dist:
+            raise GripperTestError("이동 시간 %d ms가 %d ms/° × %d° = %d ms보다 짧다(동결 상한)" % (time_ms, self._min_ms_per_deg, dist, self._min_ms_per_deg * dist))
+
+    def move6(self, target6, time_ms):
+        if self._expected is None:
+            raise GripperTestError("목표 목록이 설정되지 않았다")
+        if not self._hands_clear:
+            raise GripperTestError("손 제거 확인이 없다")
+        if self._next >= len(self._expected):
+            raise GripperTestError("목표 목록을 모두 사용했다")
+        target6 = tuple(int(x) for x in target6)
+        if target6 != self._expected[self._next]:
+            raise GripperTestError("다음 승인된 6축 목표가 아니다")
+        if time_ms not in self._times:
+            raise GripperTestError("승인된 이동 시간이 아니다")
+        if self._first_min is not None and self._writes == 0 and time_ms < self._first_min:
+            raise GripperTestError("첫 이동은 %d ms 이상이어야 한다(동결 상한)" % self._first_min)
+        if self._writes >= self._max_writes:
+            raise GripperTestError("최대 쓰기 횟수를 넘는다")
+        self._check_speed(target6, time_ms)
+        self._hands_clear = False; self._writes += 1; self._next += 1
+        self._cur = {i: target6[i - 1] for i in range(1, 7)}
+        self.log.append(("write6", list(target6), time_ms, "dry_run" if self._dry_run else "real"))
+        if not self._dry_run:
+            self._arm.Arm_serial_servo_write6(*target6, time_ms)
+
+    def read_position(self, joint_id):
+        if joint_id not in range(1, 7):
+            raise GripperTestError("서보 id는 1~6이어야 한다")
+        v = self._arm.Arm_serial_servo_read(joint_id)
+        self.log.append(("read", joint_id, v))
+        return v
+
+    def return_to_start6(self, time_ms):
+        """중단 후 6축을 시작 읽기값으로 되돌리는 쓰기 1회. 손 제거 확인 필요, 쓰기 횟수에 포함, 쓰기 이력이 없으면 거부."""
+        if self._start is None:
+            raise GripperTestError("시작값이 없다")
+        if self._returned:
+            raise GripperTestError("복귀는 한 번만 가능하다")
+        if self._writes == 0:
+            raise GripperTestError("쓰기 이력이 없어 복귀가 필요 없다")
+        if not self._hands_clear:
+            raise GripperTestError("손 제거 확인이 없다")
+        if time_ms not in self._times:
+            raise GripperTestError("승인된 이동 시간이 아니다")
+        if self._writes >= self._max_writes:
+            raise GripperTestError("최대 쓰기 횟수를 넘는다")
+        target6 = tuple(self._start[i] for i in range(1, 7))
+        self._check_speed(target6, time_ms)
+        self._hands_clear = False; self._returned = True; self._writes += 1
+        self._cur = dict(self._start)
+        self.log.append(("write6", list(target6), time_ms, "dry_run" if self._dry_run else "real", "return_to_start"))
+        if not self._dry_run:
+            self._arm.Arm_serial_servo_write6(*target6, time_ms)
