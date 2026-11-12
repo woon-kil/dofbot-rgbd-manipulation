@@ -1,0 +1,235 @@
+{
+  "upright_tcp_mm": [
+    -0.6,
+    -2.1,
+    456.3
+  ],
+  "n_grid": 5929741,
+  "joint_limits_rad": {
+    "Arm1_Joint": [
+      -1.5708,
+      1.5708
+    ],
+    "Arm2_Joint": [
+      -1.5708,
+      1.5708
+    ],
+    "Arm3_Joint": [
+      -1.5708,
+      1.5708
+    ],
+    "Arm4_Joint": [
+      -1.5708,
+      1.5708
+    ],
+    "Arm5_Joint": [
+      -1.5708,
+      3.1416
+    ]
+  },
+  "assumption": "베이스 링크 원점 z=0을 작업대면으로 가정(R2 미검증). 간이 지면 제약(팔꿈치·손목·TCP가 0 이상), 충돌 모델 아님.",
+  "envelope_table": [
+    {
+      "tilt_max_deg": 15,
+      "z_range_mm": [
+        10,
+        30
+      ],
+      "s_min_mm": -195,
+      "s_max_mm": 203,
+      "n": 22197
+    },
+    {
+      "tilt_max_deg": 15,
+      "z_range_mm": [
+        30,
+        60
+      ],
+      "s_min_mm": -183,
+      "s_max_mm": 193,
+      "n": 13433
+    },
+    {
+      "tilt_max_deg": 15,
+      "z_range_mm": [
+        60,
+        100
+      ],
+      "s_min_mm": -135,
+      "s_max_mm": 153,
+      "n": 205
+    },
+    {
+      "tilt_max_deg": 15,
+      "z_range_mm": [
+        100,
+        200
+      ],
+      "s_min_mm": null,
+      "s_max_mm": null,
+      "n": 0
+    },
+    {
+      "tilt_max_deg": 30,
+      "z_range_mm": [
+        10,
+        30
+      ],
+      "s_min_mm": -241,
+      "s_max_mm": 248,
+      "n": 47061
+    },
+    {
+      "tilt_max_deg": 30,
+      "z_range_mm": [
+        30,
+        60
+      ],
+      "s_min_mm": -235,
+      "s_max_mm": 243,
+      "n": 47262
+    },
+    {
+      "tilt_max_deg": 30,
+      "z_range_mm": [
+        60,
+        100
+      ],
+      "s_min_mm": -221,
+      "s_max_mm": 229,
+      "n": 23285
+    },
+    {
+      "tilt_max_deg": 30,
+      "z_range_mm": [
+        100,
+        200
+      ],
+      "s_min_mm": 139,
+      "s_max_mm": 176,
+      "n": 44
+    },
+    {
+      "tilt_max_deg": 45,
+      "z_range_mm": [
+        10,
+        30
+      ],
+      "s_min_mm": -281,
+      "s_max_mm": 286,
+      "n": 73477
+    },
+    {
+      "tilt_max_deg": 45,
+      "z_range_mm": [
+        30,
+        60
+      ],
+      "s_min_mm": -278,
+      "s_max_mm": 284,
+      "n": 91258
+    },
+    {
+      "tilt_max_deg": 45,
+      "z_range_mm": [
+        60,
+        100
+      ],
+      "s_min_mm": -269,
+      "s_max_mm": 277,
+      "n": 83053
+    },
+    {
+      "tilt_max_deg": 45,
+      "z_range_mm": [
+        100,
+        200
+      ],
+      "s_min_mm": -247,
+      "s_max_mm": 256,
+      "n": 33248
+    },
+    {
+      "tilt_max_deg": 180,
+      "z_range_mm": [
+        10,
+        30
+      ],
+      "s_min_mm": -316,
+      "s_max_mm": 316,
+      "n": 117542
+    },
+    {
+      "tilt_max_deg": 180,
+      "z_range_mm": [
+        30,
+        60
+      ],
+      "s_min_mm": -326,
+      "s_max_mm": 326,
+      "n": 179973
+    },
+    {
+      "tilt_max_deg": 180,
+      "z_range_mm": [
+        60,
+        100
+      ],
+      "s_min_mm": -333,
+      "s_max_mm": 333,
+      "n": 255723
+    },
+    {
+      "tilt_max_deg": 180,
+      "z_range_mm": [
+        100,
+        200
+      ],
+      "s_min_mm": -334,
+      "s_max_mm": 334,
+      "n": 758550
+    }
+  ],
+  "max_forward_reach_mm_any_tilt_above_ground": 334,
+  "max_reach_to_table_z_le_30mm_any_tilt_mm": 316,
+  "mask_size_mm": [
+    248,
+    198
+  ],
+  "plane_fit": {
+    "n": 5000,
+    "residual_median_mm": 0.57,
+    "residual_p95_mm": 1.62
+  },
+  "mask_corner_distance_from_base_mm": {
+    "nominal": {
+      "좌상": 125,
+      "우상": 125,
+      "우하": 236,
+      "좌하": 244
+    },
+    "min_over_base_uncertainty": [
+      105,
+      107,
+      208,
+      214
+    ],
+    "max_over_base_uncertainty": [
+      150,
+      147,
+      265,
+      275
+    ],
+    "corner_order": [
+      "좌상",
+      "우상",
+      "우하",
+      "좌하"
+    ],
+    "base_pixel_assumed": [
+      690,
+      175
+    ],
+    "base_pixel_uncertainty_px": 20
+  }
+}

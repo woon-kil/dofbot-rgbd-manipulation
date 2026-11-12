@@ -1,0 +1,60 @@
+{
+  "r 125 (마스크 가까운 변)": {
+    "visible_fraction": 1.0,
+    "range_over_base_uncertainty": [
+      1.0,
+      1.0
+    ]
+  },
+  "r 203 (접근 기울기 ≤15°, 높이 10~30 mm)": {
+    "visible_fraction": 1.0,
+    "range_over_base_uncertainty": [
+      1.0,
+      1.0
+    ]
+  },
+  "r 248 (≤30°)": {
+    "visible_fraction": 1.0,
+    "range_over_base_uncertainty": [
+      0.89,
+      1.0
+    ]
+  },
+  "r 286 (≤45°)": {
+    "visible_fraction": 0.86,
+    "range_over_base_uncertainty": [
+      0.8,
+      0.95
+    ]
+  },
+  "r 316 (제약 없음, 높이 10~30 mm)": {
+    "visible_fraction": 0.8,
+    "range_over_base_uncertainty": [
+      0.76,
+      0.85
+    ]
+  },
+  "mask_area_within_reach_radius": {
+    "R203": {
+      "mask_area_fraction_within": 0.86,
+      "range_over_base_uncertainty": [
+        0.71,
+        0.98
+      ]
+    },
+    "R248": {
+      "mask_area_fraction_within": 1.0,
+      "range_over_base_uncertainty": [
+        0.97,
+        1.0
+      ]
+    },
+    "R286": {
+      "mask_area_fraction_within": 1.0,
+      "range_over_base_uncertainty": [
+        1.0,
+        1.0
+      ]
+    }
+  }
+}
