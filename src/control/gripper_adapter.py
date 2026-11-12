@@ -1,4 +1,4 @@
-"""G01.5a/b 단일 서보 시험 명령 어댑터(그리퍼 id 6, G01.5b-1 손목 회전 id 5, G01.5b-2 밑동 회전 id 1). 하드웨어에 직접 연결하지 않는다.
+"""G01.5a/b 단일 서보 시험 명령 어댑터(그리퍼 id 6, G01.5b-1 손목 회전 id 5, G01.5b-2 밑동 회전 id 1, G01.5b-3 피치 관절 id 2~4). 하드웨어에 직접 연결하지 않는다.
 
 SDK 소스(Arm_Lib.py)에서 확인한 사실: Arm_serial_servo_write에는 각도 범위 검사가 없고 id 0은 6개 서보 전체 쓰기다.
 그래서 이 어댑터는 id를 6으로 고정하고(인자로 받지 않음), 승인된 절대 목표 목록·시간·횟수만 허용한다.
@@ -6,8 +6,8 @@ SDK 소스(Arm_Lib.py)에서 확인한 사실: Arm_serial_servo_write에는 각�
 import datetime
 
 GRIPPER_ID = 6
-# 이 어댑터가 허용하는 서보와 SDK 각도 범위(Arm_Lib.py 원문). J2~J4(id 2~4)는 각각의 승인 문서가 있기 전에는 코드로 거부한다(J1은 G01.5b-2 시험용으로 허용하며 실제 실행은 시험 당일 확인 문구 입력 때만 가능하다).
-ALLOWED_JOINTS = {1: (0, 180), 5: (0, 270), 6: (0, 180)}
+# 이 어댑터가 허용하는 서보와 SDK 각도 범위(Arm_Lib.py 원문). id 0(6개 서보 전체)과 1~6 밖은 코드로 거부한다. J2~J4(id 2~4, 중력 하중이 걸리는 피치 관절)는 G01.5b-3 시험용으로 허용하며 실제 실행은 관절별 시험 당일 확인 문구 입력 때만 가능하다.
+ALLOWED_JOINTS = {1: (0, 180), 2: (0, 180), 3: (0, 180), 4: (0, 180), 5: (0, 270), 6: (0, 180)}
 
 
 class GripperTestError(Exception):
@@ -27,6 +27,11 @@ class GripperTestAdapter:
         if not self._times or any(t < 1500 for t in self._times):
             raise GripperTestError("허용 이동 시간은 1500 ms 이상이어야 한다")
         self._max_writes = int(approval["max_writes"])
+        # 동결 상한의 "첫 이동" 규칙(ADR-005): 첫 쓰기의 이동 시간이 이 값보다 짧으면 거부한다. 승인 객체에 키가 없으면 검사하지 않는다(G01.5a 그리퍼 시험도 이 규칙을 적용하지 않았다. 목적이 단위 실측이었다는 사정이 있었으나 이탈이 아니었다고 하지 않는다).
+        fm = approval.get("first_move_min_ms")
+        self._first_min = int(fm) if fm is not None else None
+        if self._first_min is not None and self._first_min not in self._times:
+            raise GripperTestError("first_move_min_ms는 허용 이동 시간 목록에 있어야 한다")
         self._delta = int(approval["delta_deg"])
         if self._delta <= 0:
             raise GripperTestError("소각도는 양수여야 한다")
@@ -96,6 +101,8 @@ class GripperTestAdapter:
             raise GripperTestError("다음 승인된 절대 목표가 아니다")
         if time_ms not in self._times:
             raise GripperTestError("승인된 이동 시간이 아니다")
+        if self._first_min is not None and self._writes == 0 and time_ms < self._first_min:
+            raise GripperTestError("첫 이동은 %d ms 이상이어야 한다(동결 상한)" % self._first_min)
         if self._writes >= self._max_writes:
             raise GripperTestError("최대 쓰기 횟수를 넘는다")
         self._hands_clear = False

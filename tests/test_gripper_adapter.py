@@ -119,7 +119,7 @@ class TestJoint5(unittest.TestCase):
         arm, ad = self.wrist(); ad.confirm_hands_clear(); ad.move(95, 1500)
         self.assertEqual(arm.writes, [(5, 95, 1500)])
     def test_disallowed_joint_ids_rejected(self):
-        for jid in (0, 2, 3, 4, 7):
+        for jid in (0, 7, -1, 8):
             with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=jid), today=TODAY)
     def test_window_enforced_on_start(self):
         ad = GripperTestAdapter(FakeArm(130), approval(joint_id=5, direction=1, angle_window=[60, 120]), today=TODAY)
@@ -164,8 +164,36 @@ class TestJoint1Pair(unittest.TestCase):
     def test_pair_order_enforced(self):
         arm, ad = self.base(); ad.confirm_hands_clear()
         with self.assertRaises(GripperTestError): ad.move(90, 1500)   # 첫 이동은 S+Δ
-    def test_joints_2_3_4_still_rejected(self):
+    def test_joints_2_3_4_allowed_with_window(self):
         for jid in (2, 3, 4):
-            with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=jid, pattern="pair"), today=TODAY)
+            arm = FakeArm(90); ad = GripperTestAdapter(arm, approval(joint_id=jid, direction=1, angle_window=[80, 100], pattern="pair"), today=TODAY, dry_run=False)
+            s = ad.read_start(); ad.set_targets([s, s + 5, s, s + 5, s]); ad.confirm_hands_clear(); ad.move(95, 1500)
+            self.assertEqual(arm.writes, [(jid, 95, 1500)])
+    def test_pitch_joint_window_enforced(self):
+        for jid in (2, 3, 4):
+            ad = GripperTestAdapter(FakeArm(105), approval(joint_id=jid, direction=1, angle_window=[80, 100], pattern="pair"), today=TODAY)
+            with self.assertRaises(GripperTestError): ad.read_start()
+    def test_pitch_joint_cannot_leave_window_via_targets(self):
+        ad = GripperTestAdapter(FakeArm(98), approval(joint_id=3, direction=1, angle_window=[80, 100], pattern="pair"), today=TODAY); s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s, s + 5, s, s + 5, s])   # 103 > 100
+
+
+class TestFirstMove(unittest.TestCase):
+    def pitch(self, **kw):
+        arm = FakeArm(90)
+        ad = GripperTestAdapter(arm, approval(joint_id=4, direction=1, angle_window=[80, 100], pattern="pair", allowed_times_ms=[1500, 8000], first_move_min_ms=8000, **kw), today=TODAY, dry_run=False)
+        s = ad.read_start(); ad.set_targets([s, s + 5, s, s + 5, s]); return arm, ad
+    def test_first_write_1500_rejected(self):
+        arm, ad = self.pitch(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move(95, 1500)
+        self.assertEqual(arm.writes, [])
+    def test_first_write_8000_then_1500_allowed(self):
+        arm, ad = self.pitch(); ad.confirm_hands_clear(); ad.move(95, 8000); ad.confirm_hands_clear(); ad.move(90, 1500)
+        self.assertEqual(arm.writes, [(4, 95, 8000), (4, 90, 1500)])
+    def test_first_move_min_must_be_in_allowed_times(self):
+        with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(90), approval(joint_id=4, allowed_times_ms=[1500], first_move_min_ms=8000), today=TODAY)
+    def test_no_first_move_rule_when_key_absent(self):
+        arm, ad = ready(); ad.confirm_hands_clear(); ad.move(95, 1500)   # 그리퍼 G01.5a 경로(키 없음)는 기존 동작
+        self.assertEqual(arm.writes, [(6, 95, 1500)])
 
 if __name__ == '__main__': unittest.main()
