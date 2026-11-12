@@ -304,4 +304,42 @@ class TestSixServo(unittest.TestCase):
         arm, ad = self.six(); self.go(ad, 1, 8000)   # FakeArm6는 Arm_serial_servo_write를 호출하면 AssertionError
         self.assertEqual(len(arm.w6), 1)
 
+class TestListPattern(unittest.TestCase):
+    """S4-2: 명시 목표 목록 패턴. 목록이 안전한지는 판단하지 않고(계획 단계 FK 게이트), 이동마다 폭·속도·범위·시간·횟수만 코드로 강제한다."""
+    def lst(self, targets, s=91, joint=1, window=(70, 110), times=(1500, 3000), **kw):
+        arm = FakeArm(s)
+        ad = GripperTestAdapter(arm, approval(joint_id=joint, delta_deg=1, pattern="list", direction=1, angle_window=list(window), allowed_times_ms=list(times), max_writes=10, **kw), today=TODAY, dry_run=False)
+        s0 = ad.read_start(); ad.set_targets(targets); return arm, ad
+    def go(self, ad, tgt, ms): ad.confirm_hands_clear(); ad.move(tgt, ms)
+    def test_list_sequence_runs(self):
+        arm, ad = self.lst([91, 96, 86, 91]); self.go(ad, 96, 1500); self.go(ad, 86, 3000); self.go(ad, 91, 1500)
+        self.assertEqual([w[1] for w in arm.writes], [96, 86, 91]); self.assertTrue(all(w[0] == 1 for w in arm.writes))
+    def test_first_must_equal_start(self):
+        arm = FakeArm(91); ad = GripperTestAdapter(arm, approval(joint_id=1, delta_deg=1, pattern="list", angle_window=[70, 110], allowed_times_ms=[1500], max_writes=5), today=TODAY)
+        ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([90, 95])
+    def test_move_over_90_in_list_rejected(self):
+        arm = FakeArm(100); ad = GripperTestAdapter(arm, approval(joint_id=1, delta_deg=1, pattern="list", angle_window=[0, 180], allowed_times_ms=[8000], max_writes=5), today=TODAY)
+        ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([100, 5])   # 95° 한 번 이동 거부
+    def test_target_outside_window_rejected(self):
+        arm = FakeArm(91); ad = GripperTestAdapter(arm, approval(joint_id=1, delta_deg=1, pattern="list", angle_window=[80, 100], allowed_times_ms=[1500], max_writes=5), today=TODAY)
+        ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([91, 105])
+    def test_speed_limit_enforced(self):
+        arm, ad = self.lst([91, 131, 91], window=(30, 150)); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move(131, 1500)   # 40° / 1500 ms = 37.5 ms/° < 60
+        self.assertEqual(arm.writes, [])
+        ad.confirm_hands_clear(); ad.move(131, 3000)                    # 75 ms/° 허용
+        self.assertEqual(len(arm.writes), 1)
+    def test_order_enforced(self):
+        arm, ad = self.lst([91, 96, 86]); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move(86, 1500)
+    def test_time_enforced(self):
+        arm, ad = self.lst([91, 96]); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move(96, 2000)
+    def test_return_to_start_works_after_write(self):
+        arm, ad = self.lst([91, 96, 101]); self.go(ad, 96, 1500); ad.confirm_hands_clear(); ad.return_to_start(3000)
+        self.assertEqual(arm.writes[-1], (1, 91, 3000))
+
 if __name__ == '__main__': unittest.main()

@@ -47,8 +47,8 @@ class GripperTestAdapter:
         if not 0 <= self._window[0] < self._window[1] <= self._max_deg:
             raise GripperTestError("angle_window가 SDK 범위 밖이다")
         self._pattern = approval.get("pattern", "ramp")
-        if self._pattern not in ("ramp", "pair", "stair"):
-            raise GripperTestError("pattern은 ramp, pair, stair 중 하나여야 한다")
+        if self._pattern not in ("ramp", "pair", "stair", "list"):
+            raise GripperTestError("pattern은 ramp, pair, stair, list 중 하나여야 한다")
         self._stairs = int(approval.get("stair_steps", 0))
         if self._pattern == "stair" and self._stairs < 1:
             raise GripperTestError("stair 패턴은 stair_steps >= 1이 필요하다")
@@ -86,7 +86,15 @@ class GripperTestAdapter:
             raise GripperTestError("목표 목록은 한 번만 설정한다")
         s, d = self._start, self._delta
         k = self._dir
-        if self._pattern == "ramp": expected = [s, s + k * d, s + 2 * k * d, s]
+        if self._pattern == "list":
+            # 명시 목표 목록(S4-2): 사용자·계획이 확인한 절대 목록. 첫 항목은 시작 읽기값 S여야 하고, 이동마다 폭·속도·범위 검사는 move()가 한다.
+            lst = [int(x) for x in targets]
+            if len(lst) < 2 or lst[0] != s:
+                raise GripperTestError("list 패턴의 첫 목표는 시작 읽기값이어야 하고 목표가 하나 이상 있어야 한다")
+            if any(abs(lst[i + 1] - lst[i]) > self._max_move_deg for i in range(len(lst) - 1)):
+                raise GripperTestError("list 패턴의 이동 폭이 1회 상한을 넘는다")
+            expected = lst
+        elif self._pattern == "ramp": expected = [s, s + k * d, s + 2 * k * d, s]
         elif self._pattern == "pair": expected = [s, s + k * d, s, s + k * d, s]
         else:   # stair: S에서 Δ씩 n단계 접고 같은 계단으로 S까지 되돌린다
             n = self._stairs; expected = [s] + [s + k * d * i for i in range(1, n + 1)] + [s + k * d * i for i in range(n - 1, -1, -1)]
