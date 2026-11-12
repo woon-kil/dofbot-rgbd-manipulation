@@ -1,0 +1,36 @@
+{
+ "7": {
+  "q_pilot": [
+   85,
+   93,
+   13,
+   11
+  ],
+  "q_new": [
+   85,
+   93,
+   14,
+   11
+  ],
+  "readback_identical": false,
+  "base_origin_diff_mm": 2.61,
+  "camera_frame_tvec_diff_mm": null
+ },
+ "5": {
+  "q_pilot": [
+   89,
+   104,
+   10,
+   11
+  ],
+  "q_new": [
+   90,
+   104,
+   10,
+   11
+  ],
+  "readback_identical": false,
+  "base_origin_diff_mm": 0.9,
+  "camera_frame_tvec_diff_mm": null
+ }
+}
