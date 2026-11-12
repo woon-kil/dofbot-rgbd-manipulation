@@ -33,5 +33,10 @@
   "board_print_surface_z_rel_plate_top_mm": -10.2,
   "board_print_surface_z_rel_paper_mm": 0.8
  },
- "uncertainty_note": "손 측정 ±1 mm 가정(불확도 미기록). 사진 위 기준선 위치와 하우징 앞뒤 면 평평함은 사용자 확인 답이 없음."
+ "uncertainty_note": "손 측정 ±1 mm 가정(불확도 미기록). 사진 위 기준선 위치와 하우징 앞뒤 면 평평함은 사용자 확인 답이 없음.",
+ "confirmed": {
+  "date": "2026-11-13",
+  "by": "사용자",
+  "items": "A선·B선 위치 맞음, 하우징은 육각(앞면 평평), 사진 위 J1 표시(앞면 41 mm 뒤)가 회전축 중심으로 보임 — 사용자 확인"
+ }
 }
