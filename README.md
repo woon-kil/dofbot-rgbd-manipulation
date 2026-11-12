@@ -9,7 +9,7 @@ DOFBOT Pro + 말단 DaBai RGB-D (eye-in-hand) + **고정 Orbbec Gemini 335L (eye
 2. G03~G05: Gemini base 외부 보정, DaBai hand-eye 보정, 두 좌표계 교차 검증 (승인된 보정 자세 목록에 한한 저속 이동, ADR-005 결정 1-B).
 3. G06: 5축 도달성/충돌 dry-run. G07: 운영자 승인 후 단일 시나리오 저속 P&P. G08: 듀얼 카메라 검증/실패 복구. (정의는 `docs/gates/roadmap.md`가 정본)
 
-> **결정:** 팔 자세는 보정용 저속 이동으로 확보한다(ADR-005 결정 1-B). 이동은 G01.5 안전 승인 전에는 금지이며 안전 상한 수치는 아직 없다. Gemini 베이스 기준 방식은 순서대로 시험해 처음 합격한 방식을 채택한다(결정 2). **미결:** G06 이전 충돌 검사 범위(`docs/adr/ADR-005-pose-and-datum.md`, PROPOSED).
+> **결정:** 팔 자세는 보정용 저속 이동으로 확보한다(ADR-005 결정 1-B). 이동은 G01.5a(소각도 시험) 승인 전에는 금지이며 안전 상한은 소각도 실측 후 G01.5b에서 동결한다. Gemini 베이스 기준은 순서대로 시험해 처음 합격한 방식을 채택하고(결정 2), G06 이전 충돌 검사는 간이 검사(3-A, 결정 3), 합격 임계값은 G03 시험 전 동결, P&P 반복은 30회 실패 0건이다(결정 4). 상세: `docs/adr/ADR-005-pose-and-datum.md`.
 
 ## 필수 문서
 - `docs/architecture/system-design.md`: 통합 아키텍처 및 변환 그래프
@@ -23,3 +23,6 @@ DOFBOT Pro + 말단 DaBai RGB-D (eye-in-hand) + **고정 Orbbec Gemini 335L (eye
 `python3 scripts/validate_design.py` (하드웨어 명령 없음). `python3 -m unittest discover -s tests -v`.
 
 **중요:** `configs/project.example.json`은 안전한 예시 설정이다. 보정 결과나 로봇 실기기 동작을 의미하지 않는다. 실물 테스트는 안전 확보 및 승인 후 별도 진행.
+
+## 라이선스
+MIT (`LICENSE`).
