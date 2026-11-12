@@ -55,7 +55,7 @@
 - [x] `src/transforms/se3.py`: 강체 검증(직교성·det), `inverse`
 - [x] 비자명 회전·역변환·반사 거부 테스트
 - [x] `scripts/validate_design.py`: 필수 파일 + README 링크 검사
-- [~] control: 그리퍼 시험 어댑터 작성(하드웨어 미연결). camera / perception / calibration / kinematics / planning / verification은 빈 패키지
+- [~] control: 단일 서보 시험 어댑터(id 5·6, 하드웨어 미연결, 테스트 44개). camera / perception / calibration / kinematics / planning / verification은 빈 패키지
 - [ ] 의존성 고정(Python 버전, SDK 버전)
 
 ### 실기기 Gate (모두 미수행)
@@ -63,7 +63,7 @@
 - [~] G00 장치 인벤토리: **읽기 전용 범위 완료 (PARTIAL_READONLY)**. 이월: 관절 회독 길이·서보별 움직임·FK 검증·토크 해제 회독·`time` 단위 확정(G02), Gemini 펌웨어(G01)
 - [ ] G01 두 RGB-D 취득, Gemini 시야 (깊이 스트림 해상도·시차 탐색 폭·정합 모드·유효율 기록)
 - [x] G01.5a 소각도 시험 **완료(PROVISIONAL)**: 복귀 확인 dry_run 통과(회독 99, 잔차 1°): 승인 문서 초안(`docs/gates/G01.5a-승인-문서-초안.md`)과 어댑터(`src/control/gripper_adapter.py`, 단위 테스트 통과) 작성. 시험 스크립트(`scripts/g01_5a_run.sh`, 가짜 서보 실패 경로 시험 통과, 어댑터 테스트 36개)까지 작성. 중단 후 S 복귀 허용: **결정 A(기본 N, 운영자 y일 때 1회)**. dry_run 통과, **실제 시험 완료(2026-11-12 11:43): `time` 단위=ms, 개방 방향=각도 감소, 대응표 3점 확보**(`docs/261112-1154-G01.5a-실제-시험-결과보고서.md`). 복귀 후 위치 미검증. G01.5b 상한 동결(이전 값 승계)·설계 개방 각도 100 **결정 완료**. 복귀 후 회독 99(잔차 1°)로 확인. (이전 항목: 사용자 입회 `--real`, 전원 차단 담당·낙하 받침 확인
-- [ ] G01.5b 보정 이동 안전 승인
+- [~] G01.5b 보정 이동 안전 승인: 단계 분할(b-1 J5, b-2 J1, b-3 J2~J4, b-4 자세 목록). **b-1 승인 문서 초안 작성**(`docs/gates/G01.5b-1-승인-문서-초안.md`, 사용자 [ ] 확인 대기), 어댑터 id 5·6 확장(단위 테스트 44개). 남은 것: b-1 시험 스크립트(복귀 후 회독 포함), 사용자 값 확인
 - [x] 도달 포락선 산정(URDF 이론값, 실물 이동 없음)
 - [x] 시험 영역·파지 접근 기울기 한도: **결정 A (≤15°, 시험 영역 ⊂ 마스크 ∩ 이론 반경 약 203 mm 안쪽)**, 안쪽 여유 폭은 G02·G03 후 — `docs/adr/ADR-007-approach-tilt-and-test-area.md`
 - [ ] G02 회독↔FK/URDF 검증

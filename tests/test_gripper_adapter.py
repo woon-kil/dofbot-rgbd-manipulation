@@ -109,4 +109,34 @@ class TestAdapter(unittest.TestCase):
         arm, ad = ready(dry_run=True); ad.confirm_hands_clear(); ad.move(95, 1500); ad.confirm_hands_clear(); ad.return_to_start(1500)
         self.assertEqual(arm.writes, [])
 
+
+class TestJoint5(unittest.TestCase):
+    def wrist(self, value=90, **kw):
+        arm = FakeArm(value)
+        ad = GripperTestAdapter(arm, approval(joint_id=5, direction=1, angle_window=[60, 120], **kw), today=TODAY, dry_run=False)
+        s = ad.read_start(); ad.set_targets([s, s + 5, s + 10, s]); return arm, ad
+    def test_wrist_moves_servo5_only(self):
+        arm, ad = self.wrist(); ad.confirm_hands_clear(); ad.move(95, 1500)
+        self.assertEqual(arm.writes, [(5, 95, 1500)])
+    def test_disallowed_joint_ids_rejected(self):
+        for jid in (0, 1, 2, 3, 4, 7):
+            with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=jid), today=TODAY)
+    def test_window_enforced_on_start(self):
+        ad = GripperTestAdapter(FakeArm(130), approval(joint_id=5, direction=1, angle_window=[60, 120]), today=TODAY)
+        with self.assertRaises(GripperTestError): ad.read_start()
+    def test_window_enforced_on_targets(self):
+        ad = GripperTestAdapter(FakeArm(115), approval(joint_id=5, direction=1, angle_window=[60, 120]), today=TODAY); s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s, s + 5, s + 10, s])   # 125 > 120
+    def test_window_outside_sdk_range_rejected(self):
+        with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=5, angle_window=[0, 300]), today=TODAY)
+    def test_direction_negative_formula(self):
+        arm = FakeArm(90); ad = GripperTestAdapter(arm, approval(joint_id=5, direction=-1, angle_window=[60, 120]), today=TODAY); s = ad.read_start()
+        ad.set_targets([s, s - 5, s - 10, s])
+    def test_wrong_direction_list_rejected(self):
+        ad = GripperTestAdapter(FakeArm(90), approval(joint_id=5, direction=1, angle_window=[60, 120]), today=TODAY); s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s, s - 5, s - 10, s])
+    def test_return_uses_joint5(self):
+        arm, ad = self.wrist(); ad.confirm_hands_clear(); ad.move(95, 1500); ad.confirm_hands_clear(); ad.return_to_start(1500)
+        self.assertEqual(arm.writes, [(5, 95, 1500), (5, 90, 1500)])
+
 if __name__ == '__main__': unittest.main()

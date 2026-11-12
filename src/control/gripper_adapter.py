@@ -1,4 +1,4 @@
-"""G01.5a 그리퍼(서보 id 6) 시험 명령 어댑터. 하드웨어에 직접 연결하지 않는다.
+"""G01.5a/b 단일 서보 시험 명령 어댑터(그리퍼 id 6, G01.5b-1 손목 회전 id 5). 하드웨어에 직접 연결하지 않는다.
 
 SDK 소스(Arm_Lib.py)에서 확인한 사실: Arm_serial_servo_write에는 각도 범위 검사가 없고 id 0은 6개 서보 전체 쓰기다.
 그래서 이 어댑터는 id를 6으로 고정하고(인자로 받지 않음), 승인된 절대 목표 목록·시간·횟수만 허용한다.
@@ -6,6 +6,8 @@ SDK 소스(Arm_Lib.py)에서 확인한 사실: Arm_serial_servo_write에는 각�
 import datetime
 
 GRIPPER_ID = 6
+# 이 어댑터가 허용하는 서보와 SDK 각도 범위(Arm_Lib.py 원문). J1~J4(id 1~4)는 각각의 승인 문서가 있기 전에는 코드로 거부한다.
+ALLOWED_JOINTS = {5: (0, 270), 6: (0, 180)}
 
 
 class GripperTestError(Exception):
@@ -28,6 +30,17 @@ class GripperTestAdapter:
         self._delta = int(approval["delta_deg"])
         if self._delta <= 0:
             raise GripperTestError("소각도는 양수여야 한다")
+        self._id = int(approval.get("joint_id", GRIPPER_ID))
+        if self._id not in ALLOWED_JOINTS:
+            raise GripperTestError("허용되지 않은 서보 id: %r" % self._id)
+        self._max_deg = ALLOWED_JOINTS[self._id][1]
+        self._dir = int(approval.get("direction", -1))
+        if self._dir not in (-1, 1):
+            raise GripperTestError("direction은 -1 또는 +1이어야 한다")
+        window = approval.get("angle_window")
+        self._window = (int(window[0]), int(window[1])) if window else (0, self._max_deg)
+        if not 0 <= self._window[0] < self._window[1] <= self._max_deg:
+            raise GripperTestError("angle_window가 SDK 범위 밖이다")
         self._start = None
         self._targets = None
         self._next = 0
@@ -40,12 +53,12 @@ class GripperTestAdapter:
         """시작값 S를 한 번 읽는다(이전 프로젝트 규칙 5의 명시적 예외 1건). None이면 중단."""
         if self._start is not None:
             raise GripperTestError("시작값은 한 번만 읽는다")
-        value = self._arm.Arm_serial_servo_read(GRIPPER_ID)
+        value = self._arm.Arm_serial_servo_read(self._id)
         self.log.append(("read", value))
         if value is None:
             raise GripperTestError("회독이 None이다")
-        if not isinstance(value, int) or not 0 <= value <= 180:
-            raise GripperTestError("회독 값이 범위 밖이다")
+        if not isinstance(value, int) or not self._window[0] <= value <= self._window[1]:
+            raise GripperTestError("회독 값이 승인 범위 밖이다")
         self._start = value
         return value
 
@@ -56,10 +69,11 @@ class GripperTestAdapter:
         if self._targets is not None:
             raise GripperTestError("목표 목록은 한 번만 설정한다")
         s, d = self._start, self._delta
-        if list(targets) != [s, s - d, s - 2 * d, s]:
-            raise GripperTestError("목표 목록이 S, S-Δ, S-2Δ, S와 다르다")
-        if any(not 0 <= t <= 180 for t in targets):
-            raise GripperTestError("목표가 0~180 밖이다")
+        k = self._dir
+        if list(targets) != [s, s + k * d, s + 2 * k * d, s]:
+            raise GripperTestError("목표 목록이 S, S±Δ, S±2Δ, S와 다르다")
+        if any(not self._window[0] <= t <= self._window[1] for t in targets):
+            raise GripperTestError("목표가 승인 범위 밖이다")
         self._targets = tuple(targets)
         self._next = 1  # 첫 값 S는 현재 위치(측정만, 쓰지 않음). 쓰기는 두 번째 값부터
 
@@ -85,11 +99,11 @@ class GripperTestAdapter:
         self._next += 1
         self.log.append(("write", target, time_ms, "dry_run" if self._dry_run else "real"))
         if not self._dry_run:
-            self._arm.Arm_serial_servo_write(GRIPPER_ID, target, time_ms)
+            self._arm.Arm_serial_servo_write(self._id, target, time_ms)
 
     def read_position(self):
         """도착 확인용 회독(서보 6만)."""
-        value = self._arm.Arm_serial_servo_read(GRIPPER_ID)
+        value = self._arm.Arm_serial_servo_read(self._id)
         self.log.append(("read", value))
         return value
 
@@ -113,4 +127,7 @@ class GripperTestAdapter:
         self._writes += 1
         self.log.append(("write", self._start, time_ms, "dry_run" if self._dry_run else "real", "return_to_start"))
         if not self._dry_run:
-            self._arm.Arm_serial_servo_write(GRIPPER_ID, self._start, time_ms)
+            self._arm.Arm_serial_servo_write(self._id, self._start, time_ms)
+
+
+JointTestAdapter = GripperTestAdapter   # 일반 이름(허용 id는 ALLOWED_JOINTS)
