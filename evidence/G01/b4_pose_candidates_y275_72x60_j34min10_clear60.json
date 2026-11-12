@@ -1,0 +1,558 @@
+{
+ "version": "v1-draft",
+ "clear_mm": 60.0,
+ "board": {
+  "center_y_mm": 275.0,
+  "w_mm": 72.0,
+  "h_mm": 60.0
+ },
+ "n_candidates": 380,
+ "model_assumptions": "q=SDK-90, 베이스 +y 사용자 쪽, DaBai 광축 Arm4 +Y, 보드 중심 (0, BOARD_Y, 3) mm, 모델값 UNVERIFIED",
+ "rotation_svd": [
+  3.1908277798177207,
+  1.5019500996917743,
+  0.1659268480249461
+ ],
+ "poses": [
+  {
+   "sdk_deg": [
+    90,
+    85,
+    20,
+    15,
+    90
+   ],
+   "dabai_pos_mm": [
+    -0.8,
+    165.5,
+    192.1
+   ],
+   "board_depth_mm": 219,
+   "view_angle_deg": 30.5,
+   "min_clearance_mm": 81.9,
+   "tcp_mm": [
+    -0.6,
+    173.2,
+    81.9
+   ],
+   "path_min_clearance_mm": 81.9,
+   "max_joint_change_deg": 75,
+   "corner_px_min_margin": 177.8,
+   "id": 0,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    105,
+    105,
+    10,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -35.6,
+    129.8,
+    210.1
+   ],
+   "board_depth_mm": 245,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 101.0,
+   "tcp_mm": [
+    -39.9,
+    146.5,
+    101.0
+   ],
+   "path_min_clearance_mm": 101.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 110.7,
+   "id": 1,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    75,
+    105,
+    10,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    34.1,
+    130.2,
+    210.1
+   ],
+   "board_depth_mm": 245,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 101.0,
+   "tcp_mm": [
+    38.7,
+    146.8,
+    101.0
+   ],
+   "path_min_clearance_mm": 101.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 103.9,
+   "id": 2,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    80,
+    55,
+    50,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    34.4,
+    199.6,
+    170.7
+   ],
+   "board_depth_mm": 181,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 60.3,
+   "tcp_mm": [
+    34.2,
+    197.6,
+    60.3
+   ],
+   "path_min_clearance_mm": 60.3,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 91.5,
+   "id": 3,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    100,
+    55,
+    50,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -36.0,
+    199.3,
+    170.7
+   ],
+   "board_depth_mm": 181,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 60.3,
+   "tcp_mm": [
+    -35.4,
+    197.4,
+    60.3
+   ],
+   "path_min_clearance_mm": 60.3,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 96.7,
+   "id": 4,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    100,
+    95,
+    10,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -26.5,
+    145.4,
+    185.4
+   ],
+   "board_depth_mm": 218,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 75.0,
+   "tcp_mm": [
+    -25.9,
+    143.5,
+    75.0
+   ],
+   "path_min_clearance_mm": 75.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 104.2,
+   "id": 5,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    80,
+    95,
+    10,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    24.9,
+    145.7,
+    185.4
+   ],
+   "board_depth_mm": 218,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 75.0,
+   "tcp_mm": [
+    24.7,
+    143.7,
+    75.0
+   ],
+   "path_min_clearance_mm": 75.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 104.2,
+   "id": 6,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    80,
+    80,
+    20,
+    25,
+    90
+   ],
+   "dabai_pos_mm": [
+    29.9,
+    174.4,
+    191.1
+   ],
+   "board_depth_mm": 208,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 82.0,
+   "tcp_mm": [
+    33.1,
+    191.3,
+    82.0
+   ],
+   "path_min_clearance_mm": 82.0,
+   "max_joint_change_deg": 70,
+   "corner_px_min_margin": 83.8,
+   "id": 7,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    100,
+    80,
+    20,
+    25,
+    90
+   ],
+   "dabai_pos_mm": [
+    -31.5,
+    174.1,
+    191.1
+   ],
+   "board_depth_mm": 208,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 82.0,
+   "tcp_mm": [
+    -34.3,
+    191.1,
+    82.0
+   ],
+   "path_min_clearance_mm": 82.0,
+   "max_joint_change_deg": 70,
+   "corner_px_min_margin": 83.8,
+   "id": 8,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    95,
+    105,
+    10,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -12.5,
+    134.0,
+    210.1
+   ],
+   "board_depth_mm": 250,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 101.0,
+   "tcp_mm": [
+    -13.8,
+    151.2,
+    101.0
+   ],
+   "path_min_clearance_mm": 101.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 172.5,
+   "id": 9,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    85,
+    105,
+    10,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    10.9,
+    134.2,
+    210.1
+   ],
+   "board_depth_mm": 250,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 101.0,
+   "tcp_mm": [
+    12.6,
+    151.3,
+    101.0
+   ],
+   "path_min_clearance_mm": 101.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 172.5,
+   "id": 10,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    90,
+    55,
+    50,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -0.8,
+    202.5,
+    170.7
+   ],
+   "board_depth_mm": 183,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 60.3,
+   "tcp_mm": [
+    -0.6,
+    200.6,
+    60.3
+   ],
+   "path_min_clearance_mm": 60.3,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 147.0,
+   "id": 11,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    85,
+    60,
+    50,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    16.4,
+    196.9,
+    188.2
+   ],
+   "board_depth_mm": 198,
+   "view_angle_deg": 30.5,
+   "min_clearance_mm": 78.0,
+   "tcp_mm": [
+    17.3,
+    204.5,
+    78.0
+   ],
+   "path_min_clearance_mm": 78.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 93.2,
+   "id": 12,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    95,
+    60,
+    50,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -18.0,
+    196.7,
+    188.2
+   ],
+   "board_depth_mm": 198,
+   "view_angle_deg": 30.5,
+   "min_clearance_mm": 78.0,
+   "tcp_mm": [
+    -18.5,
+    204.4,
+    78.0
+   ],
+   "path_min_clearance_mm": 78.0,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 93.2,
+   "id": 13,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    90,
+    70,
+    20,
+    35,
+    90
+   ],
+   "dabai_pos_mm": [
+    -0.8,
+    192.2,
+    172.9
+   ],
+   "board_depth_mm": 186,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 63.8,
+   "tcp_mm": [
+    -0.6,
+    209.4,
+    63.8
+   ],
+   "path_min_clearance_mm": 63.8,
+   "max_joint_change_deg": 70,
+   "corner_px_min_margin": 84.9,
+   "id": 14,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    75,
+    85,
+    25,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    41.5,
+    158.0,
+    199.0
+   ],
+   "board_depth_mm": 221,
+   "view_angle_deg": 30.5,
+   "min_clearance_mm": 88.8,
+   "tcp_mm": [
+    43.7,
+    165.3,
+    88.8
+   ],
+   "path_min_clearance_mm": 88.8,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 80.7,
+   "id": 15,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    105,
+    85,
+    25,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    -43.0,
+    157.6,
+    199.0
+   ],
+   "board_depth_mm": 221,
+   "view_angle_deg": 30.5,
+   "min_clearance_mm": 88.8,
+   "tcp_mm": [
+    -44.8,
+    165.0,
+    88.8
+   ],
+   "path_min_clearance_mm": 88.8,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 87.2,
+   "id": 16,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    85,
+    80,
+    20,
+    15,
+    90
+   ],
+   "dabai_pos_mm": [
+    14.1,
+    170.4,
+    177.4
+   ],
+   "board_depth_mm": 202,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 67.0,
+   "tcp_mm": [
+    14.1,
+    168.4,
+    67.0
+   ],
+   "path_min_clearance_mm": 67.0,
+   "max_joint_change_deg": 75,
+   "corner_px_min_margin": 131.7,
+   "id": 17,
+   "split": "holdout"
+  },
+  {
+   "sdk_deg": [
+    95,
+    80,
+    20,
+    15,
+    90
+   ],
+   "dabai_pos_mm": [
+    -15.7,
+    170.2,
+    177.4
+   ],
+   "board_depth_mm": 202,
+   "view_angle_deg": 25.5,
+   "min_clearance_mm": 67.0,
+   "tcp_mm": [
+    -15.3,
+    168.3,
+    67.0
+   ],
+   "path_min_clearance_mm": 67.0,
+   "max_joint_change_deg": 75,
+   "corner_px_min_margin": 131.7,
+   "id": 18,
+   "split": "pilot"
+  },
+  {
+   "sdk_deg": [
+    85,
+    80,
+    35,
+    10,
+    90
+   ],
+   "dabai_pos_mm": [
+    14.1,
+    169.9,
+    211.7
+   ],
+   "board_depth_mm": 230,
+   "view_angle_deg": 35.5,
+   "min_clearance_mm": 102.6,
+   "tcp_mm": [
+    15.8,
+    187.0,
+    102.6
+   ],
+   "path_min_clearance_mm": 102.6,
+   "max_joint_change_deg": 80,
+   "corner_px_min_margin": 97.6,
+   "id": 19,
+   "split": "holdout"
+  }
+ ]
+}
