@@ -1,0 +1,65 @@
+{
+ "mode": "holdout",
+ "verdict": "PASS",
+ "metrics": {
+  "dev_mean": 2.405,
+  "dev_max": 5.857,
+  "pred_mean": 2.49,
+  "pred_max": 6.662,
+  "normal_mean": 0.612,
+  "normal_max": 1.307
+ },
+ "thresholds": {
+  "dev_mean": 4.1,
+  "dev_max": 8.1,
+  "pred_mean": 4.3,
+  "pred_max": 8.5,
+  "normal_mean": 0.9,
+  "normal_max": 1.9
+ },
+ "pass": {
+  "dev_mean": true,
+  "dev_max": true,
+  "pred_mean": true,
+  "pred_max": true,
+  "normal_mean": true,
+  "normal_max": true
+ },
+ "bracket_dist_to_pilot_mm": {
+  "7": 1.84,
+  "5": 2.85
+ },
+ "bracket_mutual_mm": 4.58,
+ "bracket_threshold_mm": 8.5,
+ "board_moved_suspected": false,
+ "reproj_mean_px": {
+  "7": 0.162,
+  "10": 0.124,
+  "6": 0.152,
+  "16": 0.124,
+  "12": 0.129,
+  "19": 0.17,
+  "13": 0.156,
+  "1": 0.298,
+  "17": 0.11,
+  "5": 0.126
+ },
+ "corners": {
+  "7": 20,
+  "10": 20,
+  "6": 20,
+  "16": 20,
+  "12": 20,
+  "19": 20,
+  "13": 20,
+  "1": 20,
+  "17": 16,
+  "5": 20
+ },
+ "hashes": {
+  "evidence/G02/pilot_pnp.json": "303972bbcb753511",
+  "evidence/G02/dabai_color_camera_info.json": "91779cbb3fda09d4",
+  "docs/gates/G02-동결-임계값.md": "f2126b096e5c01e2"
+ },
+ "K_source": "dabai_color_camera_info.json (장치/드라이버 구분은 Orbbec Viewer 대조 전 UNVERIFIED)"
+}
