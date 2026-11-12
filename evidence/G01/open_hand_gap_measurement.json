@@ -24,5 +24,23 @@
     "caliper_mm_entered_at_that_readback": 48.5,
     "source": "G01.5a dry_run 기록(2026-11-12 11:38, 실제 SDK 읽기 1회, 쓰기 0회)",
     "note": "회독값 100과 사용자 입력 48.5 mm가 같은 시험 기록에 있어 이 상태가 SDK 100에 대응함을 보인다. 측정면(안쪽 평판)과 3회 판독은 여전히 미확인. 최대 개방은 아니라는 사용자 보고는 그대로."
+  },
+  "correspondence_table_2026-11-12_g01_5a": {
+    "servo6_readback_deg_to_caliper_mm": {
+      "100": [
+        48.5,
+        49.5
+      ],
+      "95": [
+        51.0
+      ],
+      "90": [
+        53.5
+      ]
+    },
+    "direction": "각도 감소 = 벌어짐(개방)",
+    "slope_mm_per_deg_both_jaws": 0.4,
+    "repeatability_note": "같은 회독 100에서 48.5(dry_run 입력)와 49.5(실제 시험 입력)로 1.0 mm 차이. 측정 반복성 약 1 mm로 본다. 측정면과 3회 판독은 미확인.",
+    "source": "evidence/G01/g01_5a_analysis.json"
   }
 }

@@ -1,0 +1,40 @@
+{
+  "source": "g01_5a_result-real-261112-114315.json",
+  "moves": {
+    "95": {
+      "commanded_ms": 1500,
+      "script_settle_ms": 1360,
+      "settle_ignoring_none_ms": 1360,
+      "first_reach_ms": 1360,
+      "ratio_to_commanded": 0.907,
+      "none_reads": 1,
+      "reads": 39
+    },
+    "90": {
+      "commanded_ms": 3000,
+      "script_settle_ms": 3133,
+      "settle_ignoring_none_ms": 2716,
+      "first_reach_ms": 2716,
+      "ratio_to_commanded": 0.905,
+      "none_reads": 2,
+      "reads": 68
+    }
+  },
+  "first_reach_ratio_3000_over_1500": 1.997,
+  "gap_mm_by_servo6_readback_deg": {
+    "100": [
+      48.5,
+      49.5
+    ],
+    "95": [
+      51.0
+    ],
+    "90": [
+      53.5
+    ]
+  },
+  "direction": "각도 감소 = 벌어짐(개방)",
+  "time_unit": "ms (최초 도달이 명령 시간의 약 0.905배, 두 이동에서 같음)",
+  "total_reads": 108,
+  "none_reads": 3
+}
