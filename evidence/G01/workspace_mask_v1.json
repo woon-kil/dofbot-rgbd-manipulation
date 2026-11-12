@@ -3,9 +3,24 @@
   "status": "USER_CONFIRMED (2026-11-12, 초록 사각형이 작업 영역과 맞음)",
   "camera": "gemini_335l",
   "image": "정합 컬러 camera_color_optical_frame, 1280x720",
-  "rectangle_px": {"x0": 550, "x1": 830, "y0": 190, "y1": 395},
-  "meaning": "용지 영역(로봇 베이스 앞). 위쪽 경계는 베이스 플레이트와 겹치는 선까지.",
+  "rectangle_px": {
+    "x0": 550,
+    "x1": 830,
+    "y0": 190,
+    "y1": 395
+  },
+  "meaning": "물체를 놓고 작업하는 영역(용지, 로봇 베이스 앞). 사용자 확인은 '작업 영역이 맞다'까지이며, 이 사각형이 로봇팔 도달 가능 영역의 최대치인지는 알지 못한다(사용자 2026-11-12).",
   "valid_only_for": "Gemini 고정 위치와 촬영 설정이 G01 취득 때와 같을 때. 카메라가 움직이거나 해상도·정합 설정이 바뀌면 무효이며 새 버전을 만든다.",
-  "depth_stats_at_capture": {"config": "registered", "valid_ratio": 1.0, "median_mm": 487, "p05_p95_mm": [450, 533], "pixels": 57400},
-  "change_rule": "동결. 변경은 새 버전(v2)으로만 한다."
+  "depth_stats_at_capture": {
+    "config": "registered",
+    "valid_ratio": 1.0,
+    "median_mm": 487,
+    "p05_p95_mm": [
+      450,
+      533
+    ],
+    "pixels": 57400
+  },
+  "change_rule": "동결. 변경은 새 버전(v2)으로만 한다.",
+  "reach_relation": "UNKNOWN. 도달 가능 영역과의 포함 관계(사각형 ⊂ 도달 영역인지, 도달 영역이 사각형 밖으로 더 넓은지)는 미확인. 도달 영역 산정 전에는 이 마스크로 도달 가능성이나 Gemini 시야의 충분성을 주장하지 않는다."
 }
