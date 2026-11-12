@@ -1,0 +1,61 @@
+{
+ "run_id": "261112-161716",
+ "joint": 4,
+ "delta": 20,
+ "direction": "minus",
+ "targets": [
+  91,
+  71,
+  91,
+  71,
+  91
+ ],
+ "first_move_dir_user": "앞",
+ "overall_ok": true,
+ "steps": [
+  {
+   "angle": 71,
+   "time_ms": 8000,
+   "first_reach_ms": null,
+   "settle_ms": 7950,
+   "start_readback": 91,
+   "final_readback": 72,
+   "width_deg": -19,
+   "drift_last_1s_deg": 0,
+   "settle_ratio": 0.994
+  },
+  {
+   "angle": 91,
+   "time_ms": 1500,
+   "first_reach_ms": 1572,
+   "settle_ms": 1572,
+   "start_readback": 72,
+   "final_readback": 91,
+   "width_deg": 19,
+   "drift_last_1s_deg": 0,
+   "settle_ratio": 1.048
+  },
+  {
+   "angle": 71,
+   "time_ms": 1500,
+   "first_reach_ms": null,
+   "settle_ms": 1574,
+   "start_readback": 91,
+   "final_readback": 72,
+   "width_deg": -19,
+   "drift_last_1s_deg": 0,
+   "settle_ratio": 1.049
+  },
+  {
+   "angle": 91,
+   "time_ms": 1500,
+   "first_reach_ms": 1572,
+   "settle_ms": 1572,
+   "start_readback": 72,
+   "final_readback": 91,
+   "width_deg": 19,
+   "drift_last_1s_deg": 0,
+   "settle_ratio": 1.048
+  }
+ ]
+}
