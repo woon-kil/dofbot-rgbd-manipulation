@@ -1,0 +1,56 @@
+{
+  "source": "evidence/G01/raw/g01_5b1_result-real-261112-121741.json",
+  "state0_sdk_deg": {
+    "J1": 90,
+    "J2": 90,
+    "J3": 90,
+    "J4": 90,
+    "J5": 90,
+    "J6": 99
+  },
+  "moves": [
+    {
+      "target": 95,
+      "start": 90,
+      "final_readback": 94,
+      "residual": 1,
+      "commanded_ms": 1500,
+      "settle_ignoring_none_ms": 1468,
+      "ratio_to_commanded": 0.979,
+      "none_reads": "1/39"
+    },
+    {
+      "target": 100,
+      "start": 94,
+      "final_readback": 99,
+      "residual": 1,
+      "commanded_ms": 3000,
+      "settle_ignoring_none_ms": 2723,
+      "ratio_to_commanded": 0.908,
+      "none_reads": "1/67"
+    },
+    {
+      "target": 90,
+      "start": 99,
+      "final_readback": 90,
+      "residual": 0,
+      "commanded_ms": 1500,
+      "settle_ignoring_none_ms": 1573,
+      "ratio_to_commanded": 1.049,
+      "none_reads": "0/39"
+    }
+  ],
+  "reads": 146,
+  "none_reads_total": 2,
+  "rotation_direction_sdk_increase": "반시계(위에서 보아, 사용자 관찰)",
+  "user_reports": {
+    "sound_tremor_smell": "이상 없음(명시적 y 3회)",
+    "contact_or_snag": "없음(명시적 y 3회)"
+  },
+  "findings": [
+    "J5 증가 방향 이동은 목표보다 1° 낮게 정착(95→94, 100→99), 감소 방향 복귀는 목표 정확(90). 접근 방향 의존 1° 데드밴드",
+    "팔 서보(J5) 정착 시간은 명령 시간의 0.91~1.05배로 같은 규모, 이동 폭이 4°·5°·9°로 달라 정밀 비례 확인은 제한적",
+    "SDK J5 증가 = 반시계(위에서 보아) = URDF Arm5(+y 축, 직립 시 상향) 양의 회전과 같은 부호"
+  ],
+  "writes_real": 3
+}
