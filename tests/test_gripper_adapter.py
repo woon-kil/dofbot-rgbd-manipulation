@@ -342,4 +342,29 @@ class TestListPattern(unittest.TestCase):
         arm, ad = self.lst([91, 96, 101]); self.go(ad, 96, 1500); ad.confirm_hands_clear(); ad.return_to_start(3000)
         self.assertEqual(arm.writes[-1], (1, 91, 3000))
 
+class TestRepeatLast(unittest.TestCase):
+    def mk(self, **kw):
+        arm = FakeArm(100); ad = GripperTestAdapter(arm, approval(joint_id=3, delta_deg=5, direction=-1, angle_window=[80, 110], pattern="pair", allowed_times_ms=[1500, 8000], first_move_min_ms=8000, max_writes=6), today=TODAY, dry_run=False)
+        s = ad.read_start(); ad.set_targets([s, s - 5, s, s - 5, s]); return arm, ad
+    def test_repeat_resends_same_target_once(self):
+        arm, ad = self.mk(); ad.confirm_hands_clear(); ad.move(95, 8000); ad.confirm_hands_clear(); ad.repeat_last(8000)
+        self.assertEqual(arm.writes, [(3, 95, 8000), (3, 95, 8000)])
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.repeat_last(8000)      # 같은 이동의 두 번째 재전송 거부
+    def test_repeat_requires_prior_write_and_hands_clear_and_same_time(self):
+        arm, ad = self.mk(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.repeat_last(8000)      # 쓰기 이력 없음
+        ad.move(95, 8000)
+        with self.assertRaises(GripperTestError): ad.repeat_last(8000)      # 손 제거 확인 없음
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.repeat_last(1500)      # 다른 시간
+    def test_repeat_resets_after_next_move(self):
+        arm, ad = self.mk(); ad.confirm_hands_clear(); ad.move(95, 8000); ad.confirm_hands_clear(); ad.repeat_last(8000)
+        ad.confirm_hands_clear(); ad.move(100, 1500); ad.confirm_hands_clear(); ad.repeat_last(1500)
+        self.assertEqual([w[1] for w in arm.writes], [95, 95, 100, 100])
+    def test_repeat_counts_toward_max_writes(self):
+        arm = FakeArm(100); ad = GripperTestAdapter(arm, approval(joint_id=3, delta_deg=5, direction=-1, angle_window=[80, 110], pattern="pair", allowed_times_ms=[8000], first_move_min_ms=8000, max_writes=1), today=TODAY, dry_run=False)
+        s = ad.read_start(); ad.set_targets([s, s - 5, s, s - 5, s]); ad.confirm_hands_clear(); ad.move(95, 8000); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.repeat_last(8000)
+
 if __name__ == '__main__': unittest.main()

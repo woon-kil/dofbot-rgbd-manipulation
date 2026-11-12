@@ -57,6 +57,8 @@ class GripperTestAdapter:
         self._min_ms_per_deg = 60
         self._cur = None
         self._start = None
+        self._last_write = None
+        self._repeat_used = False
         self._targets = None
         self._next = 0
         self._writes = 0
@@ -129,6 +131,7 @@ class GripperTestAdapter:
         self._writes += 1
         self._next += 1
         self._cur = target
+        self._last_write = (target, time_ms); self._repeat_used = False
         self.log.append(("write", target, time_ms, "dry_run" if self._dry_run else "real"))
         if not self._dry_run:
             self._arm.Arm_serial_servo_write(self._id, target, time_ms)
@@ -140,6 +143,24 @@ class GripperTestAdapter:
             raise GripperTestError("이동 폭 %d°가 1회 상한 %d°를 넘는다" % (dist, self._max_move_deg))
         if time_ms < self._min_ms_per_deg * dist:
             raise GripperTestError("이동 시간 %d ms가 %d ms/° × %d° = %d ms보다 짧다(동결 상한)" % (time_ms, self._min_ms_per_deg, dist, self._min_ms_per_deg * dist))
+
+    def repeat_last(self, time_ms):
+        """직전 이동 쓰기와 **같은 절대 목표·같은 시간**을 한 번만 다시 보낸다(쓰기 누락 의심 시). 손 제거 확인 필요, 이동마다 1회, 쓰기 상한에 포함."""
+        if self._writes == 0 or self._last_write is None:
+            raise GripperTestError("다시 보낼 직전 쓰기가 없다")
+        if self._repeat_used:
+            raise GripperTestError("같은 이동의 재전송은 한 번만 가능하다")
+        if not self._hands_clear:
+            raise GripperTestError("손 제거 확인이 없다")
+        target, last_ms = self._last_write
+        if time_ms != last_ms:
+            raise GripperTestError("재전송 시간은 직전 쓰기와 같아야 한다")
+        if self._writes >= self._max_writes:
+            raise GripperTestError("최대 쓰기 횟수를 넘는다")
+        self._hands_clear = False; self._repeat_used = True; self._writes += 1
+        self.log.append(("write", target, time_ms, "dry_run" if self._dry_run else "real", "repeat"))
+        if not self._dry_run:
+            self._arm.Arm_serial_servo_write(self._id, target, time_ms)
 
     def read_position(self):
         """도착 확인용 회독(서보 6만)."""
