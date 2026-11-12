@@ -1,0 +1,22 @@
+{
+  "gate": "G00",
+  "run_date": "2026-11-12",
+  "verdict": "PARTIAL_READONLY",
+  "robot_motion_or_write_commands": 0,
+  "note": "호스트 주소·시리얼은 마스킹. 원문 로그는 evidence/G00/raw/(gitignore)에 있고 해시만 기록한다.",
+  "scripts": ["scripts/g00_jetson_readonly.sh", "scripts/g00_p620_readonly.sh"],
+  "raw_logs_sha256": {
+    "jetson-precheck.log": "76dc79aaeb620d1737f742db1daed0a7f357935e36e3976e81c6d8045e5d0e7a",
+    "jetson-inventory.log": "f0d8f6efb70d0546952c91cfec92530d255ce09f95e04398d89983ea22006c79",
+    "jetson-urdf.log": "51f5545e3937ce39be75af1ef08545bf379b870a07324ee16551cf36e5e012ca",
+    "jetson-sdk.log": "7b4a600c21f131f30c1a694d4cee60eb6dd1e3670e7fceb3fd37816a08769b62",
+    "jetson-dabai.log": "167fcee3527dbb74331966a85c748314cab1d2ca7af98afb39fe4b09321c1e58",
+    "p620-inventory.log": "3d31cd9f69c95fd7961a403522c1a50663a16b25de2ef0ad70dd206e78c5a4f8"
+  },
+  "devices": {
+    "robot_host": {"board": "Jetson (R36 rev 4.3), Ubuntu 22.04.5, kernel 5.15.148-tegra aarch64", "python": "3.10.12", "ros": "humble", "sdk": "Arm-Lib 1.0.3 (egg, Yahboom)", "i2c_bus_default": 7},
+    "dofbot": {"sku": "DOFBOT Pro (URDF DOFBOT_Pro-V24)", "arm_revolute_joints": 5, "gripper": "grip_joint revolute + mimic continuous joints", "servo_ids_in_sdk": 6, "status": "구조는 SDK·URDF 2출처로 일치, 물리 동작은 UNVERIFIED(G02)"},
+    "dabai": {"model": "DaBai DCW2 (USB 제품명)", "firmware": "RD1017", "serial": "<redacted>", "usb": "USB2.0", "color": "640x480@15 MJPG", "depth": "640x400@10 Y11", "depth_registration_default": false, "align_mode_default": "HW"},
+    "gemini": {"model": "Orbbec Gemini 335L (USB 2bc5:0804, p620)", "firmware": "UNVERIFIED (G01에서 SDK로 조회)", "sdk_container_image_present": "cad-less-robotics:humble-p003"}
+  }
+}
