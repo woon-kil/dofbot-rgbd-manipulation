@@ -196,4 +196,46 @@ class TestFirstMove(unittest.TestCase):
         arm, ad = ready(); ad.confirm_hands_clear(); ad.move(95, 1500)   # 그리퍼 G01.5a 경로(키 없음)는 기존 동작
         self.assertEqual(arm.writes, [(6, 95, 1500)])
 
+class TestSpeedAndStair(unittest.TestCase):
+    """동결 상한: 이동 1회 90° 이하, 60 ms/° 이상(직전 명령 위치 기준). stair 패턴(S3)."""
+    def stair(self, s=91, delta=20, n=4, **kw):
+        arm = FakeArm(s)
+        ad = GripperTestAdapter(arm, approval(joint_id=3, direction=-1, delta_deg=delta, angle_window=[10, 105], pattern="stair", stair_steps=n, allowed_times_ms=[1500, 3000, 8000], first_move_min_ms=8000, max_writes=10, **kw), today=TODAY, dry_run=False)
+        s0 = ad.read_start(); ad.set_targets([s0] + [s0 - delta * i for i in range(1, n + 1)] + [s0 - delta * i for i in range(n - 1, -1, -1)]); return arm, ad
+    def go(self, ad, target, ms): ad.confirm_hands_clear(); ad.move(target, ms)
+    def test_stair_full_sequence(self):
+        arm, ad = self.stair()
+        for tgt, ms in [(71, 8000), (51, 1500), (31, 1500), (11, 3000), (31, 3000), (51, 1500), (71, 1500), (91, 1500)]: self.go(ad, tgt, ms)
+        self.assertEqual([w[1] for w in arm.writes], [71, 51, 31, 11, 31, 51, 71, 91]); self.assertTrue(all(w[0] == 3 for w in arm.writes))
+    def test_stair_wrong_list_rejected(self):
+        arm = FakeArm(91); ad = GripperTestAdapter(arm, approval(joint_id=3, direction=-1, delta_deg=20, angle_window=[10, 105], pattern="stair", stair_steps=4, allowed_times_ms=[1500, 8000], first_move_min_ms=8000, max_writes=10), today=TODAY)
+        s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s, s - 20, s - 40, s - 20, s])   # 4단계가 아닌 목록
+    def test_stair_needs_steps(self):
+        with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(91), approval(joint_id=3, pattern="stair", direction=-1, delta_deg=20, angle_window=[10, 105]), today=TODAY)
+    def test_stair_target_below_window_rejected(self):
+        arm = FakeArm(91); ad = GripperTestAdapter(arm, approval(joint_id=3, direction=-1, delta_deg=20, angle_window=[20, 105], pattern="stair", stair_steps=4, allowed_times_ms=[1500, 8000], first_move_min_ms=8000, max_writes=10), today=TODAY)
+        s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s] + [s - 20 * i for i in range(1, 5)] + [s - 20 * i for i in range(3, -1, -1)])   # 11 < 20
+    def test_speed_limit_rejects_fast_big_move(self):
+        arm = FakeArm(100); ad = GripperTestAdapter(arm, approval(joint_id=3, direction=-1, delta_deg=40, angle_window=[10, 105], pattern="ramp", allowed_times_ms=[1500, 8000], first_move_min_ms=8000, max_writes=6), today=TODAY, dry_run=False)
+        s = ad.read_start(); ad.set_targets([s, s - 40, s - 80, s]); self.go(ad, s - 40, 8000)
+        with self.assertRaises(GripperTestError): self.go(ad, s - 80, 1500)   # 40° / 1500 ms = 37.5 ms/° < 60
+        self.assertEqual(len(arm.writes), 1)
+    def test_speed_limit_exact_boundary_allowed(self):
+        arm, ad = self.stair(); self.go(ad, 71, 8000); self.go(ad, 51, 1500)   # 20° / 1500 ms = 75 ms/° 허용
+        self.assertEqual(len(arm.writes), 2)
+    def test_move_over_90_rejected_even_if_slow(self):
+        arm = FakeArm(100); ad = GripperTestAdapter(arm, approval(joint_id=3, direction=-1, delta_deg=95, angle_window=[0, 180], pattern="pair", allowed_times_ms=[8000], first_move_min_ms=8000, max_writes=6), today=TODAY, dry_run=False)
+        s = ad.read_start(); ad.set_targets([s, s - 95, s, s - 95, s]); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move(s - 95, 8000)
+        self.assertEqual(arm.writes, [])
+    def test_return_speed_checked_from_last_target(self):
+        arm, ad = self.stair()
+        for tgt, ms in [(71, 8000), (51, 1500), (31, 1500), (11, 3000)]: self.go(ad, tgt, ms)
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start(1500)   # 11 -> 91 = 80° / 1500 ms
+        ad.confirm_hands_clear(); ad.return_to_start(8000)                    # 80° / 8000 ms = 100 ms/°
+        self.assertEqual(arm.writes[-1], (3, 91, 8000))
+
 if __name__ == '__main__': unittest.main()

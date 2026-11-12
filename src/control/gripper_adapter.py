@@ -47,8 +47,15 @@ class GripperTestAdapter:
         if not 0 <= self._window[0] < self._window[1] <= self._max_deg:
             raise GripperTestError("angle_window가 SDK 범위 밖이다")
         self._pattern = approval.get("pattern", "ramp")
-        if self._pattern not in ("ramp", "pair"):
-            raise GripperTestError("pattern은 ramp 또는 pair여야 한다")
+        if self._pattern not in ("ramp", "pair", "stair"):
+            raise GripperTestError("pattern은 ramp, pair, stair 중 하나여야 한다")
+        self._stairs = int(approval.get("stair_steps", 0))
+        if self._pattern == "stair" and self._stairs < 1:
+            raise GripperTestError("stair 패턴은 stair_steps >= 1이 필요하다")
+        # 동결 상한(ADR-005): 이동 한 번의 각도는 90° 이하, 이동 시간은 60 ms/° 이상. 시간 목록만 보던 이전 검사에 각도 기준을 코드로 추가했다.
+        self._max_move_deg = 90
+        self._min_ms_per_deg = 60
+        self._cur = None
         self._start = None
         self._targets = None
         self._next = 0
@@ -68,6 +75,7 @@ class GripperTestAdapter:
         if not isinstance(value, int) or not self._window[0] <= value <= self._window[1]:
             raise GripperTestError("회독 값이 승인 범위 밖이다")
         self._start = value
+        self._cur = value
         return value
 
     def set_targets(self, targets):
@@ -78,7 +86,10 @@ class GripperTestAdapter:
             raise GripperTestError("목표 목록은 한 번만 설정한다")
         s, d = self._start, self._delta
         k = self._dir
-        expected = [s, s + k * d, s + 2 * k * d, s] if self._pattern == "ramp" else [s, s + k * d, s, s + k * d, s]
+        if self._pattern == "ramp": expected = [s, s + k * d, s + 2 * k * d, s]
+        elif self._pattern == "pair": expected = [s, s + k * d, s, s + k * d, s]
+        else:   # stair: S에서 Δ씩 n단계 접고 같은 계단으로 S까지 되돌린다
+            n = self._stairs; expected = [s] + [s + k * d * i for i in range(1, n + 1)] + [s + k * d * i for i in range(n - 1, -1, -1)]
         if list(targets) != expected:
             raise GripperTestError("목표 목록이 승인된 패턴(%s)과 다르다" % self._pattern)
         if any(not self._window[0] <= t <= self._window[1] for t in targets):
@@ -105,12 +116,22 @@ class GripperTestAdapter:
             raise GripperTestError("첫 이동은 %d ms 이상이어야 한다(동결 상한)" % self._first_min)
         if self._writes >= self._max_writes:
             raise GripperTestError("최대 쓰기 횟수를 넘는다")
+        self._check_speed(target, time_ms)
         self._hands_clear = False
         self._writes += 1
         self._next += 1
+        self._cur = target
         self.log.append(("write", target, time_ms, "dry_run" if self._dry_run else "real"))
         if not self._dry_run:
             self._arm.Arm_serial_servo_write(self._id, target, time_ms)
+
+    def _check_speed(self, target, time_ms):
+        """직전 명령 위치(없으면 시작값)에서 target까지의 이동이 90° 이하이고 time_ms >= 60 ms/° 인지 검사한다."""
+        dist = abs(int(target) - int(self._cur))
+        if dist > self._max_move_deg:
+            raise GripperTestError("이동 폭 %d°가 1회 상한 %d°를 넘는다" % (dist, self._max_move_deg))
+        if time_ms < self._min_ms_per_deg * dist:
+            raise GripperTestError("이동 시간 %d ms가 %d ms/° × %d° = %d ms보다 짧다(동결 상한)" % (time_ms, self._min_ms_per_deg, dist, self._min_ms_per_deg * dist))
 
     def read_position(self):
         """도착 확인용 회독(서보 6만)."""
@@ -133,8 +154,10 @@ class GripperTestAdapter:
             raise GripperTestError("승인된 이동 시간이 아니다")
         if self._writes >= self._max_writes:
             raise GripperTestError("최대 쓰기 횟수를 넘는다")
+        self._check_speed(self._start, time_ms)
         self._hands_clear = False
         self._returned = True
+        self._cur = self._start
         self._writes += 1
         self.log.append(("write", self._start, time_ms, "dry_run" if self._dry_run else "real", "return_to_start"))
         if not self._dry_run:
