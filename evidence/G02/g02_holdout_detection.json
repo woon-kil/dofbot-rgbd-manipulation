@@ -1,0 +1,250 @@
+{
+ "criteria": {
+  "min_markers": 8,
+  "min_corners": 10
+ },
+ "poses": {
+  "1": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 78.7,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 13,
+     "corners": 16,
+     "mean": 121.1,
+     "sat_ratio": 0.001
+    },
+    "35": {
+     "markers": 14,
+     "corners": 16,
+     "mean": 150.4,
+     "sat_ratio": 0.009
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "5": {
+   "by_exposure": {
+    "15": {
+     "markers": 16,
+     "corners": 20,
+     "mean": 90.2,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 14,
+     "corners": 15,
+     "mean": 137.0,
+     "sat_ratio": 0.0
+    },
+    "35": {
+     "markers": 14,
+     "corners": 14,
+     "mean": 168.6,
+     "sat_ratio": 0.002
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "6": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 93.5,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 142.0,
+     "sat_ratio": 0.0
+    },
+    "35": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 174.1,
+     "sat_ratio": 0.005
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "7": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 96.4,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 14,
+     "corners": 18,
+     "mean": 146.0,
+     "sat_ratio": 0.0
+    },
+    "35": {
+     "markers": 13,
+     "corners": 16,
+     "mean": 178.4,
+     "sat_ratio": 0.003
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "10": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 100.3,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 14,
+     "corners": 18,
+     "mean": 148.5,
+     "sat_ratio": 0.0
+    },
+    "35": {
+     "markers": 12,
+     "corners": 13,
+     "mean": 180.6,
+     "sat_ratio": 0.052
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "12": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 105.5,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 14,
+     "corners": 19,
+     "mean": 155.9,
+     "sat_ratio": 0.001
+    },
+    "35": {
+     "markers": 14,
+     "corners": 18,
+     "mean": 189.1,
+     "sat_ratio": 0.062
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "13": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 104.1,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 154.2,
+     "sat_ratio": 0.001
+    },
+    "35": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 187.2,
+     "sat_ratio": 0.057
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "16": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 97.6,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 14,
+     "corners": 19,
+     "mean": 146.9,
+     "sat_ratio": 0.0
+    },
+    "35": {
+     "markers": 13,
+     "corners": 16,
+     "mean": 179.3,
+     "sat_ratio": 0.002
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  },
+  "17": {
+   "by_exposure": {
+    "15": {
+     "markers": 13,
+     "corners": 14,
+     "mean": 84.5,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 13,
+     "corners": 15,
+     "mean": 129.1,
+     "sat_ratio": 0.001
+    },
+    "35": {
+     "markers": 14,
+     "corners": 16,
+     "mean": 159.5,
+     "sat_ratio": 0.009
+    }
+   },
+   "best_exposure": "35",
+   "pass": true
+  },
+  "19": {
+   "by_exposure": {
+    "15": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 101.3,
+     "sat_ratio": 0.0
+    },
+    "25": {
+     "markers": 15,
+     "corners": 20,
+     "mean": 151.2,
+     "sat_ratio": 0.0
+    },
+    "35": {
+     "markers": 14,
+     "corners": 16,
+     "mean": 184.0,
+     "sat_ratio": 0.003
+    }
+   },
+   "best_exposure": "15",
+   "pass": true
+  }
+ },
+ "passed": 10,
+ "total": 10
+}
