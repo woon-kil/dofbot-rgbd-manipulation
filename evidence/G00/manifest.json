@@ -4,7 +4,10 @@
   "verdict": "PARTIAL_READONLY",
   "robot_motion_or_write_commands": 0,
   "note": "호스트 주소·시리얼은 마스킹. 원문 로그는 evidence/G00/raw/(gitignore)에 있고 해시만 기록한다.",
-  "scripts": ["scripts/g00_jetson_readonly.sh", "scripts/g00_p620_readonly.sh"],
+  "scripts": [
+    "scripts/g00_jetson_readonly.sh",
+    "scripts/g00_p620_readonly.sh"
+  ],
   "raw_logs_sha256": {
     "jetson-precheck.log": "76dc79aaeb620d1737f742db1daed0a7f357935e36e3976e81c6d8045e5d0e7a",
     "jetson-inventory.log": "f0d8f6efb70d0546952c91cfec92530d255ce09f95e04398d89983ea22006c79",
@@ -14,9 +17,37 @@
     "p620-inventory.log": "3d31cd9f69c95fd7961a403522c1a50663a16b25de2ef0ad70dd206e78c5a4f8"
   },
   "devices": {
-    "robot_host": {"board": "Jetson (R36 rev 4.3), Ubuntu 22.04.5, kernel 5.15.148-tegra aarch64", "python": "3.10.12", "ros": "humble", "sdk": "Arm-Lib 1.0.3 (egg, Yahboom)", "i2c_bus_default": 7},
-    "dofbot": {"sku": "DOFBOT Pro (URDF DOFBOT_Pro-V24)", "arm_revolute_joints": 5, "gripper": "grip_joint revolute + mimic continuous joints", "servo_ids_in_sdk": 6, "status": "구조는 SDK·URDF 2출처로 일치, 물리 동작은 UNVERIFIED(G02)"},
-    "dabai": {"model": "DaBai DCW2 (USB 제품명)", "firmware": "RD1017", "serial": "<redacted>", "usb": "USB2.0", "color": "640x480@15 MJPG", "depth": "640x400@10 Y11", "depth_registration_default": false, "align_mode_default": "HW"},
-    "gemini": {"model": "Orbbec Gemini 335L (USB 2bc5:0804, p620)", "firmware": "UNVERIFIED (G01에서 SDK로 조회)", "sdk_container_image_present": "cad-less-robotics:humble-p003"}
-  }
+    "robot_host": {
+      "board": "Jetson (R36 rev 4.3), Ubuntu 22.04.5, kernel 5.15.148-tegra aarch64",
+      "python": "3.10.12",
+      "ros": "humble",
+      "sdk": "Arm-Lib 1.0.3 (egg, Yahboom)",
+      "i2c_bus_default": 7
+    },
+    "dofbot": {
+      "sku": "DOFBOT Pro (URDF DOFBOT_Pro-V24)",
+      "arm_revolute_joints": 5,
+      "gripper": "grip_joint revolute + mimic continuous joints",
+      "servo_ids_in_sdk": 6,
+      "status": "구조는 SDK·URDF 2출처로 일치, 물리 동작은 UNVERIFIED(G02)"
+    },
+    "dabai": {
+      "model": "DaBai DCW2 (USB 제품명)",
+      "firmware": "RD1017",
+      "serial": "<redacted>",
+      "usb": "USB2.0",
+      "color": "640x480@15 MJPG",
+      "depth": "640x400@10 Y11",
+      "depth_registration_default": false,
+      "align_mode_default": "HW"
+    },
+    "gemini": {
+      "model": "Orbbec Gemini 335L (USB 2bc5:0804, p620)",
+      "firmware": "UNVERIFIED (G01에서 SDK로 조회)",
+      "sdk_container_image_present": "cad-less-robotics:humble-p003"
+    }
+  },
+  "post_run_notes": [
+    "2026-11-12 G01 사전 점검 중 g00_jetson_readonly.sh precheck를 다시 실행해 evidence/G00/raw/jetson-precheck.log가 덮어써졌다(내용은 같은 읽기 전용 조회, 경과 시간만 다름). 현재 해시(앞 16자) 0e5614e44c6eb964. 이 파일의 raw_logs_sha256 중 jetson-precheck.log 값은 덮어쓰기 전 해시다. 스크립트는 GATE 환경 변수로 증거 폴더를 구분하도록 고쳤다."
+  ]
 }

@@ -26,3 +26,6 @@ Gemini 시야 미확보: 듀얼 카메라 Gate FAIL, DaBai 단독 별도 실험�
 
 ## 기술
 초기: Python/OpenCV/NumPy, 저장/재생 검증. Gemini 기존 OrbbecSDK_ROS2 기록 재사용 가능하되 드라이버 버전과 프레임 계약 재확인. ROS2 tf2/MoveIt2는 검증된 URDF/SDK 제어 연결 후 선택. AI grasp/VLA는 확장 단계.
+
+## 실행 토폴로지와 p620 활용 (ADR-006)
+Jetson에는 DOFBOT SDK와 DaBai 드라이버, p620에는 Gemini 335L 취득(전용 docker 컨테이너)이 있고, Mac은 작업·증거 저장을 맡는다. p620은 다른 프로젝트와 공유하는 GPU 서버이므로 **이 프로젝트 전용 docker 컨테이너·작업 폴더 안에서만** 사용하며 타 프로젝트 컨테이너·호스트 설정은 건드리지 않는다. GPU 사용(인지·IK 등)은 해당 단계에서 근거와 권장안을 제시한 뒤 결정한다. 두 호스트의 시계는 별개이므로 장치 간 타임스탬프를 직접 비교하지 않는다. 상세 규칙: `docs/adr/ADR-006-p620-docker.md`.

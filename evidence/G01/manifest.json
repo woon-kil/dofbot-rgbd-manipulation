@@ -1,0 +1,103 @@
+{
+  "gate": "G01",
+  "run_date": "2026-11-12",
+  "verdict": "PROVISIONAL (임계값 미동결, 마스크 사용자 확인 대기)",
+  "robot_motion_or_write_commands": 0,
+  "note": "영상·깊이·드라이버 로그 원문은 evidence/G01/raw/(gitignore). 장치 시리얼·호스트 주소는 마스킹. 해시는 앞 16자.",
+  "arm_pose_during_capture": "현재 자세 유지(직립 park, 이동 없음)",
+  "capture_order": "DaBai(Jetson) 기본→정합, 이후 Gemini(p620) 기본→정합. 순차 촬영, 동시 촬영 없음.",
+  "scripts_sha256_16": {
+    "scripts/g01_dabai.sh": "87b432dcb9f6d6a8",
+    "scripts/g01_dabai_probe.py": "0c98b38e8dd69b38",
+    "scripts/g01_gemini_probe.py": "50da4205d8a6d0b3",
+    "scripts/g01_gemini_remote.sh": "a21aa356cb082654"
+  },
+  "dependency_source": "Gemini 드라이버는 p620 docker 볼륨 bytesize-robotics-camera-install(다른 프로젝트 자산, 읽기 전용 마운트)와 이미지 cad-less-robotics:humble-p003",
+  "gemini_335l": {
+    "host": "p620 전용 컨테이너 dofbot-g01-camera (촬영 후 삭제)",
+    "firmware": "1.4.60",
+    "sdk_and_ros_wrapper": "2.10.6",
+    "isp_firmware": "20241125",
+    "time_domain": "global",
+    "default": {
+      "color": "1280x720@30 MJPG(rgb8)",
+      "depth": "848x480@30 Y16(16UC1)",
+      "frame_ids": [
+        "camera_color_optical_frame",
+        "camera_depth_optical_frame"
+      ],
+      "aligned_to_rgb": false,
+      "rate_hz": {
+        "color": 29.9,
+        "depth": 30.0
+      },
+      "depth_valid_ratio_full_frame": 0.688
+    },
+    "registered": {
+      "params": "depth_registration:=true align_mode:=SW align_target_stream:=COLOR",
+      "depth": "1280x720 in camera_color_optical_frame, K=color K",
+      "aligned_to_rgb": true,
+      "rate_hz": {
+        "color": 30.0,
+        "depth": 30.0
+      },
+      "depth_valid_ratio_full_frame": 0.672
+    },
+    "disparity_search_range": "UNVERIFIED (launch 파라미터 disparity_range_mode 기본 -1, 드라이버 로그에 값 없음, 이번 실행에서 변경·조회하지 않음)",
+    "workspace_roi_draft_registered": {
+      "valid_ratio": 1.0,
+      "median_mm": 487,
+      "p05_p95_mm": [
+        450,
+        533
+      ],
+      "roi_px": "x550-830,y190-395 (초안)"
+    },
+    "ntp_synchronized_host": true
+  },
+  "dabai_dcw2": {
+    "host": "Jetson",
+    "firmware": "RD1017",
+    "time_domain": "system",
+    "default": {
+      "color": "640x480@15 rgb8",
+      "depth": "640x400@10 16UC1",
+      "frame_ids": [
+        "dabai_color_optical_frame",
+        "dabai_depth_optical_frame"
+      ],
+      "aligned_to_rgb": false,
+      "rate_hz": {
+        "color": 14.9,
+        "depth": 10.0
+      },
+      "depth_valid_ratio": 0.872
+    },
+    "registered": {
+      "params": "depth_registration:=true",
+      "depth": "640x480 in dabai_color_optical_frame, K=color K",
+      "aligned_to_rgb": true,
+      "rate_hz": {
+        "color": 14.8,
+        "depth": 9.8
+      },
+      "depth_valid_ratio": 0.978
+    },
+    "view_at_current_pose": "벽·천장 약 1.26 m (작업대 미관측)",
+    "ntp_synchronized_host": true
+  },
+  "raw_files_sha256_16": {
+    "dabai/default/probe.json": "f1f264acff19ec83",
+    "dabai/default/color.png": "d9c879bd5d5de0b6",
+    "dabai/default/depth.png": "555623ed21b4aec7",
+    "dabai/registered/probe.json": "3494845b18ca69c3",
+    "dabai/registered/color.png": "6667abf9272e55be",
+    "dabai/registered/depth.png": "f68859c2560ccdb5",
+    "gemini/default/probe.json": "81f7548a82e32851",
+    "gemini/default/color.png": "129ce6f0ae7be20a",
+    "gemini/default/depth_mm.npy": "655c73681a8a1b36",
+    "gemini/registered/probe.json": "a1afdccc95d870c4",
+    "gemini/registered/color.png": "14e66310327ebc03",
+    "gemini/registered/depth_mm.npy": "ed497eaef46db633"
+  }
+}
