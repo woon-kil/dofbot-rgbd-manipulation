@@ -33,6 +33,7 @@ class GripperTestAdapter:
         self._next = 0
         self._writes = 0
         self._hands_clear = False
+        self._returned = False
         self.log = []
 
     def read_start(self):
@@ -91,3 +92,25 @@ class GripperTestAdapter:
         value = self._arm.Arm_serial_servo_read(GRIPPER_ID)
         self.log.append(("read", value))
         return value
+
+    def return_to_start(self, time_ms):
+        """실패·중단 후 시작값 S로 복귀하는 쓰기 1회. 운영자가 명시적으로 요청할 때만 호출한다.
+        손 제거 확인이 필요하고 max_writes에 포함되며 한 번만 가능하다. 쓰기가 한 번도 없었으면(이미 S) 거부한다."""
+        if self._start is None:
+            raise GripperTestError("시작값이 없다")
+        if self._returned:
+            raise GripperTestError("복귀는 한 번만 가능하다")
+        if self._writes == 0:
+            raise GripperTestError("쓰기 이력이 없어 복귀가 필요 없다")
+        if not self._hands_clear:
+            raise GripperTestError("손 제거 확인이 없다")
+        if time_ms not in self._times:
+            raise GripperTestError("승인된 이동 시간이 아니다")
+        if self._writes >= self._max_writes:
+            raise GripperTestError("최대 쓰기 횟수를 넘는다")
+        self._hands_clear = False
+        self._returned = True
+        self._writes += 1
+        self.log.append(("write", self._start, time_ms, "dry_run" if self._dry_run else "real", "return_to_start"))
+        if not self._dry_run:
+            self._arm.Arm_serial_servo_write(GRIPPER_ID, self._start, time_ms)

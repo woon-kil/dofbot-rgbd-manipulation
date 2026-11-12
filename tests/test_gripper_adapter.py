@@ -85,4 +85,28 @@ class TestAdapter(unittest.TestCase):
         import inspect
         self.assertNotIn("id", inspect.signature(GripperTestAdapter.move).parameters)
 
+    def test_return_to_start_after_write(self):
+        arm, ad = ready(); ad.confirm_hands_clear(); ad.move(95, 1500)
+        ad.confirm_hands_clear(); ad.return_to_start(1500)
+        self.assertEqual(arm.writes, [(6, 95, 1500), (6, 100, 1500)])
+    def test_return_needs_prior_write_and_hands_clear_and_once(self):
+        arm, ad = ready()
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start(1500)   # 쓰기 이력 없음
+        ad.move(95, 1500)
+        with self.assertRaises(GripperTestError): ad.return_to_start(1500)   # 손 제거 확인 소진
+        ad.confirm_hands_clear(); ad.return_to_start(1500)
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start(1500)   # 한 번만
+    def test_return_counts_toward_max_writes(self):
+        arm, ad = ready(max_writes=1); ad.confirm_hands_clear(); ad.move(95, 1500)
+        ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start(1500)
+    def test_return_time_enforced(self):
+        arm, ad = ready(); ad.confirm_hands_clear(); ad.move(95, 1500); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.return_to_start(2000)
+    def test_return_dry_run_no_write(self):
+        arm, ad = ready(dry_run=True); ad.confirm_hands_clear(); ad.move(95, 1500); ad.confirm_hands_clear(); ad.return_to_start(1500)
+        self.assertEqual(arm.writes, [])
+
 if __name__ == '__main__': unittest.main()
