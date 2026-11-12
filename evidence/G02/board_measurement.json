@@ -10,7 +10,7 @@
   "5_A_to_housing_front": 32,
   "6_housing_front_to_back": 82,
   "7_board_print_surface_height_above_paper": 0.8,
-  "8_plate_top_height_above_paper": 11
+  "8_paper_to_hexagon_housing_top_plate_height": 62
  },
  "definitions": {
   "A": "베이스 판 앞 가장자리",
@@ -30,13 +30,21 @@
    229.0
   ],
   "board_tilt_deg_from_1_2": 0.0,
-  "board_print_surface_z_rel_plate_top_mm": -10.2,
-  "board_print_surface_z_rel_paper_mm": 0.8
+  "board_print_surface_z_rel_paper_mm": 0.8,
+  "board_print_surface_z_rel_plate_top_mm": "미측정(⑧ 정정으로 무효)"
  },
  "uncertainty_note": "손 측정 ±1 mm 가정(불확도 미기록). 사진 위 기준선 위치와 하우징 앞뒤 면 평평함은 사용자 확인 답이 없음.",
  "confirmed": {
   "date": "2026-11-13",
   "by": "사용자",
   "items": "A선·B선 위치 맞음, 하우징은 육각(앞면 평평), 사진 위 J1 표시(앞면 41 mm 뒤)가 회전축 중심으로 보임 — 사용자 확인"
+ },
+ "correction": {
+  "date": "2026-11-13",
+  "text": "사용자 정정: ⑧은 흰 종이 표면에서 육각 하우징 상판까지의 높이 62 mm다(이전 기록 11 mm는 철회). 베이스 판 윗면 높이는 미측정.",
+  "retracted": {
+   "8_plate_top_height_above_paper": 11,
+   "board_print_surface_z_rel_plate_top_mm": -10.2
+  }
  }
 }
