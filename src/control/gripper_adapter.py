@@ -1,4 +1,4 @@
-"""G01.5a/b 단일 서보 시험 명령 어댑터(그리퍼 id 6, G01.5b-1 손목 회전 id 5). 하드웨어에 직접 연결하지 않는다.
+"""G01.5a/b 단일 서보 시험 명령 어댑터(그리퍼 id 6, G01.5b-1 손목 회전 id 5, G01.5b-2 밑동 회전 id 1). 하드웨어에 직접 연결하지 않는다.
 
 SDK 소스(Arm_Lib.py)에서 확인한 사실: Arm_serial_servo_write에는 각도 범위 검사가 없고 id 0은 6개 서보 전체 쓰기다.
 그래서 이 어댑터는 id를 6으로 고정하고(인자로 받지 않음), 승인된 절대 목표 목록·시간·횟수만 허용한다.
@@ -6,8 +6,8 @@ SDK 소스(Arm_Lib.py)에서 확인한 사실: Arm_serial_servo_write에는 각�
 import datetime
 
 GRIPPER_ID = 6
-# 이 어댑터가 허용하는 서보와 SDK 각도 범위(Arm_Lib.py 원문). J1~J4(id 1~4)는 각각의 승인 문서가 있기 전에는 코드로 거부한다.
-ALLOWED_JOINTS = {5: (0, 270), 6: (0, 180)}
+# 이 어댑터가 허용하는 서보와 SDK 각도 범위(Arm_Lib.py 원문). J2~J4(id 2~4)는 각각의 승인 문서가 있기 전에는 코드로 거부한다(J1은 G01.5b-2 시험용으로 허용하며 실제 실행은 시험 당일 확인 문구 입력 때만 가능하다).
+ALLOWED_JOINTS = {1: (0, 180), 5: (0, 270), 6: (0, 180)}
 
 
 class GripperTestError(Exception):
@@ -41,6 +41,9 @@ class GripperTestAdapter:
         self._window = (int(window[0]), int(window[1])) if window else (0, self._max_deg)
         if not 0 <= self._window[0] < self._window[1] <= self._max_deg:
             raise GripperTestError("angle_window가 SDK 범위 밖이다")
+        self._pattern = approval.get("pattern", "ramp")
+        if self._pattern not in ("ramp", "pair"):
+            raise GripperTestError("pattern은 ramp 또는 pair여야 한다")
         self._start = None
         self._targets = None
         self._next = 0
@@ -70,8 +73,9 @@ class GripperTestAdapter:
             raise GripperTestError("목표 목록은 한 번만 설정한다")
         s, d = self._start, self._delta
         k = self._dir
-        if list(targets) != [s, s + k * d, s + 2 * k * d, s]:
-            raise GripperTestError("목표 목록이 S, S±Δ, S±2Δ, S와 다르다")
+        expected = [s, s + k * d, s + 2 * k * d, s] if self._pattern == "ramp" else [s, s + k * d, s, s + k * d, s]
+        if list(targets) != expected:
+            raise GripperTestError("목표 목록이 승인된 패턴(%s)과 다르다" % self._pattern)
         if any(not self._window[0] <= t <= self._window[1] for t in targets):
             raise GripperTestError("목표가 승인 범위 밖이다")
         self._targets = tuple(targets)

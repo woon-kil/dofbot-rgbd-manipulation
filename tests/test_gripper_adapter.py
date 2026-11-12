@@ -119,7 +119,7 @@ class TestJoint5(unittest.TestCase):
         arm, ad = self.wrist(); ad.confirm_hands_clear(); ad.move(95, 1500)
         self.assertEqual(arm.writes, [(5, 95, 1500)])
     def test_disallowed_joint_ids_rejected(self):
-        for jid in (0, 1, 2, 3, 4, 7):
+        for jid in (0, 2, 3, 4, 7):
             with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=jid), today=TODAY)
     def test_window_enforced_on_start(self):
         ad = GripperTestAdapter(FakeArm(130), approval(joint_id=5, direction=1, angle_window=[60, 120]), today=TODAY)
@@ -138,5 +138,34 @@ class TestJoint5(unittest.TestCase):
     def test_return_uses_joint5(self):
         arm, ad = self.wrist(); ad.confirm_hands_clear(); ad.move(95, 1500); ad.confirm_hands_clear(); ad.return_to_start(1500)
         self.assertEqual(arm.writes, [(5, 95, 1500), (5, 90, 1500)])
+
+
+class TestJoint1Pair(unittest.TestCase):
+    def base(self, value=90, dry_run=False, **kw):
+        arm = FakeArm(value)
+        ad = GripperTestAdapter(arm, approval(joint_id=1, direction=1, angle_window=[70, 110], pattern="pair", **kw), today=TODAY, dry_run=dry_run)
+        s = ad.read_start(); ad.set_targets([s, s + 5, s, s + 5, s]); return arm, ad
+    def test_pair_sequence_writes_servo1(self):
+        arm, ad = self.base()
+        for tgt, t in ((95, 1500), (90, 1500), (95, 3000), (90, 3000)):
+            ad.confirm_hands_clear(); ad.move(tgt, t)
+        self.assertEqual(arm.writes, [(1, 95, 1500), (1, 90, 1500), (1, 95, 3000), (1, 90, 3000)])
+    def test_pair_pattern_rejects_ramp_list(self):
+        ad = GripperTestAdapter(FakeArm(90), approval(joint_id=1, direction=1, angle_window=[70, 110], pattern="pair"), today=TODAY); s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s, s + 5, s + 10, s])
+    def test_ramp_pattern_rejects_pair_list(self):
+        ad = GripperTestAdapter(FakeArm(90), approval(joint_id=1, direction=1, angle_window=[70, 110]), today=TODAY); s = ad.read_start()
+        with self.assertRaises(GripperTestError): ad.set_targets([s, s + 5, s, s + 5, s])
+    def test_unknown_pattern_rejected(self):
+        with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=1, pattern="zigzag"), today=TODAY)
+    def test_joint1_window_enforced(self):
+        ad = GripperTestAdapter(FakeArm(120), approval(joint_id=1, direction=1, angle_window=[70, 110], pattern="pair"), today=TODAY)
+        with self.assertRaises(GripperTestError): ad.read_start()
+    def test_pair_order_enforced(self):
+        arm, ad = self.base(); ad.confirm_hands_clear()
+        with self.assertRaises(GripperTestError): ad.move(90, 1500)   # 첫 이동은 S+Δ
+    def test_joints_2_3_4_still_rejected(self):
+        for jid in (2, 3, 4):
+            with self.assertRaises(GripperTestError): GripperTestAdapter(FakeArm(), approval(joint_id=jid, pattern="pair"), today=TODAY)
 
 if __name__ == '__main__': unittest.main()
