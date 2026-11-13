@@ -1,0 +1,23 @@
+{
+ "date": "2026-11-13",
+ "method": "URDF base_link 메시 수평면 분석(face normal ±z, 면적 가중) + 보드 측정 기록 ⑧",
+ "urdf_levels_mm": {
+  "plate_top_z": 0,
+  "plate_top_area_mm2": 44081,
+  "plate_bottom_z": -3,
+  "hex_housing_top_z": 52,
+  "hex_housing_top_area_mm2": 4643,
+  "hex_housing_top_extent_xy": "x −45~38, y −38~39"
+ },
+ "measurement": {
+  "paper_to_hex_top_mm": 62,
+  "source": "evidence/G02/board_measurement.json 8번(정정 2026-11-13)"
+ },
+ "derived": {
+  "paper_z_mm": -10,
+  "plate_top_above_paper_delta_mm": 10,
+  "uncertainty_mm": "약 ±2(측정 ±1, 메시 면 해석, 상판 대응 가정)"
+ },
+ "cross_check": "철회된 이전 기록 8번 = 11 mm와 1 mm 차이",
+ "unverified": "URDF 상판(z 52)이 사용자가 잰 육각 하우징 상판과 같은 면이라는 가정, 판이 URDF 두께 3 mm 판 + 받침(약 7 mm)이라는 해석"
+}
