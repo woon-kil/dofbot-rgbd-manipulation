@@ -1,0 +1,52 @@
+{
+ "date": "2026-11-13",
+ "result_file": "evidence/G01/raw/g01_5b4_s429_result-real-261113-144818.json",
+ "delta_mm": 11,
+ "poses": {
+  "0": {
+   "readback": [
+    89,
+    91,
+    15,
+    11
+   ],
+   "user_entry": "74 72",
+   "r_paper_mm": 73,
+   "r_plate_mm": 62,
+   "fk_tcp_z_readback_mm": 79.3,
+   "diff_mm": -17.3
+  },
+  "5": {
+   "readback": [
+    89,
+    104,
+    10,
+    11
+   ],
+   "user_entry": null,
+   "hold_ended_by": "timeout",
+   "fk_tcp_z_readback_mm": 100.1
+  }
+ },
+ "verdict": "판정 불가(자세 5 값 누락, 사전 기준)",
+ "a_prime": {
+  "start_S": [
+   86,
+   92,
+   94,
+   91
+  ],
+  "end": [
+   86,
+   92,
+   94,
+   91
+  ],
+  "end_minus_S": [
+   0,
+   0,
+   0,
+   0
+  ]
+ }
+}
