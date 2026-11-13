@@ -31,7 +31,8 @@
     ],
     "board_tilt_deg_from_1_2": 0.0,
     "board_print_surface_z_rel_paper_mm": 0.8,
-    "board_print_surface_z_rel_plate_top_mm": "미측정(⑧ 정정으로 무효)"
+    "board_print_surface_z_rel_plate_top_mm": -10.2,
+    "plate_top_above_paper_mm": 11
   },
   "uncertainty_note": "손 측정 ±1 mm 가정(불확도 미기록). 사진 위 기준선 위치와 하우징 앞뒤 면 평평함은 사용자 확인 답이 없음.",
   "confirmed": {
@@ -48,9 +49,9 @@
     },
     "reinstated_candidate": {
       "date": "2026-11-13",
-      "text": "사용자 지적: 흰 종이 면에서 베이스 판 윗면(받침대 상판)까지 높이 기록이 있다 = 철회했던 이전 ⑧ 값 11 mm. 62 mm(육각 하우징 상판)는 별개 측정. URDF 메시에서 도출한 Δ 10 mm와 1 mm 차이로 일치. 사용자 확인 대기(확인되면 11 mm를 판 윗면 높이로 복원).",
+      "text": "사용자 지적: 흰 종이 면에서 베이스 판 윗면(받침대 상판)까지 높이 기록이 있다 = 철회했던 이전 ⑧ 값 11 mm. 62 mm(육각 하우징 상판)는 별개 측정. URDF 메시에서 도출한 Δ 10 mm와 1 mm 차이로 일치. 사용자 확인 2026-11-13 \"11mm 맞음\": 11 mm = 흰 종이 면에서 베이스 판 윗면까지 높이로 복원. 보드 인쇄면은 판 윗면보다 0.8 − 11 = −10.2 mm.",
       "plate_top_above_paper_mm": 11,
-      "status": "pending_user_confirmation"
+      "status": "confirmed_by_user_2026-11-13"
     }
   }
 }

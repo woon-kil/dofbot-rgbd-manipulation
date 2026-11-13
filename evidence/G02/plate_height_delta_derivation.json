@@ -23,6 +23,6 @@
  "user_record": {
   "plate_top_above_paper_mm": 11,
   "source": "board_measurement.json 8번 원래 값(철회됐던 11 mm, 2026-11-13 사용자 지적으로 복원 후보)",
-  "status": "pending_user_confirmation"
+  "status": "confirmed_by_user_2026-11-13"
  }
 }
