@@ -1,50 +1,56 @@
 {
- "date": "2026-11-13",
- "who": "사용자 실측(캘리퍼/강자, 사진 위 SVG v3 항목)",
- "unit": "mm",
- "raw": {
-  "1_A_to_board_near_edge_left": 126,
-  "2_A_to_board_near_edge_right": 126,
-  "3_B_to_board_left_edge": 36,
-  "4_B_to_board_right_edge": 36,
-  "5_A_to_housing_front": 32,
-  "6_housing_front_to_back": 82,
-  "7_board_print_surface_height_above_paper": 0.8,
-  "8_paper_to_hexagon_housing_top_plate_height": 62
- },
- "definitions": {
-  "A": "베이스 판 앞 가장자리",
-  "B": "J1 축을 지나는 좌우 중심선",
-  "housing": "육각 하우징(바닥 높이에서 측정)",
-  "board_size_mm": [
-   72,
-   60
-  ]
- },
- "derived_base_frame": {
-  "note": "기준 원점 = J1 축(하우징 바닥 중심), +y = 사용자 쪽(모델 가정), +x = 오른쪽(사진 기준), 판 윗면·종이 면의 URDF z=0 대응은 UNVERIFIED",
-  "J1_axis_behind_A_mm": 73.0,
-  "board_near_edge_y_mm": 199.0,
-  "board_center_xy_mm": [
-   0.0,
-   229.0
-  ],
-  "board_tilt_deg_from_1_2": 0.0,
-  "board_print_surface_z_rel_paper_mm": 0.8,
-  "board_print_surface_z_rel_plate_top_mm": "미측정(⑧ 정정으로 무효)"
- },
- "uncertainty_note": "손 측정 ±1 mm 가정(불확도 미기록). 사진 위 기준선 위치와 하우징 앞뒤 면 평평함은 사용자 확인 답이 없음.",
- "confirmed": {
   "date": "2026-11-13",
-  "by": "사용자",
-  "items": "A선·B선 위치 맞음, 하우징은 육각(앞면 평평), 사진 위 J1 표시(앞면 41 mm 뒤)가 회전축 중심으로 보임 — 사용자 확인"
- },
- "correction": {
-  "date": "2026-11-13",
-  "text": "사용자 정정: ⑧은 흰 종이 표면에서 육각 하우징 상판까지의 높이 62 mm다(이전 기록 11 mm는 철회). 베이스 판 윗면 높이는 미측정.",
-  "retracted": {
-   "8_plate_top_height_above_paper": 11,
-   "board_print_surface_z_rel_plate_top_mm": -10.2
+  "who": "사용자 실측(캘리퍼/강자, 사진 위 SVG v3 항목)",
+  "unit": "mm",
+  "raw": {
+    "1_A_to_board_near_edge_left": 126,
+    "2_A_to_board_near_edge_right": 126,
+    "3_B_to_board_left_edge": 36,
+    "4_B_to_board_right_edge": 36,
+    "5_A_to_housing_front": 32,
+    "6_housing_front_to_back": 82,
+    "7_board_print_surface_height_above_paper": 0.8,
+    "8_paper_to_hexagon_housing_top_plate_height": 62
+  },
+  "definitions": {
+    "A": "베이스 판 앞 가장자리",
+    "B": "J1 축을 지나는 좌우 중심선",
+    "housing": "육각 하우징(바닥 높이에서 측정)",
+    "board_size_mm": [
+      72,
+      60
+    ]
+  },
+  "derived_base_frame": {
+    "note": "기준 원점 = J1 축(하우징 바닥 중심), +y = 사용자 쪽(모델 가정), +x = 오른쪽(사진 기준), 판 윗면·종이 면의 URDF z=0 대응은 UNVERIFIED",
+    "J1_axis_behind_A_mm": 73.0,
+    "board_near_edge_y_mm": 199.0,
+    "board_center_xy_mm": [
+      0.0,
+      229.0
+    ],
+    "board_tilt_deg_from_1_2": 0.0,
+    "board_print_surface_z_rel_paper_mm": 0.8,
+    "board_print_surface_z_rel_plate_top_mm": "미측정(⑧ 정정으로 무효)"
+  },
+  "uncertainty_note": "손 측정 ±1 mm 가정(불확도 미기록). 사진 위 기준선 위치와 하우징 앞뒤 면 평평함은 사용자 확인 답이 없음.",
+  "confirmed": {
+    "date": "2026-11-13",
+    "by": "사용자",
+    "items": "A선·B선 위치 맞음, 하우징은 육각(앞면 평평), 사진 위 J1 표시(앞면 41 mm 뒤)가 회전축 중심으로 보임 — 사용자 확인"
+  },
+  "correction": {
+    "date": "2026-11-13",
+    "text": "사용자 정정: ⑧은 흰 종이 표면에서 육각 하우징 상판까지의 높이 62 mm다(이전 기록 11 mm는 철회). 베이스 판 윗면 높이는 미측정.",
+    "retracted": {
+      "8_plate_top_height_above_paper": 11,
+      "board_print_surface_z_rel_plate_top_mm": -10.2
+    },
+    "reinstated_candidate": {
+      "date": "2026-11-13",
+      "text": "사용자 지적: 흰 종이 면에서 베이스 판 윗면(받침대 상판)까지 높이 기록이 있다 = 철회했던 이전 ⑧ 값 11 mm. 62 mm(육각 하우징 상판)는 별개 측정. URDF 메시에서 도출한 Δ 10 mm와 1 mm 차이로 일치. 사용자 확인 대기(확인되면 11 mm를 판 윗면 높이로 복원).",
+      "plate_top_above_paper_mm": 11,
+      "status": "pending_user_confirmation"
+    }
   }
- }
 }

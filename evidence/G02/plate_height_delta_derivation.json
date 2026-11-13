@@ -18,6 +18,11 @@
   "plate_top_above_paper_delta_mm": 10,
   "uncertainty_mm": "약 ±2(측정 ±1, 메시 면 해석, 상판 대응 가정)"
  },
- "cross_check": "철회된 이전 기록 8번 = 11 mm와 1 mm 차이",
- "unverified": "URDF 상판(z 52)이 사용자가 잰 육각 하우징 상판과 같은 면이라는 가정, 판이 URDF 두께 3 mm 판 + 받침(약 7 mm)이라는 해석"
+ "cross_check": "URDF 도출 10 mm 대 사용자 기록 11 mm: 1 mm 차이",
+ "unverified": "URDF 상판(z 52)이 사용자가 잰 육각 하우징 상판과 같은 면이라는 가정, 판이 URDF 두께 3 mm 판 + 받침(약 7 mm)이라는 해석",
+ "user_record": {
+  "plate_top_above_paper_mm": 11,
+  "source": "board_measurement.json 8번 원래 값(철회됐던 11 mm, 2026-11-13 사용자 지적으로 복원 후보)",
+  "status": "pending_user_confirmation"
+ }
 }
