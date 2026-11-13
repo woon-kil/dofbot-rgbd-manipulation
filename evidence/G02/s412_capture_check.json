@@ -54,103 +54,59 @@
    176.7
   ]
  },
- "261113-202304/p0": {
-  "corners": 16,
+ "261114-012303/p300": {
+  "corners": 20,
   "file": "exp_25.png",
-  "reproj_mean_px": 0.1,
-  "dist_mm": 193.8,
+  "reproj_mean_px": 0.13,
+  "dist_mm": 185.0,
   "tvec_mm": [
-   51.6,
-   41.8,
-   182.1
+   51.7,
+   25.2,
+   175.8
   ]
  },
- "261113-202304/p14": {
-  "corners": 16,
-  "file": "exp_25.png",
-  "reproj_mean_px": 0.11,
-  "dist_mm": 182.5,
-  "tvec_mm": [
-   37.4,
-   23.4,
-   177.1
-  ]
- },
- "261113-202304/p5": {
-  "corners": 15,
+ "261114-012303/p301": {
+  "corners": 20,
   "file": "exp_25.png",
   "reproj_mean_px": 0.15,
-  "dist_mm": 220.1,
+  "dist_mm": 200.5,
   "tvec_mm": [
    51.6,
-   71.5,
-   201.6
+   45.0,
+   188.4
   ]
  },
- "261113-195954/p0": {
-  "corners": 18,
+ "261114-012303/p302": {
+  "corners": 20,
   "file": "exp_25.png",
-  "reproj_mean_px": 0.12,
-  "dist_mm": 193.9,
+  "reproj_mean_px": 0.13,
+  "dist_mm": 219.0,
+  "tvec_mm": [
+   51.6,
+   70.4,
+   200.9
+  ]
+ },
+ "261114-012303/p303": {
+  "corners": 20,
+  "file": "exp_25_r1.png",
+  "reproj_mean_px": 0.14,
+  "dist_mm": 204.3,
   "tvec_mm": [
    51.7,
-   42.5,
-   182.0
+   49.9,
+   191.2
   ]
  },
- "261113-195954/p14": {
-  "corners": 18,
+ "261114-012303/p304": {
+  "corners": 20,
   "file": "exp_25.png",
   "reproj_mean_px": 0.14,
-  "dist_mm": 182.0,
+  "dist_mm": 181.7,
   "tvec_mm": [
    37.4,
-   23.0,
-   176.6
-  ]
- },
- "261113-195954/p5": {
-  "corners": 16,
-  "file": "exp_25.png",
-  "reproj_mean_px": 0.1,
-  "dist_mm": 221.5,
-  "tvec_mm": [
-   51.6,
-   74.9,
-   202.0
-  ]
- },
- "261113-161028/p0": {
-  "corners": 20,
-  "file": "exp_25.png",
-  "reproj_mean_px": 0.12,
-  "dist_mm": 193.4,
-  "tvec_mm": [
-   51.7,
-   41.8,
-   181.6
-  ]
- },
- "261113-161028/p14": {
-  "corners": 20,
-  "file": "exp_25_r2.png",
-  "reproj_mean_px": 0.12,
-  "dist_mm": 182.4,
-  "tvec_mm": [
-   37.4,
-   23.8,
-   176.9
-  ]
- },
- "261113-161028/p5": {
-  "corners": 20,
-  "file": "exp_25.png",
-  "reproj_mean_px": 0.11,
-  "dist_mm": 219.3,
-  "tvec_mm": [
-   51.6,
-   70.0,
-   201.3
+   22.4,
+   176.4
   ]
  }
 }
