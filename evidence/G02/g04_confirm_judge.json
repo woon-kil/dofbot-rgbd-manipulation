@@ -1,0 +1,102 @@
+{
+ "poses": [
+  {
+   "pose_id": 200,
+   "corners": 18,
+   "markers": 14,
+   "detected": true,
+   "pred_xy_mm": [
+    0.62,
+    227.98
+   ],
+   "err_mm": 1.19
+  },
+  {
+   "pose_id": 201,
+   "corners": 18,
+   "markers": 14,
+   "detected": true,
+   "pred_xy_mm": [
+    -0.93,
+    227.7
+   ],
+   "err_mm": 1.6
+  },
+  {
+   "pose_id": 202,
+   "corners": 20,
+   "markers": 15,
+   "detected": true,
+   "pred_xy_mm": [
+    -0.2,
+    229.14
+   ],
+   "err_mm": 0.25
+  },
+  {
+   "pose_id": 203,
+   "corners": 19,
+   "markers": 14,
+   "detected": true,
+   "pred_xy_mm": [
+    -0.27,
+    226.43
+   ],
+   "err_mm": 2.58
+  },
+  {
+   "pose_id": 204,
+   "corners": 20,
+   "markers": 15,
+   "detected": true,
+   "pred_xy_mm": [
+    1.58,
+    229.24
+   ],
+   "err_mm": 1.6
+  },
+  {
+   "pose_id": 205,
+   "corners": 20,
+   "markers": 15,
+   "detected": true,
+   "pred_xy_mm": [
+    1.69,
+    229.04
+   ],
+   "err_mm": 1.69
+  },
+  {
+   "pose_id": 206,
+   "corners": 16,
+   "markers": 14,
+   "detected": true,
+   "pred_xy_mm": [
+    1.99,
+    229.33
+   ],
+   "err_mm": 2.02
+  },
+  {
+   "pose_id": 207,
+   "corners": 20,
+   "markers": 15,
+   "detected": true,
+   "pred_xy_mm": [
+    -1.64,
+    230.78
+   ],
+   "err_mm": 2.42
+  }
+ ],
+ "n_detected": 8,
+ "frozen": {
+  "th_mean": 7.5,
+  "th_max": 11.5,
+  "min_poses": 6
+ },
+ "err_mean_mm": 1.67,
+ "err_max_mm": 2.58,
+ "verdict": "PASS_ERROR(점검 별도)",
+ "note": "PASS는 보드 불변 점검(g04_bracket_check) 통과가 추가로 필요하다"
+}
