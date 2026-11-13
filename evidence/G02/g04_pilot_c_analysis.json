@@ -1,0 +1,197 @@
+{
+ "7": {
+  "n_visits": 1,
+  "n_with_detection": 1,
+  "readbacks": [
+   [
+    85,
+    94,
+    16,
+    11
+   ]
+  ],
+  "n_det_per_visit": [
+   3
+  ]
+ },
+ "0": {
+  "n_visits": 6,
+  "n_with_detection": 6,
+  "readbacks": [
+   [
+    89,
+    90,
+    15,
+    11
+   ],
+   [
+    89,
+    90,
+    14,
+    11
+   ],
+   [
+    89,
+    90,
+    14,
+    11
+   ],
+   [
+    89,
+    90,
+    14,
+    11
+   ],
+   [
+    89,
+    90,
+    14,
+    11
+   ],
+   [
+    89,
+    90,
+    14,
+    11
+   ]
+  ],
+  "n_det_per_visit": [
+   3,
+   3,
+   3,
+   3,
+   3,
+   3
+  ],
+  "xy_between_sd_mm": [
+   0.084,
+   1.114
+  ],
+  "xy_between_range_mm": [
+   0.231,
+   2.951
+  ],
+  "xy_within_sd_mean_mm": [
+   0.006,
+   0.02
+  ],
+  "tvec_between_sd_mm": [
+   0.032,
+   3.259,
+   0.997
+  ],
+  "xy_mean_mm": [
+   0.52,
+   226.65
+  ],
+  "readback_sd_deg": [
+   0.0,
+   0.0,
+   0.41,
+   0.0
+  ],
+  "readback_all_identical": false
+ },
+ "14": {
+  "n_visits": 5,
+  "n_with_detection": 5,
+  "readbacks": [
+   [
+    85,
+    90,
+    10,
+    11
+   ],
+   [
+    85,
+    90,
+    10,
+    11
+   ],
+   [
+    85,
+    90,
+    10,
+    11
+   ],
+   [
+    85,
+    90,
+    10,
+    11
+   ],
+   [
+    85,
+    91,
+    11,
+    11
+   ]
+  ],
+  "n_det_per_visit": [
+   3,
+   3,
+   3,
+   3,
+   3
+  ],
+  "xy_between_sd_mm": [
+   0.099,
+   1.413
+  ],
+  "xy_between_range_mm": [
+   0.238,
+   3.62
+  ],
+  "xy_within_sd_mean_mm": [
+   0.007,
+   0.017
+  ],
+  "tvec_between_sd_mm": [
+   0.023,
+   1.494,
+   0.559
+  ],
+  "xy_mean_mm": [
+   -0.47,
+   226.78
+  ],
+  "readback_sd_deg": [
+   0.0,
+   0.45,
+   0.45,
+   0.0
+  ],
+  "readback_all_identical": false,
+  "xy_between_sd_same_readback_mm": [
+   0.013,
+   0.446
+  ],
+  "n_same_readback": 4
+ },
+ "5": {
+  "n_visits": 1,
+  "n_with_detection": 1,
+  "readbacks": [
+   [
+    89,
+    104,
+    10,
+    11
+   ]
+  ],
+  "n_det_per_visit": [
+   2
+  ]
+ },
+ "pose_to_pose_mean_xy_diff_mm": {
+  "poses": [
+   "0",
+   "14"
+  ],
+  "diff": [
+   -0.99,
+   0.13
+  ],
+  "norm": 0.998
+ }
+}
