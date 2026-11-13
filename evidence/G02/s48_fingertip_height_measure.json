@@ -1,0 +1,54 @@
+{
+ "date": "2026-11-13",
+ "result_file": "evidence/G01/raw/g01_5b4_s428_result-real-261113-141722.json",
+ "delta_mm": 11,
+ "poses": {
+  "14": {
+   "readback": [
+    85,
+    91,
+    10,
+    11
+   ],
+   "r_paper_mm": 65,
+   "r_plate_mm": 54,
+   "fk_tcp_z_readback_mm": 66.0,
+   "fk_tcp_z_commanded_mm": 62.5,
+   "diff_mm": -12.0
+  },
+  "3": {
+   "readback": [
+    80,
+    80,
+    19,
+    11
+   ],
+   "r_paper_mm": 62,
+   "r_plate_mm": 51,
+   "fk_tcp_z_readback_mm": 59.8,
+   "fk_tcp_z_commanded_mm": 61.2,
+   "diff_mm": -8.8
+  }
+ },
+ "unverified": "입력 65·62를 눈금 r로 해석(사용자 확인 대기), 눈 읽기 ±2~3 mm",
+ "return_j2_A_prime": {
+  "start_S": [
+   87,
+   91,
+   93,
+   91
+  ],
+  "end": [
+   86,
+   91,
+   94,
+   91
+  ],
+  "end_minus_S": [
+   -1,
+   0,
+   1,
+   0
+  ]
+ }
+}
