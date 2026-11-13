@@ -1,0 +1,33 @@
+{
+ "date": "2026-11-13",
+ "rerun_result_file": "evidence/G01/raw/g01_5b4_s429_result-real-261113-150418.json",
+ "first_result_file": "evidence/G01/raw/g01_5b4_s429_result-real-261113-144818.json",
+ "delta_mm": 11,
+ "entries": {
+  "0": "74 71",
+  "5": "96 93"
+ },
+ "readback": {
+  "0": [
+   89,
+   90,
+   14,
+   11
+  ],
+  "5": [
+   89,
+   104,
+   10,
+   11
+  ]
+ },
+ "d5_mm": -16.6,
+ "verdict": "H_기하 지지(사전 규칙 d5 ≤ −15.0)",
+ "L_mm_estimate": 30,
+ "a_prime_end_minus_S": [
+  0,
+  0,
+  0,
+  0
+ ]
+}
