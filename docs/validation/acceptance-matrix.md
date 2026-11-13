@@ -4,8 +4,9 @@
 |---|---|---|---|
 | 두 카메라 필수 구성 | config/schema/test PASS | G00/G01 | Gemini·DaBai 식별 및 RGB-D/내부파라미터 확인 |
 | Gemini 작업대 가시성 | 필드 존재 | G01 | 실제 물체·작업 영역 마스크/Depth 확인, 미가시 BLOCKED |
-| Gemini base calibration | 변환 체인 unit PASS | G03 | holdout 위치 오차 측정 후 사전 승인된 한계와 비교. 방식(2-A/2-B/2-C)은 ADR-005 결정 2의 순서와 채택 규칙을 따른다 |
-| DaBai hand-eye | 변환 체인 unit PASS | G04 | 운동 다양성/holdout 검증 |
+| Gemini base calibration | 변환 체인 unit PASS | G03 | holdout 위치 오차 측정 후 사전 승인된 한계와 비교(O3-a: 한계 = DaBai 시야 포획 가능성). 방식(2-A/2-B/2-C)은 ADR-005 결정 2의 순서와 채택 규칙을 따른다 |
+| DaBai hand-eye | 변환 체인 unit PASS | G04 | 운동 다양성/holdout 검증. 확증 PASS(평균 1.67·최대 2.58 mm ≤ 7.5·11.5). O3-a: 접근 단계 기준(시야 포획)으로만 사용, 최종 정확도 주장 아님 |
+| 폐루프 마무리 단계 | NOT_RUN | G07 전 파일럿 | 항 a~e 측정 후 합격선 동결(미동결) |
 | 교차 카메라 일치 | 합성 좌표 unit PASS | G05 | 정지 타깃 3D 잔차 분포, 임계값 사전 동결 |
 | 5축 도달성/충돌 | 설계 검토 | G06 | 모든 계획 구간 검사 및 부적합 거부 |
 | 실제 P&P | NOT_RUN | G07/G08 | 고정 조건 30회 반복, 실패 0건(ADR-005 결정 4, Wilson 95% 하한 약 0.886). 중단은 실패와 분리 기록 |
