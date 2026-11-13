@@ -1,0 +1,61 @@
+{
+  "measurement": "S4-10 손끝 최저점 y 영상 판독",
+  "video": "s4_10_phone_video_IMG_0414.MOV",
+  "run_json": "evidence/G01/raw/g01_5b4_s4210_result-real-261113-202304.json",
+  "formula": "y = 199 - m (m: 띠 눈금)",
+  "poses": {
+    "14": {
+      "m_median": 52.32,
+      "m_std": 0.09,
+      "frames": 36,
+      "y": 146.7,
+      "hypothesis_y": {
+        "H1": 112.0,
+        "H0": 140.6,
+        "H3": 144.0
+      },
+      "diff_to_hypothesis": {
+        "H1": 34.7,
+        "H0": 6.1,
+        "H3": 2.7
+      },
+      "tick_fit_resid_mm_max": 0.14
+    },
+    "0": {
+      "m_median": 48.82,
+      "m_std": 0.18,
+      "frames": 12,
+      "y": 150.2,
+      "hypothesis_y": {
+        "H1": 125.3,
+        "H0": 153.0,
+        "H3": 159.0
+      },
+      "diff_to_hypothesis": {
+        "H1": 24.9,
+        "H0": -2.8,
+        "H3": -8.8
+      },
+      "tick_fit_resid_mm_max": 0.12
+    },
+    "5": {
+      "m_median": 47.04,
+      "m_std": 0.06,
+      "frames": 35,
+      "y": 152.0,
+      "hypothesis_y": {
+        "H1": 126.8,
+        "H0": 151.9,
+        "H3": 164.0
+      },
+      "diff_to_hypothesis": {
+        "H1": 25.2,
+        "H0": 0.1,
+        "H3": -12.0
+      },
+      "tick_fit_resid_mm_max": 0.13
+    }
+  },
+  "verdict": "H1 기각(세 자세 모두 H1보다 15 mm 이상 사용자 쪽)",
+  "uncertainty": "영점 y 199 ±2 mm(Gemini 눈으로 짚음), 시차 자세 14 약 −0.9 mm(폰 y 약 165, 추정), 손끝 판독 ±1 mm, 합 약 ±4 mm"
+}
