@@ -30,7 +30,7 @@
    "diff_mm": -8.8
   }
  },
- "unverified": "입력 65·62를 눈금 r로 해석(사용자 확인 대기), 눈 읽기 ±2~3 mm",
+ "unverified": "입력 65·62는 사용자 확인 완료(2026-11-13), 눈 읽기 ±2~3 mm",
  "return_j2_A_prime": {
   "start_S": [
    87,
@@ -50,5 +50,6 @@
    1,
    0
   ]
- }
+ },
+ "user_confirmed": true
 }
