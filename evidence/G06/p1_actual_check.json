@@ -1,0 +1,195 @@
+{
+ "block_center_mm": [
+  1.4,
+  189.0
+ ],
+ "box_inflate_mm": 3.0,
+ "pose_list_sha256_source": "2908ff7eae3bd54cf5637e64d096c9bef4311ae4fcfd8f389696a1a546c0b939",
+ "segments": [
+  {
+   "from": "HOME",
+   "to": "A",
+   "max_joint_delta_deg": 88.0,
+   "path_worst_clearance_mm": {
+    "box": 58.4,
+    "table": 85.5,
+    "base": 45.3
+   },
+   "was_mm": {
+    "box": 59.6,
+    "table": 85.5,
+    "base": 45.3
+   }
+  },
+  {
+   "from": "A",
+   "to": "B",
+   "max_joint_delta_deg": 14.0,
+   "path_worst_clearance_mm": {
+    "box": 30.2,
+    "table": 56.4,
+    "base": 38.6
+   },
+   "was_mm": {
+    "box": 33.1,
+    "table": 56.4,
+    "base": 38.6
+   }
+  },
+  {
+   "from": "B",
+   "to": "B2",
+   "max_joint_delta_deg": 2.0,
+   "path_worst_clearance_mm": {
+    "box": 29.9,
+    "table": 56.4,
+    "base": 38.6
+   },
+   "was_mm": {
+    "box": 32.4,
+    "table": 56.4,
+    "base": 38.6
+   }
+  },
+  {
+   "from": "B2",
+   "to": "B",
+   "max_joint_delta_deg": 2.0,
+   "path_worst_clearance_mm": {
+    "box": 29.9,
+    "table": 56.4,
+    "base": 38.6
+   },
+   "was_mm": {
+    "box": 32.4,
+    "table": 56.4,
+    "base": 38.6
+   }
+  },
+  {
+   "from": "B",
+   "to": "A",
+   "max_joint_delta_deg": 14.0,
+   "path_worst_clearance_mm": {
+    "box": 30.2,
+    "table": 56.4,
+    "base": 38.6
+   },
+   "was_mm": {
+    "box": 33.1,
+    "table": 56.4,
+    "base": 38.6
+   }
+  },
+  {
+   "from": "A",
+   "to": "HOME",
+   "max_joint_delta_deg": 88.0,
+   "path_worst_clearance_mm": {
+    "box": 58.4,
+    "table": 85.5,
+    "base": 45.3
+   },
+   "was_mm": {
+    "box": 59.6,
+    "table": 85.5,
+    "base": 45.3
+   }
+  }
+ ],
+ "poses": {
+  "A": {
+   "corner_visible_all_27_combos": false,
+   "n_fail": 12,
+   "incidence_deg_max": 16.6
+  },
+  "B": {
+   "corner_visible_all_27_combos": true,
+   "n_fail": 0,
+   "incidence_deg_max": 15.1
+  },
+  "B2": {
+   "corner_visible_all_27_combos": true,
+   "n_fail": 0,
+   "incidence_deg_max": 13.4
+  }
+ },
+ "split_variant_W": {
+  "W": [
+   88.0,
+   99.0,
+   54.0,
+   51.0
+  ],
+  "segments": [
+   {
+    "from": "HOME",
+    "to": "W",
+    "max_joint_delta_deg": 44.0,
+    "path_worst_clearance_mm": {
+     "box": 217.7,
+     "table": 85.5,
+     "base": 74.9
+    }
+   },
+   {
+    "from": "W",
+    "to": "A",
+    "max_joint_delta_deg": 44.0,
+    "path_worst_clearance_mm": {
+     "box": 58.4,
+     "table": 85.5,
+     "base": 45.3
+    }
+   },
+   {
+    "from": "A",
+    "to": "W",
+    "max_joint_delta_deg": 44.0,
+    "path_worst_clearance_mm": {
+     "box": 58.4,
+     "table": 85.5,
+     "base": 45.3
+    }
+   },
+   {
+    "from": "W",
+    "to": "HOME",
+    "max_joint_delta_deg": 44.0,
+    "path_worst_clearance_mm": {
+     "box": 217.7,
+     "table": 85.5,
+     "base": 74.9
+    }
+   }
+  ],
+  "pose_list_split_sha256": "22ec1372c1293a62078a05542a262a5b56b01623bfac5ef741dd25e28b8004db"
+ },
+ "m3_predicted_camera_frame_marker_shift_mm": {
+  "best": [
+   0.0,
+   0.12,
+   -10.69
+  ],
+  "pess_g2=0.863_tip=-2": [
+   0.0,
+   0.42,
+   -10.8
+  ],
+  "pess_g2=0.863_tip=-6": [
+   0.0,
+   0.42,
+   -10.8
+  ],
+  "pess_g2=0.963_tip=-2": [
+   0.0,
+   -0.06,
+   -10.25
+  ],
+  "pess_g2=0.963_tip=-6": [
+   0.0,
+   -0.06,
+   -10.25
+  ]
+ }
+}
