@@ -1,0 +1,165 @@
+{
+ "A": {
+  "readback_q": [
+   89,
+   103,
+   10,
+   12
+  ],
+  "n_frames": 30,
+  "n_detected": 30,
+  "detect_rate": 1.0,
+  "tvec_mean_mm": [
+   13.92,
+   67.06,
+   170.57
+  ],
+  "tvec_std_mm": [
+   0.078,
+   0.273,
+   0.662
+  ],
+  "depth_mm": 170.6,
+  "reproj_px_mean": 0.411,
+  "reproj_px_max": 1.131,
+  "side_px_mean": 71.86,
+  "fk_predicted_tvec_mm_best": [
+   10.37,
+   61.46,
+   173.66
+  ],
+  "pnp_minus_fk_mm_best": [
+   3.55,
+   5.6,
+   -3.1
+  ],
+  "fk_pred_depth_range_mm_over_models": [
+   168.6,
+   173.7
+  ],
+  "M2_marker_center_world_z_mm": 18.48,
+  "M2_expected_z_mm": 19.0,
+  "M2_residual_mm": -0.52,
+  "min_corner_margin_px": 15.0,
+  "ippe_ambiguity_ratio_median": 2.79
+ },
+ "B": {
+  "readback_q": [
+   89,
+   90,
+   10,
+   12
+  ],
+  "n_frames": 30,
+  "n_detected": 30,
+  "detect_rate": 1.0,
+  "tvec_mean_mm": [
+   14.04,
+   29.38,
+   145.55
+  ],
+  "tvec_std_mm": [
+   0.119,
+   0.179,
+   0.784
+  ],
+  "depth_mm": 145.5,
+  "reproj_px_mean": 0.363,
+  "reproj_px_max": 0.939,
+  "side_px_mean": 82.41,
+  "fk_predicted_tvec_mm_best": [
+   11.22,
+   26.1,
+   148.39
+  ],
+  "pnp_minus_fk_mm_best": [
+   2.82,
+   3.28,
+   -2.84
+  ],
+  "fk_pred_depth_range_mm_over_models": [
+   144.1,
+   148.4
+  ],
+  "M2_marker_center_world_z_mm": 20.43,
+  "M2_expected_z_mm": 19.0,
+  "M2_residual_mm": 1.43,
+  "min_corner_margin_px": 101.0,
+  "ippe_ambiguity_ratio_median": 5.06
+ },
+ "B2": {
+  "readback_q": [
+   89,
+   89,
+   11,
+   13
+  ],
+  "n_frames": 30,
+  "n_detected": 30,
+  "detect_rate": 1.0,
+  "tvec_mean_mm": [
+   14.01,
+   36.64,
+   146.38
+  ],
+  "tvec_std_mm": [
+   0.099,
+   0.227,
+   0.644
+  ],
+  "depth_mm": 146.4,
+  "reproj_px_mean": 0.355,
+  "reproj_px_max": 0.807,
+  "side_px_mean": 82.85,
+  "fk_predicted_tvec_mm_best": [
+   11.11,
+   31.46,
+   148.45
+  ],
+  "pnp_minus_fk_mm_best": [
+   2.91,
+   5.19,
+   -2.07
+  ],
+  "fk_pred_depth_range_mm_over_models": [
+   144.1,
+   148.5
+  ],
+  "M2_marker_center_world_z_mm": 18.89,
+  "M2_expected_z_mm": 19.0,
+  "M2_residual_mm": -0.11,
+  "min_corner_margin_px": 77.0,
+  "ippe_ambiguity_ratio_median": 2.37
+ },
+ "M3": {
+  "pnp_shift_mm": [
+   -0.02,
+   7.26,
+   0.83
+  ],
+  "fk_pred_shift_mm_best": [
+   -0.11,
+   5.35,
+   0.06
+  ],
+  "diff_mm_best": [
+   0.09,
+   1.91,
+   0.77
+  ],
+  "fk_pred_shift_range_mm": {
+   "0": [
+    -0.11,
+    -0.1
+   ],
+   "1": [
+    5.13,
+    5.41
+   ],
+   "2": [
+    -0.02,
+    0.22
+   ]
+  }
+ }
+}
