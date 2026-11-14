@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="810" viewBox="0 0 700 810" font-family="sans-serif">
+<rect width="700" height="810" fill="#fff"/>
+<text x="20" y="28" font-size="20" font-weight="bold">세운 보드 기울이기 — 위에서 본 도식(사진 아님)</text>
+<text x="20" y="50" font-size="12" fill="#444">위=베이스(y 작음), 아래=사용자 쪽(+y), 오른쪽=+x. 폰은 왼쪽 먼 곳(x≈-340)에서 오른쪽을 본다. 길이 단위 mm.</text>
+<line x1="88.0" y1="70.0" x2="88.0" y2="694.0" stroke="#eee"/><text x="76.0" y="710.0" font-size="11" fill="#888">x=-40</text>
+<line x1="184.0" y1="70.0" x2="184.0" y2="694.0" stroke="#eee"/><text x="172.0" y="710.0" font-size="11" fill="#888">x=0</text>
+<line x1="280.0" y1="70.0" x2="280.0" y2="694.0" stroke="#eee"/><text x="268.0" y="710.0" font-size="11" fill="#888">x=40</text>
+<line x1="376.0" y1="70.0" x2="376.0" y2="694.0" stroke="#eee"/><text x="364.0" y="710.0" font-size="11" fill="#888">x=80</text>
+<line x1="472.0" y1="70.0" x2="472.0" y2="694.0" stroke="#eee"/><text x="460.0" y="710.0" font-size="11" fill="#888">x=120</text>
+<line x1="568.0" y1="70.0" x2="568.0" y2="694.0" stroke="#eee"/><text x="556.0" y="710.0" font-size="11" fill="#888">x=160</text>
+<line x1="40.0" y1="94.0" x2="592.0" y2="94.0" stroke="#eee"/><text x="4" y="98.0" font-size="11" fill="#888">y=100</text>
+<line x1="40.0" y1="214.0" x2="592.0" y2="214.0" stroke="#eee"/><text x="4" y="218.0" font-size="11" fill="#888">y=150</text>
+<line x1="40.0" y1="334.0" x2="592.0" y2="334.0" stroke="#eee"/><text x="4" y="338.0" font-size="11" fill="#888">y=200</text>
+<line x1="40.0" y1="454.0" x2="592.0" y2="454.0" stroke="#eee"/><text x="4" y="458.0" font-size="11" fill="#888">y=250</text>
+<line x1="40.0" y1="574.0" x2="592.0" y2="574.0" stroke="#eee"/><text x="4" y="578.0" font-size="11" fill="#888">y=300</text>
+<line x1="40.0" y1="694.0" x2="592.0" y2="694.0" stroke="#eee"/><text x="4" y="698.0" font-size="11" fill="#888">y=350</text>
+<rect id="hand" x="97.60" y="70.00" width="172.80" height="163.20" fill="#ffe0e0" stroke="#c00" stroke-width="2" />
+<text x="103.6" y="88.0" font-size="12" fill="#c00">손 범위(가정) x±36, y≤158</text>
+<rect id="flat" x="97.60" y="331.60" width="172.80" height="144.00" fill="#e8f0ff" stroke="#036" stroke-width="2" />
+<text x="103.6" y="349.6" font-size="12" fill="#036">바닥 보드</text>
+<rect id="ruler" x="272.80" y="115.60" width="38.40" height="367.20" fill="#ddd" stroke="#555" stroke-width="2" />
+<text x="317.2" y="303.2" font-size="12" fill="#555">금속 자</text>
+<line id="cur_card" x1="380.80" y1="288.40" x2="380.80" y2="672.40" stroke="#bbb" stroke-width="6" stroke-dasharray="6 4"/>
+<line id="cur_pat" x1="380.80" y1="336.40" x2="380.80" y2="624.40" stroke="#888" stroke-width="4" stroke-dasharray="6 4"/>
+<line id="new_card" x1="476.80" y1="314.12" x2="284.80" y2="646.68" stroke="#c90" stroke-width="8" />
+<line id="new_pat" x1="452.80" y1="355.69" x2="308.80" y2="605.11" stroke="#080" stroke-width="5" />
+<text x="388.8" y="676.0" font-size="12" fill="#666">지금(점선): 면 x≈82, y 201~321</text>
+<text x="433.6" y="310.0" font-size="12" fill="#080" font-weight="bold">목표(실선): 30° 회전</text>
+<text x="424.0" y="350.8" font-size="12" fill="#080">팔 쪽 끝 → 뒤(+x)로</text>
+<text x="316.0" y="658.0" font-size="12" fill="#080">반대 끝 → 폰 쪽(-x)으로</text>
+<line x1="44.8" y1="281.2" x2="88.0" y2="281.2" stroke="#06c" stroke-width="3"/><text x="44.8" y="273.2" font-size="12" fill="#06c">폰 → (x≈-340)</text>
+<text x="20" y="738.0" font-size="12" fill="#333">회전 중심 (82, 261)은 지금 패턴 중심. 판지(두꺼운 선)는 중심에서 ±80, 패턴(가는 선)은 ±60.</text>
+<text x="20" y="756.0" font-size="12" fill="#333">지금 면 x는 시야각 가정에 따라 68~99 (미확정). 중심 위치는 대략만 맞추면 되고, 각도를 대략 30°(20~40°)로 맞추는 것이 핵심.</text>
+<text x="20" y="774.0" font-size="12" fill="#333">보드를 놓은 뒤에는 팔 실험이 끝날 때까지 건드리지 않는다. 손 범위와의 간격은 판지 끝까지 계산했고 결과는 답변의 표에 있다.</text>
+</svg>
