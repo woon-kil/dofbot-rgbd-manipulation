@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+<style>.t{font:15px sans-serif;fill:#000}.hd{font:bold 18px sans-serif}.blk{fill:#ffe066;stroke:#a80;stroke-width:2}.mk{fill:#111}.w{fill:#fff}.d{stroke:#06c;stroke-width:2}.k{font:bold 20px sans-serif;fill:#c00}</style>
+<rect width="1000" height="1000" fill="#fff"/>
+<text x="20" y="30" class="hd">블록 윗면 마커 측정 안내 (도식, 사진 아님)</text>
+<text x="20" y="54" class="t">위에서 본 블록 윗면. 위 = 베이스 쪽, 아래 = 사용자 쪽, 왼쪽 = −x. 그림은 마커가 중앙에 있는 이상적인 모습이고 실제 값을 재 주세요. 단위 mm.</text>
+<rect id="block_top" class="blk" x="320.00" y="160.00" width="300.00" height="600.00"/>
+<rect id="marker_black" class="mk" x="345.00" y="335.00" width="250.00" height="250.00"/>
+<line id="a_left" class="d" x1="320.00" y1="460.00" x2="345.00" y2="460.00"/><text x="323.0" y="452.0" class="k">a</text>
+<line id="b_right" class="d" x1="595.00" y1="460.00" x2="620.00" y2="460.00"/><text x="598.0" y="452.0" class="k">b</text>
+<line id="c_top" class="d" x1="470.00" y1="160.00" x2="470.00" y2="335.00"/><text x="480.0" y="240.0" class="k">c</text>
+<line id="d_bottom" class="d" x1="470.00" y1="585.00" x2="470.00" y2="760.00"/><text x="480.0" y="680.0" class="k">d</text>
+<line id="e_side" class="d" x1="345.00" y1="615.00" x2="595.00" y2="615.00"/><text x="465.0" y="637.0" class="k">e</text>
+<line id="f_side" class="d" x1="625.00" y1="335.00" x2="625.00" y2="585.00"/><text x="631.0" y="466.0" class="k">f</text>
+<text x="40" y="840" class="t">재 주세요 (마커의 검은 정사각형 가장자리 기준, 흰 여백이나 종이 띠 끝이 아니라):</text>
+<text x="40" y="864" class="t">e = 검은 정사각형 가로 한 변,  f = 세로 한 변   (둘 다 25.0 mm에 가까워야 함, 다르면 알려 주세요)</text>
+<text x="40" y="888" class="t">a = 검은 정사각형 왼쪽 변 ~ 블록 왼쪽 변,  b = 오른쪽 변 ~ 블록 오른쪽 변   (a + e + b = 30)</text>
+<text x="40" y="912" class="t">c = 검은 정사각형 위(베이스 쪽) 변 ~ 블록 위쪽 짧은 변,  d = 아래(사용자 쪽) 변 ~ 블록 아래쪽 짧은 변   (c + f + d = 60)</text>
+<text x="40" y="936" class="t">자(캘리퍼)로 0.5 mm 단위면 충분합니다. 값 6개(a b c d e f)를 알려 주세요.</text>
+<text x="40" y="960" class="t">이 값이 마커 중심과 블록 중심의 차이(오프셋)가 되어 마커 위치로부터 블록 위치를 계산하는 데 쓰입니다 (±1 mm 목표).</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+<style>.t{font:14px sans-serif;fill:#000}.hd{font:bold 17px sans-serif}.d{stroke:#06c;stroke-width:1.5}.blk{fill:#ffe066;stroke:#a80;stroke-width:2}.mk{fill:#111}.mkw{fill:#fff}</style>
+<rect width="1000" height="1000" fill="#fff"/>
+<text x="20" y="28" class="hd">③ 블록 윗면 마커 부착 도식 (도식, 사진 아님)</text>
+<text x="20" y="50" class="t">위에서 본 블록 윗면. 위=베이스 쪽, 아래=사용자 쪽. 단위 mm.</text>
+<rect id="block_top" class="blk" x="150.00" y="130.00" width="270.00" height="540.00"/>
+<rect id="marker_quiet" class="mkw" x="159.00" y="274.00" width="252.00" height="252.00"/>
+<rect id="marker" class="mk" x="195.00" y="310.00" width="180.00" height="180.00"/>
+<line class="d" x1="150.0" y1="724.0" x2="420.0" y2="724.0"/><text x="428.0" y="729.0" class="t">블록 폭 30</text>
+<line class="d" x1="195.0" y1="778.0" x2="375.0" y2="778.0"/><text x="383.0" y="783.0" class="t">마커 20</text>
+<line class="d" x1="501.0" y1="130.0" x2="501.0" y2="670.0"/><text x="507.0" y="400.0" class="t">블록 길이 60</text>
+<text x="20" y="830" class="t">마커: 인쇄 파일 results/aruco_4x4_id2_20mm_a4.pdf (ArUco DICT_4X4_50 id 2, 검은 정사각형 한 변 20 mm)</text>
+<text x="20" y="854" class="t">윗면 중앙에 붙임: 폭 방향 여유 각 5 mm, 길이 방향 여유 각 20 mm. 마커 가로변을 블록 짧은 변(30 mm)과 평행하게.</text>
+<text x="20" y="878" class="t">마커는 평평하게(주름·들뜸 없이) 양면테이프로 전면 접착. 마커 둘레 흰 여백 약 4 mm는 남기되 블록 가장자리를 넘지 않게 자름.</text>
+</svg>

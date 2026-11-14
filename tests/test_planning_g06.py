@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 import numpy as np
 from kinematics.urdf_fk import UrdfFK, DEFAULT_URDF
-from planning.collision_3a import Hull, clearances, finger_capsules, capsule_lowest_z
+from planning.collision_3a import Hull, Box, clearances, finger_capsules, capsule_lowest_z
 from planning.reach import Model, solve_ik, tip_state, tilt_deg, URDF_MODEL
 from planning import observe
 
@@ -21,6 +21,19 @@ class HullTests(unittest.TestCase):
         p = np.array([[2.0, 2.0, 0.0]])       # 진짜 거리 sqrt(2) 대 하한 1
         self.assertLessEqual(self.h.distance_lb(p)[0], np.sqrt(2) + 1e-12)
         self.assertAlmostEqual(self.h.distance_lb(p)[0], 1.0)
+
+
+class BoxTests(unittest.TestCase):
+    def setUp(self):
+        self.b = Box([0, 0, 0], [0.015, 0.03, 0.025])
+
+    def test_outside_face_edge_corner(self):
+        d = self.b.signed_distance(np.array([[0.025, 0, 0], [0.025, 0.04, 0], [0.025, 0.04, 0.035]]))
+        self.assertAlmostEqual(d[0], 0.010); self.assertAlmostEqual(d[1], np.hypot(0.010, 0.010)); self.assertAlmostEqual(d[2], np.sqrt(3) * 0.010)
+
+    def test_inside_negative(self):
+        d = self.b.signed_distance(np.array([[0.0, 0.0, 0.0], [0.014, 0.0, 0.0]]))
+        self.assertAlmostEqual(d[0], -0.015); self.assertAlmostEqual(d[1], -0.001)
 
 
 class CapsuleTests(unittest.TestCase):

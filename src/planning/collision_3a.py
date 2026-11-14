@@ -79,11 +79,26 @@ def capsule_points(caps, p5, R5, n=5):
     return np.array(pts), np.array(rad)
 
 
+class Box:
+    """월드 좌표 축 정렬 직육면체(블록·받침대). center, half: (3,) m."""
+
+    def __init__(self, center, half):
+        self.center = np.asarray(center, float)
+        self.half = np.asarray(half, float)
+
+    def signed_distance(self, pts):
+        """점들 (...,3) -> 부호 거리(밖 양수, 안 음수). 유클리드 거리(밖), 안쪽은 가장 가까운 면까지의 음수 거리."""
+        q = np.abs(np.asarray(pts, float) - self.center) - self.half
+        outside = np.linalg.norm(np.maximum(q, 0.0), axis=-1)
+        inside = np.max(q, axis=-1)
+        return np.where(np.any(q > 0, axis=-1), outside, inside)
+
+
 def link_world_vertices(hull, p, R):
     return hull.vertices @ R.T + p
 
 
-def clearances(fkout, hulls, caps, table_z, dz=0.0):
+def clearances(fkout, hulls, caps, table_z, dz=0.0, boxes=None):
     """한 자세의 최소 여유(m). fkout: `UrdfFK.fk` 결과, hulls: {'base_link', 'Arm2_Joint'...}, table_z: 작업면 월드 z,
     dz: 모델 월드 높이 오프셋(실제 − FK, 음수면 실제가 낮음, 모든 점에 더함).
     반환 dict: table(링크·손가락 중 최저), base(이동 링크·손가락과 베이스 껍질), 항목별 table_links."""
@@ -109,4 +124,15 @@ def clearances(fkout, hulls, caps, table_z, dz=0.0):
         pts, rad = capsule_points(caps, p5, R5)
         vals.append(float((base.distance_lb(pts) - rad).min()))
         out["base"] = min(vals)
+    if boxes:
+        vals = []
+        for box in boxes:
+            for key, hull in hulls.items():
+                if key in ("base_link", "Arm1_Joint", "Arm2_Joint") or key not in fkout:
+                    continue
+                p, R = fkout[key][0][0] + off, fkout[key][1][0]
+                vals.append(float(box.signed_distance(link_world_vertices(hull, p, R)).min()))
+            pts, rad = capsule_points(caps, p5, R5)
+            vals.append(float((box.signed_distance(pts) - rad).min()))
+        out["box"] = min(vals)
     return out

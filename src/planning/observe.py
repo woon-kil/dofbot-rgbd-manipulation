@@ -50,6 +50,8 @@ class PoseGrid:
         out = fk.fk(np.concatenate([self.sdk, np.full((len(self.sdk), 1), 90.0)], 1), gains=model.gains, tool_offset=model.tool_offset())
         off = np.array([0.0, 0.0, model.dz])
         self.tip = out["tcp"][0] + off
+        self.p5 = out["arm5"][0] + off
+        self.R5 = out["arm5"][1]
         self.axis = out["tcp"][1] @ np.array([0.0, 1.0, 0.0])
         self.tilt = np.degrees(np.arctan2(self.axis[:, 1], -self.axis[:, 2]))
         dp, dR = out["dabai"]

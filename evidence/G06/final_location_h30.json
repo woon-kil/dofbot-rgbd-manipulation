@@ -1,0 +1,334 @@
+{
+ "d_20": [
+  {
+   "r_mm": 150.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    5.0,
+    10.0
+   ],
+   "grasp_tilt": 5.0,
+   "q_grasp": [
+    89.8,
+    47.5,
+    28.9,
+    14.9
+   ],
+   "n_candidates": 129,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 27.0,
+    "tilt_obs": 3.3,
+    "q_obs": [
+     89.8,
+     64.0,
+     16.0,
+     11.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": -7.1,
+    "path_min_base_pess_mm": 23.8,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 27.0
+   }
+  },
+  {
+   "r_mm": 160.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    5.0,
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 5.0,
+   "q_grasp": [
+    89.8,
+    38.2,
+    43.2,
+    9.1
+   ],
+   "n_candidates": 337,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 26.5,
+    "tilt_obs": 5.4,
+    "q_obs": [
+     89.8,
+     62.0,
+     12.0,
+     19.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": -8.7,
+    "path_min_base_pess_mm": 25.0,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 26.5
+   }
+  },
+  {
+   "r_mm": 170.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 10.0,
+   "q_grasp": [
+    89.8,
+    42.0,
+    35.7,
+    18.1
+   ],
+   "n_candidates": 651,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 25.4,
+    "tilt_obs": 7.8,
+    "q_obs": [
+     89.8,
+     58.0,
+     20.0,
+     17.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": -8.6,
+    "path_min_base_pess_mm": 35.8,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 25.4
+   }
+  },
+  {
+   "r_mm": 180.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 10.0,
+   "q_grasp": [
+    89.8,
+    31.5,
+    52.6,
+    10.8
+   ],
+   "n_candidates": 1091,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 24.1,
+    "tilt_obs": 11.8,
+    "q_obs": [
+     89.8,
+     58.0,
+     16.0,
+     25.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": -10.6,
+    "path_min_base_pess_mm": 40.2,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 24.1
+   }
+  },
+  {
+   "r_mm": 190.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    15.0
+   ],
+   "grasp_tilt": 15.0,
+   "q_grasp": [
+    89.8,
+    35.7,
+    43.4,
+    21.1
+   ],
+   "n_candidates": 1656,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 23.6,
+    "tilt_obs": 14.1,
+    "q_obs": [
+     89.8,
+     54.0,
+     16.0,
+     31.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": -10.4,
+    "path_min_base_pess_mm": 44.5,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 23.6
+   }
+  }
+ ],
+ "d_10": [
+  {
+   "r_mm": 150.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    5.0,
+    10.0
+   ],
+   "grasp_tilt": 5.0,
+   "q_grasp": [
+    89.8,
+    48.5,
+    34.3,
+    8.6
+   ],
+   "n_candidates": 129,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 23.4,
+    "tilt_obs": 3.3,
+    "q_obs": [
+     89.8,
+     64.0,
+     16.0,
+     11.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 3.0,
+    "path_min_base_pess_mm": 23.8,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 23.4
+   }
+  },
+  {
+   "r_mm": 160.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 10.0,
+   "q_grasp": [
+    89.8,
+    52.0,
+    27.8,
+    16.9
+   ],
+   "n_candidates": 337,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 22.8,
+    "tilt_obs": 7.3,
+    "q_obs": [
+     89.8,
+     64.0,
+     18.0,
+     13.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 3.2,
+    "path_min_base_pess_mm": 32.3,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 22.8
+   }
+  },
+  {
+   "r_mm": 170.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 10.0,
+   "q_grasp": [
+    89.8,
+    42.8,
+    41.4,
+    11.6
+   ],
+   "n_candidates": 651,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 22.3,
+    "tilt_obs": 12.9,
+    "q_obs": [
+     89.8,
+     68.0,
+     10.0,
+     23.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 1.5,
+    "path_min_base_pess_mm": 36.4,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 22.3
+   }
+  },
+  {
+   "r_mm": 180.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    15.0
+   ],
+   "grasp_tilt": 15.0,
+   "q_grasp": [
+    89.8,
+    46.4,
+    33.8,
+    21.1
+   ],
+   "n_candidates": 1091,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 22.2,
+    "tilt_obs": 11.8,
+    "q_obs": [
+     89.8,
+     58.0,
+     20.0,
+     21.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 1.7,
+    "path_min_base_pess_mm": 43.3,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 22.2
+   }
+  },
+  {
+   "r_mm": 190.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    15.0
+   ],
+   "grasp_tilt": 15.0,
+   "q_grasp": [
+    89.8,
+    36.3,
+    49.5,
+    14.6
+   ],
+   "n_candidates": 1656,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 21.6,
+    "tilt_obs": 15.8,
+    "q_obs": [
+     89.8,
+     58.0,
+     20.0,
+     25.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": -0.3,
+    "path_min_base_pess_mm": 51.1,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 21.6
+   }
+  }
+ ]
+}

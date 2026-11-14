@@ -1,0 +1,173 @@
+{
+ "note": "J3>=10,J4>=11 제한, 20 mm 윗면 마커",
+ "results": [
+  {
+   "r_mm": 150.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 10.0,
+   "q_grasp": [
+    89.8,
+    61.2,
+    22.1,
+    14.2
+   ],
+   "n_candidates": 17,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 26.4,
+    "tilt_obs": 6.4,
+    "q_obs": [
+     89.8,
+     74.0,
+     10.0,
+     11.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 14.7,
+    "path_min_base_pess_mm": 21.9,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 26.4
+   }
+  },
+  {
+   "r_mm": 160.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    10.0,
+    15.0
+   ],
+   "grasp_tilt": 10.0,
+   "q_grasp": [
+    89.8,
+    52.6,
+    33.9,
+    10.3
+   ],
+   "n_candidates": 112,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 25.1,
+    "tilt_obs": 8.7,
+    "q_obs": [
+     89.8,
+     70.0,
+     16.0,
+     11.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 13.2,
+    "path_min_base_pess_mm": 31.6,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 25.1
+   }
+  },
+  {
+   "r_mm": 170.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    15.0
+   ],
+   "grasp_tilt": 15.0,
+   "q_grasp": [
+    89.8,
+    55.9,
+    26.9,
+    19.2
+   ],
+   "n_candidates": 329,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 23.9,
+    "tilt_obs": 12.7,
+    "q_obs": [
+     89.8,
+     70.0,
+     14.0,
+     17.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 13.4,
+    "path_min_base_pess_mm": 38.1,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 23.9
+   }
+  },
+  {
+   "r_mm": 180.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    15.0
+   ],
+   "grasp_tilt": 15.0,
+   "q_grasp": [
+    89.8,
+    46.8,
+    40.0,
+    14.4
+   ],
+   "n_candidates": 671,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 23.0,
+    "tilt_obs": 16.7,
+    "q_obs": [
+     89.8,
+     70.0,
+     10.0,
+     25.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 11.7,
+    "path_min_base_pess_mm": 43.4,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 23.0
+   }
+  },
+  {
+   "r_mm": 190.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [
+    15.0
+   ],
+   "grasp_tilt": 15.0,
+   "q_grasp": [
+    89.8,
+    35.3,
+    57.9,
+    7.0
+   ],
+   "n_candidates": 1143,
+   "result": "ok",
+   "chosen": {
+    "tip_distance_mm": 21.8,
+    "tilt_obs": 19.1,
+    "q_obs": [
+     89.8,
+     66.0,
+     12.0,
+     29.0
+    ],
+    "path_min_box_clearance_best_mm": 9.1,
+    "path_min_box_clearance_pess_mm": 9.1,
+    "path_min_table_pess_mm": 9.5,
+    "path_min_base_pess_mm": 50.6,
+    "candidates_tried": 1,
+    "nearest_unfiltered_mm": 21.8
+   }
+  },
+  {
+   "r_mm": 200.0,
+   "marker": "top",
+   "feasible_grasp_tilts": [],
+   "result": "grasp_unreachable"
+  }
+ ]
+}

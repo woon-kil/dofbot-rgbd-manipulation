@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="1250" viewBox="0 0 1250 1250">
+<style>
+.plate{fill:#d9d9d9;stroke:#666}.ruler{fill:#f3c5c5;stroke:#b33;stroke-dasharray:4 3}.board{fill:#f3c5c5;stroke:#b33;stroke-dasharray:4 3}
+.plat{fill:#a8d5a2;stroke:#2c6e2c}.mark{fill:#222}.cap{fill:#555;opacity:.8}.tip{fill:#d22}.cam{fill:#27c}.paperl{fill:#bbb}
+.lb{font:12px sans-serif;fill:#222}.hd{font:bold 16px sans-serif;fill:#000}.nt{font:13px sans-serif;fill:#333}.capl{stroke:#555;stroke-width:6}.ray{stroke:#27c;stroke-width:1;stroke-dasharray:5 4}
+</style>
+<rect width="1250" height="1250" fill="#fff"/>
+<text x="20" y="26" class="hd">③ P1 받침대·자세 배치 도식 (사진 대조 미실시, 승인 아님)</text>
+<text x="20" y="46" class="nt">위에서 본 그림: 위=베이스, 아래=사용자 쪽, 오른쪽=프로젝트 +x. 단위 mm. 값 출처 evidence/G06/p1_pose_list_r190.json (최선 모델)</text>
+<rect id="plate" class="plate" x="66.00" y="90.00" width="368.00" height="226.00" data-mm="-92.00,-40.00,92.00,73.00"/>
+<text x="439.0" y="203.0" class="lb">베이스 판(앞 가장자리 y=73 실측)</text>
+<rect id="ruler" class="ruler" x="324.00" y="348.00" width="32.00" height="300.00" data-mm="37.00,89.00,53.00,239.00"/>
+<text x="361.0" y="498.0" class="lb">금속 자(직전 위치)</text>
+<rect id="board" class="board" x="178.00" y="568.00" width="144.00" height="120.00" data-mm="-36.00,199.00,36.00,259.00"/>
+<text x="327.0" y="628.0" class="lb">평판 보드(직전 위치)</text>
+<rect id="platform" class="plat" x="220.00" y="490.00" width="60.00" height="120.00" data-mm="-15.00,160.00,15.00,220.00"/>
+<text x="285.0" y="550.0" class="lb">블록 30×60×30 (r=190)</text>
+<rect id="marker" class="mark" x="230.00" y="530.00" width="40.00" height="40.00" data-mm="-10.00,180.00,10.00,200.00"/>
+<rect id="cap_A_L" class="cap" x="181.90" y="444.49" width="19.40" height="29.11" data-mm="-34.05,137.25,-24.35,151.80"/>
+<rect id="cap_A_R" class="cap" x="298.70" y="444.49" width="19.40" height="29.11" data-mm="24.35,137.25,34.05,151.80"/>
+<circle id="tip_top_A" class="tip" cx="251.20" cy="473.60" r="4" data-mm="0.60,151.80"/><text x="257.2" y="468.6" class="lb"></text>
+<circle id="cam_top_A" class="cam" cx="278.80" cy="444.51" r="4" data-mm="14.40,137.25"/><text x="284.8" y="439.5" class="lb"></text>
+<rect id="cap_B_L" class="cap" x="181.90" y="436.88" width="19.40" height="17.92" data-mm="-34.05,133.44,-24.35,142.40"/>
+<rect id="cap_B_R" class="cap" x="298.70" y="436.88" width="19.40" height="17.92" data-mm="24.35,133.44,34.05,142.40"/>
+<circle id="tip_top_B" class="tip" cx="251.20" cy="454.80" r="4" data-mm="0.60,142.40"/><text x="257.2" y="449.8" class="lb"></text>
+<circle id="cam_top_B" class="cam" cx="278.80" cy="481.14" r="4" data-mm="14.40,155.57"/><text x="284.8" y="476.1" class="lb"></text>
+<rect id="cap_B2_L" class="cap" x="181.90" y="451.90" width="19.40" height="19.70" data-mm="-34.05,140.95,-24.35,150.80"/>
+<rect id="cap_B2_R" class="cap" x="298.70" y="451.90" width="19.40" height="19.70" data-mm="24.35,140.95,34.05,150.80"/>
+<circle id="tip_top_B2" class="tip" cx="251.20" cy="471.60" r="4" data-mm="0.60,150.80"/><text x="257.2" y="466.6" class="lb"></text>
+<circle id="cam_top_B2" class="cam" cx="278.80" cy="489.61" r="4" data-mm="14.40,159.80"/><text x="284.8" y="484.6" class="lb"></text>
+<text x="560" y="90" class="hd">옆면 (왼쪽=베이스, 오른쪽=사용자 쪽, 종이 z=0)</text>
+<text x="20" y="80" class="hd">위에서 본 그림</text>
+<circle id="tip_side_A" class="tip" cx="943.60" cy="428.80" r="4" data-mm="151.80,105.60"/><text x="949.6" y="423.8" class="lb">A tip</text>
+<circle id="cam_side_A" class="cam" cx="914.51" cy="213.35" r="4" data-mm="137.25,213.32"/><text x="920.5" y="208.4" class="lb">A 카메라</text>
+<circle id="tip_side_B" class="tip" cx="924.80" cy="504.20" r="4" data-mm="142.40,67.90"/><text x="930.8" y="515.2" class="lb">B tip</text>
+<circle id="cam_side_B" class="cam" cx="951.14" cy="288.42" r="4" data-mm="155.57,175.79"/><text x="957.1" y="299.4" class="lb">B 카메라</text>
+<circle id="tip_side_B2" class="tip" cx="941.60" cy="499.00" r="4" data-mm="150.80,70.50"/><text x="947.6" y="502.0" class="lb">B2 tip</text>
+<circle id="cam_side_B2" class="cam" cx="959.61" cy="282.33" r="4" data-mm="159.80,178.84"/><text x="965.6" y="285.3" class="lb">B2 카메라</text>
+<rect id="paper" class="paperl" x="560.00" y="640.00" width="600.00" height="4.00" data-mm="-40.00,-2.00,260.00,0.00"/>
+<rect id="plate_s" class="plate" x="560.00" y="618.00" width="226.00" height="22.00" data-mm="-40.00,0.00,73.00,11.00"/>
+<rect id="plat_s" class="plat" x="960.00" y="580.00" width="120.00" height="60.00" data-mm="160.00,0.00,220.00,30.00"/>
+<rect id="mark_s" class="mark" x="1000.00" y="576.00" width="40.00" height="4.00" data-mm="180.00,30.00,200.00,32.00"/>
+<line class="capl" x1="943.60" y1="428.80" x2="914.49" y2="388.14"/>
+<line class="ray" x1="914.51" y1="213.35" x2="1020.00" y2="580.00"/>
+<line class="capl" x1="924.80" y1="504.20" x2="906.88" y2="457.52"/>
+<line class="ray" x1="951.14" y1="288.42" x2="1020.00" y2="580.00"/>
+<line class="capl" x1="941.60" y1="499.00" x2="921.90" y2="453.04"/>
+<line class="ray" x1="959.61" y1="282.33" x2="1020.00" y2="580.00"/>
+<text x="20" y="770" class="nt">붉은 점 = tip(캡 끝면 가운데) A·B·B2 y=151.8·142.4·150.8 mm, 파란 점 = 카메라(위에서 본 그림 x=+14.4 mm) y=137.3·155.6·159.8 mm</text>
+<text x="20" y="800" class="nt">붉은 점선 = 직전 배치 물체(보드·자): 받침대·손가락과 겹치거나 가까우므로 P1 전에 치워야 함(현재 상태는 사진으로 확인 필요).</text>
+</svg>
