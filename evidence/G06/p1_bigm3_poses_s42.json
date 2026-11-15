@@ -1,0 +1,153 @@
+{
+ "note": "큰 이동 M3 자세(오프라인 모델, UNVERIFIED). S에서 E50·E70·E100으로 각각 단일 관절 순서 이동. 선정 규칙은 p1_bigm3_select.py 머리 주석.",
+ "n_executed_states": 582,
+ "same_combo_tol_deg": 1.0,
+ "n_common_start_checked": 3,
+ "worst_novelty_deg": 14.0,
+ "poses": [
+  {
+   "id": 1401,
+   "sdk_deg": [
+    90.0,
+    92.0,
+    38.0,
+    23.0,
+    90
+   ],
+   "split": "bigm3",
+   "name": "S",
+   "novelty_deg": 6.0
+  },
+  {
+   "id": 1402,
+   "sdk_deg": [
+    90.0,
+    100.0,
+    50.0,
+    15.0,
+    90
+   ],
+   "split": "bigm3",
+   "name": "E50",
+   "novelty_deg": 11.0,
+   "tip_move_mm": 51.4,
+   "joint_deltas_from_S": [
+    8.0,
+    12.0,
+    -8.0
+   ],
+   "depth_S_to_E_mm": [
+    149.2,
+    151.3
+   ],
+   "predicted_marker_shift_cam_mm": [
+    -1.0,
+    47.7,
+    2.1
+   ],
+   "path_worst_mm": {
+    "box": 135.0,
+    "table": 85.5,
+    "base": 74.5
+   }
+  },
+  {
+   "id": 1403,
+   "sdk_deg": [
+    90.0,
+    104.0,
+    50.0,
+    15.0,
+    90
+   ],
+   "split": "bigm3",
+   "name": "E70",
+   "novelty_deg": 14.0,
+   "tip_move_mm": 65.1,
+   "joint_deltas_from_S": [
+    12.0,
+    12.0,
+    -8.0
+   ],
+   "depth_S_to_E_mm": [
+    149.2,
+    148.5
+   ],
+   "predicted_marker_shift_cam_mm": [
+    -1.2,
+    60.7,
+    -0.7
+   ],
+   "path_worst_mm": {
+    "box": 135.0,
+    "table": 85.5,
+    "base": 73.3
+   }
+  },
+  {
+   "id": 1404,
+   "sdk_deg": [
+    90.0,
+    94.0,
+    18.0,
+    11.0,
+    90
+   ],
+   "split": "bigm3",
+   "name": "E100",
+   "novelty_deg": 1.0,
+   "tip_move_mm": 98.0,
+   "joint_deltas_from_S": [
+    2.0,
+    -20.0,
+    -12.0
+   ],
+   "depth_S_to_E_mm": [
+    149.2,
+    168.5
+   ],
+   "predicted_marker_shift_cam_mm": [
+    2.6,
+    -132.3,
+    19.3
+   ],
+   "path_worst_mm": {
+    "box": 57.5,
+    "table": 85.5,
+    "base": 55.9
+   }
+  }
+ ],
+ "ranking_top3": [
+  {
+   "start": [
+    90.0,
+    92.0,
+    38.0,
+    23.0
+   ],
+   "worst_novelty_deg": 14.0,
+   "joint_delta_sum": 44.0
+  },
+  {
+   "start": [
+    90.0,
+    96.0,
+    34.0,
+    25.0
+   ],
+   "worst_novelty_deg": 15.0,
+   "joint_delta_sum": 48.0
+  },
+  {
+   "start": [
+    90.0,
+    96.0,
+    36.0,
+    23.0
+   ],
+   "worst_novelty_deg": 17.0,
+   "joint_delta_sum": 54.0
+  }
+ ]
+}

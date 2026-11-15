@@ -1,0 +1,305 @@
+{
+ "note": "회독 ±0.5° 양자화가 FK 예측 마커 변위(카메라 프레임 mm)에 주는 흔들림. 오프라인 모델, UNVERIFIED.",
+ "pairs": {
+  "E50": {
+   "tip_move_mm": 51.4,
+   "variants": {
+    "best": {
+     "nominal_mm": [
+      -0.98,
+      47.66,
+      2.15
+     ],
+     "min_mm": [
+      -4.47,
+      36.14,
+      -2.82
+     ],
+     "max_mm": [
+      2.52,
+      59.14,
+      7.02
+     ],
+     "max_vector_dev_mm": 12.87
+    },
+    "pess_g2=0.863_tip=-2": {
+     "nominal_mm": [
+      -0.95,
+      45.9,
+      3.3
+     ],
+     "min_mm": [
+      -4.44,
+      34.64,
+      -1.45
+     ],
+     "max_mm": [
+      2.55,
+      57.12,
+      7.94
+     ],
+     "max_vector_dev_mm": 12.54
+    },
+    "pess_g2=0.863_tip=-6": {
+     "nominal_mm": [
+      -0.95,
+      45.9,
+      3.3
+     ],
+     "min_mm": [
+      -4.44,
+      34.64,
+      -1.45
+     ],
+     "max_mm": [
+      2.55,
+      57.12,
+      7.94
+     ],
+     "max_vector_dev_mm": 12.54
+    },
+    "pess_g2=0.963_tip=-2": {
+     "nominal_mm": [
+      -1.0,
+      48.75,
+      2.67
+     ],
+     "min_mm": [
+      -4.5,
+      37.15,
+      -2.21
+     ],
+     "max_mm": [
+      2.5,
+      60.32,
+      7.44
+     ],
+     "max_vector_dev_mm": 12.9
+    },
+    "pess_g2=0.963_tip=-6": {
+     "nominal_mm": [
+      -1.0,
+      48.75,
+      2.67
+     ],
+     "min_mm": [
+      -4.5,
+      37.15,
+      -2.21
+     ],
+     "max_mm": [
+      2.5,
+      60.32,
+      7.44
+     ],
+     "max_vector_dev_mm": 12.9
+    }
+   },
+   "quant_max_vector_dev_mm": 12.9,
+   "model_variant_spread_mm": 2.1,
+   "mc_rms_mm": 3.28,
+   "mc_p95_mm": 5.78,
+   "quant_dev_over_tip_move": 0.251
+  },
+  "E70": {
+   "tip_move_mm": 65.1,
+   "variants": {
+    "best": {
+     "nominal_mm": [
+      -1.23,
+      60.74,
+      -0.74
+     ],
+     "min_mm": [
+      -4.72,
+      49.29,
+      -6.04
+     ],
+     "max_mm": [
+      2.27,
+      72.14,
+      4.46
+     ],
+     "max_vector_dev_mm": 12.94
+    },
+    "pess_g2=0.863_tip=-2": {
+     "nominal_mm": [
+      -1.18,
+      58.22,
+      0.96
+     ],
+     "min_mm": [
+      -4.67,
+      47.02,
+      -4.09
+     ],
+     "max_mm": [
+      2.31,
+      69.38,
+      5.91
+     ],
+     "max_vector_dev_mm": 12.61
+    },
+    "pess_g2=0.863_tip=-6": {
+     "nominal_mm": [
+      -1.18,
+      58.22,
+      0.96
+     ],
+     "min_mm": [
+      -4.67,
+      47.02,
+      -4.09
+     ],
+     "max_mm": [
+      2.31,
+      69.38,
+      5.91
+     ],
+     "max_vector_dev_mm": 12.61
+    },
+    "pess_g2=0.963_tip=-2": {
+     "nominal_mm": [
+      -1.26,
+      62.45,
+      -0.22
+     ],
+     "min_mm": [
+      -4.76,
+      50.92,
+      -5.46
+     ],
+     "max_mm": [
+      2.23,
+      73.93,
+      4.9
+     ],
+     "max_vector_dev_mm": 12.97
+    },
+    "pess_g2=0.963_tip=-6": {
+     "nominal_mm": [
+      -1.26,
+      62.45,
+      -0.22
+     ],
+     "min_mm": [
+      -4.76,
+      50.92,
+      -5.46
+     ],
+     "max_mm": [
+      2.23,
+      73.93,
+      4.9
+     ],
+     "max_vector_dev_mm": 12.97
+    }
+   },
+   "quant_max_vector_dev_mm": 12.97,
+   "model_variant_spread_mm": 3.04,
+   "mc_rms_mm": 3.3,
+   "mc_p95_mm": 5.81,
+   "quant_dev_over_tip_move": 0.199
+  },
+  "E100": {
+   "tip_move_mm": 98.0,
+   "variants": {
+    "best": {
+     "nominal_mm": [
+      2.58,
+      -132.35,
+      19.26
+     ],
+     "min_mm": [
+      -0.94,
+      -143.85,
+      15.79
+     ],
+     "max_mm": [
+      6.1,
+      -120.76,
+      22.77
+     ],
+     "max_vector_dev_mm": 11.99
+    },
+    "pess_g2=0.863_tip=-2": {
+     "nominal_mm": [
+      2.56,
+      -131.0,
+      17.11
+     ],
+     "min_mm": [
+      -0.95,
+      -142.17,
+      13.71
+     ],
+     "max_mm": [
+      6.08,
+      -119.74,
+      20.53
+     ],
+     "max_vector_dev_mm": 11.67
+    },
+    "pess_g2=0.863_tip=-6": {
+     "nominal_mm": [
+      2.56,
+      -131.0,
+      17.11
+     ],
+     "min_mm": [
+      -0.95,
+      -142.17,
+      13.71
+     ],
+     "max_mm": [
+      6.08,
+      -119.74,
+      20.53
+     ],
+     "max_vector_dev_mm": 11.67
+    },
+    "pess_g2=0.963_tip=-2": {
+     "nominal_mm": [
+      2.55,
+      -130.49,
+      17.85
+     ],
+     "min_mm": [
+      -0.97,
+      -142.02,
+      14.35
+     ],
+     "max_mm": [
+      6.07,
+      -118.88,
+      21.38
+     ],
+     "max_vector_dev_mm": 12.01
+    },
+    "pess_g2=0.963_tip=-6": {
+     "nominal_mm": [
+      2.55,
+      -130.49,
+      17.85
+     ],
+     "min_mm": [
+      -0.97,
+      -142.02,
+      14.35
+     ],
+     "max_mm": [
+      6.07,
+      -118.88,
+      21.38
+     ],
+     "max_vector_dev_mm": 12.01
+    }
+   },
+   "quant_max_vector_dev_mm": 12.01,
+   "model_variant_spread_mm": 2.54,
+   "mc_rms_mm": 3.15,
+   "mc_p95_mm": 5.49,
+   "quant_dev_over_tip_move": 0.123
+  }
+ }
+}

@@ -1,0 +1,113 @@
+{
+ "note": "근거리 M3 자세(오프라인 모델, UNVERIFIED). 선정 규칙은 src/planning/p1_near_m3.py docstring. S에서 E5·E10·E15로 단일 관절 순서 이동.",
+ "poses": [
+  {
+   "id": 1501,
+   "sdk_deg": [
+    90.0,
+    92.0,
+    14.0,
+    11.0,
+    90
+   ],
+   "split": "nearm3",
+   "name": "S"
+  },
+  {
+   "id": 1502,
+   "sdk_deg": [
+    90.0,
+    90.0,
+    14.0,
+    11.0,
+    90
+   ],
+   "split": "nearm3",
+   "name": "E5",
+   "tip_move_mm": 5.0,
+   "joint_deltas_from_S": [
+    -2.0,
+    0.0,
+    0.0
+   ],
+   "depth_S_to_E_mm": [
+    159.2,
+    155.1
+   ],
+   "predicted_marker_shift_cam_mm": [
+    0.1,
+    -5.3,
+    -4.1
+   ],
+   "path_worst_mm": {
+    "box": 36.9,
+    "table": 66.7,
+    "base": 46.4
+   }
+  },
+  {
+   "id": 1503,
+   "sdk_deg": [
+    90.0,
+    90.0,
+    12.0,
+    11.0,
+    90
+   ],
+   "split": "nearm3",
+   "name": "E10",
+   "tip_move_mm": 11.7,
+   "joint_deltas_from_S": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "depth_S_to_E_mm": [
+    159.2,
+    151.7
+   ],
+   "predicted_marker_shift_cam_mm": [
+    0.3,
+    -13.6,
+    -7.6
+   ],
+   "path_worst_mm": {
+    "box": 32.4,
+    "table": 61.5,
+    "base": 42.5
+   }
+  },
+  {
+   "id": 1504,
+   "sdk_deg": [
+    90.0,
+    92.0,
+    10.0,
+    11.0,
+    90
+   ],
+   "split": "nearm3",
+   "name": "E15",
+   "tip_move_mm": 13.8,
+   "joint_deltas_from_S": [
+    0.0,
+    -4.0,
+    0.0
+   ],
+   "depth_S_to_E_mm": [
+    159.2,
+    152.3
+   ],
+   "predicted_marker_shift_cam_mm": [
+    0.4,
+    -16.8,
+    -6.9
+   ],
+   "path_worst_mm": {
+    "box": 32.4,
+    "table": 60.7,
+    "base": 39.7
+   }
+  }
+ ]
+}

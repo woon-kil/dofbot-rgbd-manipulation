@@ -23,7 +23,19 @@ CAP_GEOMS = [(0.0292, 0.0), (0.00485, 0.0), (0.0071, -0.003), (0.0071, 0.0), (0.
 STEP = 0.5
 
 
+_STATE_CACHE = {}   # 같은 관절 자세(소수 4자리)의 여유는 항상 같으므로 재사용한다(2026-11-15: 세트 16처럼 같은 상태가 반복되는 계획의 검증 시간 단축, 결과 불변)
+
+
 def eval_state(fk, hulls, q, box):
+    key = tuple(round(float(x), 4) for x in q)
+    hit = _STATE_CACHE.get(key)
+    if hit is not None:
+        return dict(hit)
+    res = _eval_state_uncached(fk, hulls, q, box); _STATE_CACHE[key] = dict(res)
+    return res
+
+
+def _eval_state_uncached(fk, hulls, q, box):
     w = {"box": 1e9, "table": 1e9, "base": 1e9}
     for t in TRUTH.values():
         f = fk.fk(np.array([list(q) + [90.0]]), gains=t.gains, tool_offset=t.tool_offset())

@@ -1,0 +1,234 @@
+{
+ "n_rows": 88,
+ "joints": {
+  "2": {
+   "n_cal": 28,
+   "n_hold": 12,
+   "cv_rms": {
+    "M0": 1.364,
+    "M1": 0.087,
+    "M2": 0.088,
+    "M3": 0.093
+   },
+   "selected": "M1",
+   "params": {
+    "model": "M1",
+    "d_up": 2.0,
+    "o_down": 0.27427272727272817
+   },
+   "holdout": {
+    "M0": {
+     "n": 12,
+     "rms": 1.438,
+     "sd": 0.909,
+     "max_abs": 2.127,
+     "mean": 1.145,
+     "rms_upper90": 1.984,
+     "rms_tip_mm": 3.62
+    },
+    "M1": {
+     "n": 12,
+     "rms": 0.052,
+     "sd": 0.054,
+     "max_abs": 0.127,
+     "mean": 0.008,
+     "rms_upper90": 0.072,
+     "rms_tip_mm": 0.13
+    },
+    "M2": {
+     "n": 12,
+     "rms": 0.056,
+     "sd": 0.058,
+     "max_abs": 0.137,
+     "mean": 0.012,
+     "rms_upper90": 0.078,
+     "rms_tip_mm": 0.14
+    },
+    "M3": {
+     "n": 12,
+     "rms": 0.066,
+     "sd": 0.066,
+     "max_abs": 0.183,
+     "mean": 0.021,
+     "rms_upper90": 0.092,
+     "rms_tip_mm": 0.17
+    }
+   },
+   "n_xhold": 4,
+   "xhold": {
+    "M0": {
+     "n": 4,
+     "rms": 1.406,
+     "sd": 0.974,
+     "max_abs": 1.973,
+     "mean": 1.125,
+     "rms_upper90": 2.732,
+     "rms_tip_mm": 3.54
+    },
+    "M1": {
+     "n": 4,
+     "rms": 0.035,
+     "sd": 0.037,
+     "max_abs": 0.044,
+     "mean": -0.012,
+     "rms_upper90": 0.067,
+     "rms_tip_mm": 0.09
+    },
+    "M2": {
+     "n": 4,
+     "rms": 0.029,
+     "sd": 0.032,
+     "max_abs": 0.039,
+     "mean": -0.009,
+     "rms_upper90": 0.056,
+     "rms_tip_mm": 0.07
+    },
+    "M3": {
+     "n": 4,
+     "rms": 0.029,
+     "sd": 0.032,
+     "max_abs": 0.039,
+     "mean": -0.009,
+     "rms_upper90": 0.057,
+     "rms_tip_mm": 0.07
+    }
+   },
+   "selected_xhold": {
+    "n": 4,
+    "rms": 0.035,
+    "sd": 0.037,
+    "max_abs": 0.044,
+    "mean": -0.012,
+    "rms_upper90": 0.067,
+    "rms_tip_mm": 0.09
+   },
+   "xhold_verdict": "G1 시나리오 D 지지",
+   "generalization_weak": false,
+   "selected_holdout": {
+    "n": 12,
+    "rms": 0.052,
+    "sd": 0.054,
+    "max_abs": 0.127,
+    "mean": 0.008,
+    "rms_upper90": 0.072,
+    "rms_tip_mm": 0.13
+   },
+   "verdict": "G1 시나리오 D 지지"
+  },
+  "3": {
+   "n_cal": 28,
+   "n_hold": 12,
+   "cv_rms": {
+    "M0": 1.404,
+    "M1": 0.087,
+    "M2": 0.089,
+    "M3": 0.095
+   },
+   "selected": "M1",
+   "params": {
+    "model": "M1",
+    "d_up": 1.99,
+    "o_down": 0.2782000000000007
+   },
+   "holdout": {
+    "M0": {
+     "n": 12,
+     "rms": 1.428,
+     "sd": 0.922,
+     "max_abs": 2.036,
+     "mean": 1.123,
+     "rms_upper90": 1.97,
+     "rms_tip_mm": 4.94
+    },
+    "M1": {
+     "n": 12,
+     "rms": 0.049,
+     "sd": 0.05,
+     "max_abs": 0.123,
+     "mean": -0.011,
+     "rms_upper90": 0.068,
+     "rms_tip_mm": 0.17
+    },
+    "M2": {
+     "n": 12,
+     "rms": 0.064,
+     "sd": 0.065,
+     "max_abs": 0.142,
+     "mean": -0.013,
+     "rms_upper90": 0.088,
+     "rms_tip_mm": 0.22
+    },
+    "M3": {
+     "n": 12,
+     "rms": 0.064,
+     "sd": 0.066,
+     "max_abs": 0.136,
+     "mean": -0.012,
+     "rms_upper90": 0.089,
+     "rms_tip_mm": 0.22
+    }
+   },
+   "n_xhold": 4,
+   "xhold": {
+    "M0": {
+     "n": 4,
+     "rms": 1.464,
+     "sd": 1.019,
+     "max_abs": 2.109,
+     "mean": 1.168,
+     "rms_upper90": 2.844,
+     "rms_tip_mm": 5.07
+    },
+    "M1": {
+     "n": 4,
+     "rms": 0.062,
+     "sd": 0.06,
+     "max_abs": 0.119,
+     "mean": 0.034,
+     "rms_upper90": 0.12,
+     "rms_tip_mm": 0.21
+    },
+    "M2": {
+     "n": 4,
+     "rms": 0.071,
+     "sd": 0.065,
+     "max_abs": 0.139,
+     "mean": 0.043,
+     "rms_upper90": 0.137,
+     "rms_tip_mm": 0.24
+    },
+    "M3": {
+     "n": 4,
+     "rms": 0.072,
+     "sd": 0.065,
+     "max_abs": 0.142,
+     "mean": 0.045,
+     "rms_upper90": 0.14,
+     "rms_tip_mm": 0.25
+    }
+   },
+   "selected_xhold": {
+    "n": 4,
+    "rms": 0.062,
+    "sd": 0.06,
+    "max_abs": 0.119,
+    "mean": 0.034,
+    "rms_upper90": 0.12,
+    "rms_tip_mm": 0.21
+   },
+   "xhold_verdict": "G1 시나리오 D 지지",
+   "generalization_weak": false,
+   "selected_holdout": {
+    "n": 12,
+    "rms": 0.049,
+    "sd": 0.05,
+    "max_abs": 0.123,
+    "mean": -0.011,
+    "rms_upper90": 0.068,
+    "rms_tip_mm": 0.17
+   },
+   "verdict": "G1 시나리오 D 지지"
+  }
+ },
+ "interpretation_scope": "6b 판정 보류: J4·J1 미측정, 기준 자세 2개 — 이 결과만으로 6b 달성 여부를 판정하지 않는다"
+}

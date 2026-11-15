@@ -1,0 +1,234 @@
+{
+ "n_rows": 88,
+ "joints": {
+  "2": {
+   "n_cal": 28,
+   "n_hold": 12,
+   "cv_rms": {
+    "M0": 1.127,
+    "M1": 0.725,
+    "M2": 0.767,
+    "M3": 0.911
+   },
+   "selected": "M1",
+   "params": {
+    "model": "M1",
+    "d_up": 1.25,
+    "o_down": 0.38791666666666796
+   },
+   "holdout": {
+    "M0": {
+     "n": 12,
+     "rms": 1.377,
+     "sd": 1.023,
+     "max_abs": 3.355,
+     "mean": 0.968,
+     "rms_upper90": 1.899,
+     "rms_tip_mm": 3.47
+    },
+    "M1": {
+     "n": 12,
+     "rms": 0.779,
+     "sd": 0.798,
+     "max_abs": 2.105,
+     "mean": 0.149,
+     "rms_upper90": 1.074,
+     "rms_tip_mm": 1.96
+    },
+    "M2": {
+     "n": 12,
+     "rms": 0.747,
+     "sd": 0.764,
+     "max_abs": 1.945,
+     "mean": 0.151,
+     "rms_upper90": 1.03,
+     "rms_tip_mm": 1.88
+    },
+    "M3": {
+     "n": 12,
+     "rms": 0.74,
+     "sd": 0.753,
+     "max_abs": 1.939,
+     "mean": 0.165,
+     "rms_upper90": 1.021,
+     "rms_tip_mm": 1.87
+    }
+   },
+   "n_xhold": 4,
+   "xhold": {
+    "M0": {
+     "n": 4,
+     "rms": 0.845,
+     "sd": 0.645,
+     "max_abs": 1.3,
+     "mean": 0.634,
+     "rms_upper90": 1.641,
+     "rms_tip_mm": 2.13
+    },
+    "M1": {
+     "n": 4,
+     "rms": 0.689,
+     "sd": 0.767,
+     "max_abs": 0.912,
+     "mean": -0.185,
+     "rms_upper90": 1.339,
+     "rms_tip_mm": 1.74
+    },
+    "M2": {
+     "n": 4,
+     "rms": 0.712,
+     "sd": 0.794,
+     "max_abs": 0.997,
+     "mean": -0.183,
+     "rms_upper90": 1.383,
+     "rms_tip_mm": 1.79
+    },
+    "M3": {
+     "n": 4,
+     "rms": 0.716,
+     "sd": 0.802,
+     "max_abs": 1.015,
+     "mean": -0.175,
+     "rms_upper90": 1.392,
+     "rms_tip_mm": 1.81
+    }
+   },
+   "selected_xhold": {
+    "n": 4,
+    "rms": 0.689,
+    "sd": 0.767,
+    "max_abs": 0.912,
+    "mean": -0.185,
+    "rms_upper90": 1.339,
+    "rms_tip_mm": 1.74
+   },
+   "xhold_verdict": "G3 미달",
+   "generalization_weak": false,
+   "selected_holdout": {
+    "n": 12,
+    "rms": 0.779,
+    "sd": 0.798,
+    "max_abs": 2.105,
+    "mean": 0.149,
+    "rms_upper90": 1.074,
+    "rms_tip_mm": 1.96
+   },
+   "verdict": "G3 미달"
+  },
+  "3": {
+   "n_cal": 28,
+   "n_hold": 12,
+   "cv_rms": {
+    "M0": 1.137,
+    "M1": 0.796,
+    "M2": 0.857,
+    "M3": 0.943
+   },
+   "selected": "M1",
+   "params": {
+    "model": "M1",
+    "d_up": 1.1500000000000001,
+    "o_down": 0.3939166666666661
+   },
+   "holdout": {
+    "M0": {
+     "n": 12,
+     "rms": 1.295,
+     "sd": 1.033,
+     "max_abs": 2.936,
+     "mean": 0.836,
+     "rms_upper90": 1.786,
+     "rms_tip_mm": 4.48
+    },
+    "M1": {
+     "n": 12,
+     "rms": 0.75,
+     "sd": 0.78,
+     "max_abs": 1.786,
+     "mean": 0.064,
+     "rms_upper90": 1.034,
+     "rms_tip_mm": 2.59
+    },
+    "M2": {
+     "n": 12,
+     "rms": 0.812,
+     "sd": 0.846,
+     "max_abs": 1.816,
+     "mean": 0.067,
+     "rms_upper90": 1.12,
+     "rms_tip_mm": 2.81
+    },
+    "M3": {
+     "n": 12,
+     "rms": 0.803,
+     "sd": 0.836,
+     "max_abs": 1.639,
+     "mean": -0.061,
+     "rms_upper90": 1.107,
+     "rms_tip_mm": 2.78
+    }
+   },
+   "n_xhold": 4,
+   "xhold": {
+    "M0": {
+     "n": 4,
+     "rms": 1.645,
+     "sd": 1.082,
+     "max_abs": 2.682,
+     "mean": 1.352,
+     "rms_upper90": 3.195,
+     "rms_tip_mm": 5.69
+    },
+    "M1": {
+     "n": 4,
+     "rms": 0.84,
+     "sd": 0.701,
+     "max_abs": 1.532,
+     "mean": 0.58,
+     "rms_upper90": 1.632,
+     "rms_tip_mm": 2.91
+    },
+    "M2": {
+     "n": 4,
+     "rms": 0.845,
+     "sd": 0.692,
+     "max_abs": 1.562,
+     "mean": 0.595,
+     "rms_upper90": 1.641,
+     "rms_tip_mm": 2.92
+    },
+    "M3": {
+     "n": 4,
+     "rms": 0.736,
+     "sd": 0.67,
+     "max_abs": 1.396,
+     "mean": 0.453,
+     "rms_upper90": 1.43,
+     "rms_tip_mm": 2.55
+    }
+   },
+   "selected_xhold": {
+    "n": 4,
+    "rms": 0.84,
+    "sd": 0.701,
+    "max_abs": 1.532,
+    "mean": 0.58,
+    "rms_upper90": 1.632,
+    "rms_tip_mm": 2.91
+   },
+   "xhold_verdict": "G3 미달",
+   "generalization_weak": false,
+   "selected_holdout": {
+    "n": 12,
+    "rms": 0.75,
+    "sd": 0.78,
+    "max_abs": 1.786,
+    "mean": 0.064,
+    "rms_upper90": 1.034,
+    "rms_tip_mm": 2.59
+   },
+   "verdict": "G3 미달"
+  }
+ },
+ "interpretation_scope": "6b 판정 보류: J4·J1 미측정, 기준 자세 2개 — 이 결과만으로 6b 달성 여부를 판정하지 않는다"
+}

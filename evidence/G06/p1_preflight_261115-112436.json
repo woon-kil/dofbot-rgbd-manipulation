@@ -1,0 +1,170 @@
+{
+ "ok": true,
+ "checks": [
+  {
+   "name": "readback_vs_K1",
+   "ok": true,
+   "rows": [
+    {
+     "joint": 1,
+     "readback": 89.0,
+     "expected": 89,
+     "diff": 0.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 2,
+     "readback": 91.0,
+     "expected": 91,
+     "diff": 0.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 3,
+     "readback": 92.0,
+     "expected": 91,
+     "diff": 1.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 4,
+     "readback": 91.0,
+     "expected": 91,
+     "diff": 0.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 5,
+     "readback": 90.0,
+     "expected": 90,
+     "diff": 0.0,
+     "tol": 1.0,
+     "ok": true
+    },
+    {
+     "joint": 6,
+     "readback": 179.0,
+     "expected": 179,
+     "diff": 0.0,
+     "tol": 1.0,
+     "ok": true
+    }
+   ]
+  },
+  {
+   "name": "scene",
+   "ok": true,
+   "block_move_in_scene_px": 0.16,
+   "marker_tol_px": 4.0,
+   "camera_shift_px": 2.469,
+   "camera_shift_xy_px": [
+    -2.39,
+    -0.62
+   ],
+   "camera_shift_ref_px": 0.5,
+   "phase_response": 0.891,
+   "response_min": 0.5,
+   "marker_center_px": [
+    700.5,
+    272.25
+   ],
+   "marker_ref_px": [
+    702.8,
+    273.0
+   ],
+   "marker_move_px": [
+    -2.3,
+    -0.75
+   ],
+   "camera_still_ok": false,
+   "marker_ok": true,
+   "response_ok": true
+  },
+  {
+   "name": "scripts_sha256",
+   "ok": true,
+   "n": 16,
+   "mismatch": [],
+   "manifest_sha256": "42cb03076cbe0f843108b33ba087ee14a052488f0645a33a8fb042ed7f8da774"
+  },
+  {
+   "name": "src_sha256",
+   "ok": true,
+   "n": 19,
+   "mismatch": [],
+   "manifest_sha256": "46f74d8b0c97647d6a88b7bfcfdf2e83668c25488b5bbab0f66f665b721e5240"
+  },
+  {
+   "name": "arm_lib_version",
+   "reference_func_hash": "69d43556568ea13e",
+   "reference_file_sha256": "edfcae726658ce9340208de03d836aabfc5ebc1754d14ce8720a7ba36e13ed5c",
+   "installed_file_sha256": null,
+   "file_sha_equal": null,
+   "ok": true,
+   "status": "match",
+   "installed_func_hash": "69d43556568ea13e",
+   "note": null
+  },
+  {
+   "name": "raw_samples",
+   "ok": true,
+   "gate": false,
+   "rows": [
+    {
+     "joint": 1,
+     "n": 20,
+     "n_none": 0,
+     "raw_min": 1993,
+     "raw_max": 1994,
+     "raw_sd_counts": 0.43,
+     "raw_sd_deg": 0.035,
+     "int_vs_raw_consistent": 1.0,
+     "sd_below_rounding": true,
+     "ok": true
+    },
+    {
+     "joint": 2,
+     "n": 20,
+     "n_none": 0,
+     "raw_min": 1987,
+     "raw_max": 1988,
+     "raw_sd_counts": 0.49,
+     "raw_sd_deg": 0.04,
+     "int_vs_raw_consistent": 1.0,
+     "sd_below_rounding": true,
+     "ok": true
+    },
+    {
+     "joint": 3,
+     "n": 20,
+     "n_none": 0,
+     "raw_min": 1984,
+     "raw_max": 1985,
+     "raw_sd_counts": 0.5,
+     "raw_sd_deg": 0.041,
+     "int_vs_raw_consistent": 1.0,
+     "sd_below_rounding": true,
+     "ok": true
+    },
+    {
+     "joint": 4,
+     "n": 20,
+     "n_none": 0,
+     "raw_min": 1988,
+     "raw_max": 1989,
+     "raw_sd_counts": 0.46,
+     "raw_sd_deg": 0.037,
+     "int_vs_raw_consistent": 1.0,
+     "sd_below_rounding": true,
+     "ok": true
+    }
+   ],
+   "rounding_sd_deg": 0.289
+  }
+ ],
+ "note": "읽기 전용 점검. 하나라도 실패하면 팔을 움직이지 않는다."
+}
