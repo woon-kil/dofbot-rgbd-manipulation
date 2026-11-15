@@ -1,0 +1,357 @@
+{
+ "source": "evidence/G01/raw/g01_p2i_result-real-261116-003919.json (raw, gitignore)",
+ "run": "G07 P2i R9b --real, 2026-11-16 00:39, ended=completed, 쓰기 29회(열기 생략 4 + 블록 없음 2×5 + 블록 있음 3×5 + 마무리 4 = 29), 재전송 0, 눌림·조기 접촉·접촉 의심 없음",
+ "start_S": 100,
+ "free": [
+  [
+   {
+    "command": 120,
+    "final_readback": 119,
+    "tail5": [
+     118,
+     119,
+     119,
+     119,
+     119
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1881
+   },
+   {
+    "command": 140,
+    "final_readback": 139,
+    "tail5": [
+     139,
+     139,
+     139,
+     139,
+     139
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1880
+   },
+   {
+    "command": 150,
+    "final_readback": 148,
+    "tail5": [
+     147,
+     148,
+     148,
+     148,
+     148
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1674
+   },
+   {
+    "command": 155,
+    "final_readback": 153,
+    "tail5": [
+     153,
+     153,
+     153,
+     153,
+     153
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1569
+   },
+   {
+    "return": 100
+   }
+  ],
+  [
+   {
+    "command": 120,
+    "final_readback": 119,
+    "tail5": [
+     119,
+     119,
+     119,
+     119,
+     119
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1986
+   },
+   {
+    "command": 140,
+    "final_readback": 139,
+    "tail5": [
+     139,
+     139,
+     139,
+     139,
+     139
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1884
+   },
+   {
+    "command": 150,
+    "final_readback": 148,
+    "tail5": [
+     147,
+     147,
+     148,
+     148,
+     148
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1673
+   },
+   {
+    "command": 155,
+    "final_readback": 153,
+    "tail5": [
+     153,
+     153,
+     153,
+     153,
+     153
+    ],
+    "unsettled": false,
+    "poll_end_ms": 1568
+   },
+   {
+    "return": 100
+   }
+  ]
+ ],
+ "block": [
+  [
+   {
+    "command": 120,
+    "final_readback": 119,
+    "tail5": [
+     119,
+     119,
+     119,
+     119,
+     119
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2298
+   },
+   {
+    "command": 140,
+    "final_readback": 139,
+    "tail5": [
+     139,
+     139,
+     139,
+     139,
+     139
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2299
+   },
+   {
+    "command": 150,
+    "final_readback": 146,
+    "tail5": [
+     146,
+     146,
+     146,
+     146,
+     146
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2091
+   },
+   {
+    "command": 155,
+    "final_readback": 149,
+    "tail5": [
+     149,
+     149,
+     149,
+     149,
+     149
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2090
+   },
+   {
+    "return": 100
+   }
+  ],
+  [
+   {
+    "command": 120,
+    "final_readback": 119,
+    "tail5": [
+     119,
+     119,
+     119,
+     119,
+     119
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2299
+   },
+   {
+    "command": 140,
+    "final_readback": 139,
+    "tail5": [
+     139,
+     139,
+     139,
+     139,
+     139
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2300
+   },
+   {
+    "command": 150,
+    "final_readback": 146,
+    "tail5": [
+     146,
+     146,
+     146,
+     146,
+     146
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2093
+   },
+   {
+    "command": 155,
+    "final_readback": 149,
+    "tail5": [
+     149,
+     149,
+     149,
+     149,
+     149
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2090
+   },
+   {
+    "return": 100
+   }
+  ],
+  [
+   {
+    "command": 120,
+    "final_readback": 119,
+    "tail5": [
+     119,
+     119,
+     119,
+     119,
+     119
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2297
+   },
+   {
+    "command": 140,
+    "final_readback": 139,
+    "tail5": [
+     139,
+     139,
+     139,
+     139,
+     139
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2303
+   },
+   {
+    "command": 150,
+    "final_readback": 146,
+    "tail5": [
+     146,
+     146,
+     146,
+     146,
+     146
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2091
+   },
+   {
+    "command": 155,
+    "final_readback": 148,
+    "tail5": [
+     148,
+     148,
+     148,
+     148,
+     148
+    ],
+    "unsettled": false,
+    "poll_end_ms": 2090
+   },
+   {
+    "return": 100
+   }
+  ]
+ ],
+ "summary": {
+  "150": {
+   "free_mean": 148.0,
+   "block_mean": 146.0,
+   "diff": 2.0,
+   "free_range": 0,
+   "block_range": 0
+  },
+  "155": {
+   "free_mean": 153.0,
+   "block_mean": 148.67,
+   "diff": 4.33,
+   "free_range": 0,
+   "block_range": 1
+  },
+  "a_block150_range_ok": true,
+  "b_free150_in_147_150": true,
+  "c_separation_ok": false,
+  "n_free150": 2,
+  "n_block150": 3,
+  "n_ok": true,
+  "verdict": "회독으로 파지 판정 가능하지 않음 또는 판정 불가(영상 등 보조 수단 필요, 위 항목 확인)"
+ },
+ "readings": {
+  "free": {
+   "150": [
+    148,
+    148
+   ],
+   "155": [
+    153,
+    153
+   ]
+  },
+  "block": {
+   "150": [
+    146,
+    146,
+    146
+   ],
+   "155": [
+    149,
+    149,
+    148
+   ]
+  }
+ },
+ "prereg_verdict": "회독으로 파지 판정 가능하지 않음 (명령 150에서 차이 2.0° < 4°), (a) 블록 있음 150 범위 0 ≤ 2 충족, (b) 블록 없음 150 = 148 (147~150) 충족, (c) 미충족",
+ "exploratory": {
+  "155_diff": 4.33,
+  "155_free_min_minus_block_max": 4,
+  "note": "사전 판정 기준은 150이다. 155는 보고용(d). 155의 차이 4.33°는 문턱 4°를 근소하게 넘지만 회독 양자화 ±1°와 단일 구성(같은 블록·같은 위치)에서의 값이라 판정으로 쓰지 않는다",
+  "block_stall_vs_command": {
+   "145": 142,
+   "150": 146,
+   "155": "149(148)"
+  },
+  "free_vs_command": {
+   "150": 148,
+   "155": 153
+  }
+ },
+ "user_report": "발열 이상 없음(2026-11-16 00:47). 블록 눌림·홀더 걸림은 언급 없음(미확인)"
+}
