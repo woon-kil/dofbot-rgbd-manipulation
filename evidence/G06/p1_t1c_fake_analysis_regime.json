@@ -1,0 +1,142 @@
+{
+ "n_rows": 40,
+ "joints": {
+  "2": {
+   "n": 20,
+   "n_large": 12,
+   "n_small": 8,
+   "c1_large": {
+    "n": 12,
+    "rms": 0.421,
+    "sd": 0.437,
+    "max_abs": 0.664,
+    "mean": 0.05,
+    "rms_upper90": 0.581,
+    "rms_tip_mm": 1.06
+   },
+   "c1_verdict": "전이 실패(이력 또는 모델 불일치)",
+   "c2_cells": {
+    "small_up": {
+     "n": 4,
+     "mean": -1.723,
+     "sd": 0.065
+    },
+    "small_down": {
+     "n": 4,
+     "mean": -0.598,
+     "sd": 0.073
+    },
+    "large_up": {
+     "n": 6,
+     "mean": -1.683,
+     "sd": 0.061
+    },
+    "large_down": {
+     "n": 6,
+     "mean": -0.426,
+     "sd": 0.048
+    }
+   },
+   "c2_ratio_down_small_over_large": 1.52,
+   "c2_verdict": "크기 전환 미지지",
+   "c3_history_large": {
+    "same_dir": {
+     "n": 2,
+     "rms": 0.318,
+     "sd": 0.45,
+     "max_abs": 0.33,
+     "mean": 0.012,
+     "rms_upper90": 1.014,
+     "rms_tip_mm": 0.8
+    },
+    "opposite_dir": {
+     "n": 10,
+     "rms": 0.439,
+     "sd": 0.458,
+     "max_abs": 0.664,
+     "mean": 0.058,
+     "rms_upper90": 0.629,
+     "rms_tip_mm": 1.11
+    }
+   },
+   "aux_small_transfer": {
+    "n": 8,
+    "rms": 0.175,
+    "sd": 0.187,
+    "max_abs": 0.283,
+    "mean": 0.001,
+    "rms_upper90": 0.264,
+    "rms_tip_mm": 0.44
+   }
+  },
+  "3": {
+   "n": 20,
+   "n_large": 12,
+   "n_small": 8,
+   "c1_large": {
+    "n": 12,
+    "rms": 0.188,
+    "sd": 0.195,
+    "max_abs": 0.243,
+    "mean": -0.023,
+    "rms_upper90": 0.259,
+    "rms_tip_mm": 0.65
+   },
+   "c1_verdict": "큰 이동 전이 성립(G1 수준)",
+   "c2_cells": {
+    "small_up": {
+     "n": 4,
+     "mean": -1.677,
+     "sd": 0.392
+    },
+    "small_down": {
+     "n": 4,
+     "mean": -0.459,
+     "sd": 0.428
+    },
+    "large_up": {
+     "n": 6,
+     "mean": -1.72,
+     "sd": 0.05
+    },
+    "large_down": {
+     "n": 6,
+     "mean": -0.438,
+     "sd": 0.031
+    }
+   },
+   "c2_ratio_down_small_over_large": 13.81,
+   "c2_verdict": "크기 전환 지지(SD 비 ≥ 2)",
+   "c3_history_large": {
+    "same_dir": {
+     "n": 5,
+     "rms": 0.191,
+     "sd": 0.213,
+     "max_abs": 0.243,
+     "mean": 0.003,
+     "rms_upper90": 0.336,
+     "rms_tip_mm": 0.66
+    },
+    "opposite_dir": {
+     "n": 7,
+     "rms": 0.186,
+     "sd": 0.196,
+     "max_abs": 0.225,
+     "mean": -0.042,
+     "rms_upper90": 0.292,
+     "rms_tip_mm": 0.64
+    }
+   },
+   "aux_small_transfer": {
+    "n": 8,
+    "rms": 0.388,
+    "sd": 0.413,
+    "max_abs": 0.622,
+    "mean": -0.033,
+    "rms_upper90": 0.587,
+    "rms_tip_mm": 1.34
+   }
+  }
+ },
+ "interpretation_scope": "6b 판정 보류: J4·J1 미측정, 자세 의존 미해결(J2는 90 이상 구간만 시험) — 이 결과만으로 6b 달성 여부를 판정하지 않는다"
+}
