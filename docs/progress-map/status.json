@@ -1,0 +1,278 @@
+{
+ "_안내": "관문·단계·남은 것의 상태를 사람이 고치는 파일입니다. 상태를 바꿀 때 근거 문서를 source에 적고 as_of를 갱신하세요. 열린 결정 건수는 이 파일이 아니라 정리표에서 tools/progress_map.py가 직접 셉니다.",
+ "as_of": "2026-11-15 21:41",
+ "gates": [
+  {
+   "id": "g00",
+   "label": "G00",
+   "name": "장치 인벤토리",
+   "state": "partial",
+   "state_ko": "일부",
+   "note": "읽기 전용 범위 완료(PARTIAL_READONLY)",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  },
+  {
+   "id": "g01",
+   "label": "G01",
+   "name": "두 RGB-D 취득",
+   "state": "cond",
+   "state_ko": "잠정",
+   "note": "PROVISIONAL, 작업영역 마스크 v1 동결",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  },
+  {
+   "id": "g015",
+   "label": "G01.5",
+   "name": "보정 이동 안전 승인",
+   "state": "done",
+   "state_ko": "완료",
+   "note": "G01.5a·b 완료",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  },
+  {
+   "id": "g02",
+   "label": "G02",
+   "name": "회독 대 FK 검증",
+   "state": "cond",
+   "state_ko": "조건부 통과",
+   "note": "2026-11-12 조건부 PASS, 절대 높이·J3·J4 이득·영점은 판정 밖",
+   "source": "PROJECT-STATUS.md 70행",
+   "current": ""
+  },
+  {
+   "id": "g03",
+   "label": "G03",
+   "name": "Gemini 보정",
+   "state": "none",
+   "state_ko": "미수행",
+   "note": "아직 시작하지 않음",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  },
+  {
+   "id": "g04",
+   "label": "G04",
+   "name": "DaBai 손-눈 보정",
+   "state": "done",
+   "state_ko": "완료",
+   "note": "방법 동결·확증 PASS, 접근 단계 용도",
+   "source": "docs/gates/roadmap.md 11행",
+   "current": ""
+  },
+  {
+   "id": "g05",
+   "label": "G05",
+   "name": "정지 검체 교차 검증",
+   "state": "none",
+   "state_ko": "미수행",
+   "note": "아직 시작하지 않음",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  },
+  {
+   "id": "g06",
+   "label": "G06",
+   "name": "도달성·충돌 dry-run",
+   "state": "partial",
+   "state_ko": "일부",
+   "note": "③ 하강 영역만 오프라인",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  },
+  {
+   "id": "g07",
+   "label": "G07",
+   "name": "저속 P&P (③ 접촉 파일럿 선행)",
+   "state": "partial",
+   "state_ko": "진행 중",
+   "note": "P1 완료, P1-b2 승인 대기. 접촉·파지 실기기 기록 0개",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": "지금 위치"
+  },
+  {
+   "id": "g08",
+   "label": "G08",
+   "name": "이중 검증·실패 복구",
+   "state": "none",
+   "state_ko": "미수행",
+   "note": "아직 시작하지 않음",
+   "source": "PROJECT-STATUS.md 5행",
+   "current": ""
+  }
+ ],
+ "pilot": [
+  {
+   "id": "p0",
+   "label": "P0",
+   "name": "오프라인 설계",
+   "state": "draft",
+   "state_ko": "초안",
+   "note": "접촉·파지 설계 초안 작성됨. 접촉용 높이·충돌 게이트 값은 비어 있음",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4"
+  },
+  {
+   "id": "p1",
+   "label": "P1",
+   "name": "비접촉 관측 (깊이 0.14~0.17 m)",
+   "state": "done",
+   "state_ko": "완료",
+   "note": "마커 검출 30/30, 블록 접촉 없음",
+   "source": "PROJECT-STATUS.md 5행, docs/261115-0234-G07-P1-관측-파일럿-결과보고서.md"
+  },
+  {
+   "id": "p1b2",
+   "label": "P1-b2",
+   "name": "근접 관측 (깊이 0.11~0.13 m)",
+   "state": "wait",
+   "state_ko": "승인 대기",
+   "note": "결정 1~4 승인 칸이 비어 있음. 높이 게이트가 새 안전 임계값",
+   "source": "docs/gates/G07-P1-b2-승인-요청-문서.md §5"
+  },
+  {
+   "id": "p2g",
+   "label": "P2g",
+   "name": "그리퍼 단독 개폐",
+   "state": "none",
+   "state_ko": "제안",
+   "note": "J6만 움직임. 승인 문서 초안은 아직 작성 전(F3)",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4·§7"
+  },
+  {
+   "id": "p2h",
+   "label": "P2h",
+   "name": "블록을 지지한 채 닫기",
+   "state": "none",
+   "state_ko": "제안",
+   "note": "정체 값 재현성 5회 이상 기록",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4"
+  },
+  {
+   "id": "p3",
+   "label": "P3",
+   "name": "블록 위 접촉 없는 하강",
+   "state": "none",
+   "state_ko": "제안",
+   "note": "접촉용 높이 게이트(새 안전 한도)가 먼저 필요",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4"
+  },
+  {
+   "id": "p4a",
+   "label": "P4a",
+   "name": "닫기와 파지 전후 재관측",
+   "state": "none",
+   "state_ko": "제안",
+   "note": "집게만 움직임",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4"
+  },
+  {
+   "id": "p4b",
+   "label": "P4b",
+   "name": "들어올림 20 mm 이내",
+   "state": "none",
+   "state_ko": "제안",
+   "note": "유지 5초 후 내림",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4"
+  },
+  {
+   "id": "g07main",
+   "label": "G07 본체",
+   "name": "집어서 놓기 30회, 실패 0건",
+   "state": "none",
+   "state_ko": "제안",
+   "note": "합격선은 별도 결정(30회 0건의 실패율 95% 상한은 약 9.5%)",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §4-2"
+  }
+ ],
+ "servo": [
+  {
+   "id": "t1a",
+   "label": "T1-A",
+   "name": "작은 이동 응답 (세트 17)",
+   "state": "done",
+   "state_ko": "완료",
+   "note": "J2·J3 증가 방향 정지 오차 약 1.9°, 감소 방향 약 −0.27°",
+   "source": "docs/261115-1813-6b-오프라인-계산-결과보고서.md"
+  },
+  {
+   "id": "t1b",
+   "label": "T1-B",
+   "name": "큰 이동 15~45° (세트 18)",
+   "state": "done",
+   "state_ko": "완료",
+   "note": "홀드아웃 잔차 J2 0.126°, J3 0.099°",
+   "source": "docs/261115-1813-6b-오프라인-계산-결과보고서.md §9"
+  },
+  {
+   "id": "t1c",
+   "label": "T1-C",
+   "name": "섞인 순서 8~30° (세트 19)",
+   "state": "done",
+   "state_ko": "완료",
+   "note": "J3 잔차 0.095°. J2에 일정 편차 약 −0.33°(원인 미확인)",
+   "source": "docs/261115-1813-6b-오프라인-계산-결과보고서.md §11"
+  },
+  {
+   "id": "t1d",
+   "label": "T1-D",
+   "name": "J4 작은 폭",
+   "state": "none",
+   "state_ko": "요청 안 함",
+   "note": "정밀도 쪽 새 실기기 시험은 멈춤(사용자 결정)",
+   "source": "docs/261115-2107-방향-점검-보고서.md"
+  },
+  {
+   "id": "s6b",
+   "label": "6b 판정",
+   "name": "blind 이동 한 축 σ ≤ 1.0 mm",
+   "state": "wait",
+   "state_ko": "보류",
+   "note": "J4·J1 미측정, 자세 의존 미해결. 한도 1.0 mm는 미동결 제안",
+   "source": "docs/gates/열린-결정-정리표.md 결정 기록"
+  }
+ ],
+ "remaining": [
+  {
+   "id": "design",
+   "item": "접촉·파지 설계",
+   "state": "draft",
+   "state_ko": "초안 작성",
+   "detail": "G07-파지-접촉-설계-초안.md 작성됨. 승인 칸 F1~F4는 모두 비어 있음",
+   "source": "docs/gates/G07-파지-접촉-설계-초안.md §8"
+  },
+  {
+   "id": "records",
+   "item": "접촉·파지 실기기 기록",
+   "state": "none",
+   "state_ko": "0개",
+   "detail": "최종 목표(블록 P&P 30회 실패 0건)에 가장 가깝지만 기록이 없음",
+   "source": "docs/261115-1747-현재-병목과-해결방안-보고서.md §1"
+  },
+  {
+   "id": "threshold",
+   "item": "합격 임계값 동결",
+   "state": "none",
+   "state_ko": "미동결",
+   "detail": "acceptance-matrix 전부 미동결. 동결 시점은 정리표 #10에서 정함",
+   "source": "PROJECT-STATUS.md 23행"
+  },
+  {
+   "id": "servo",
+   "item": "서보 응답 시험(T1-A·B·C)",
+   "state": "done",
+   "state_ko": "완료·정지",
+   "detail": "J2·J3 응답 측정 완료, 정밀도 쪽 새 실기기 시험은 멈춤. 6b 판정은 보류(J4·J1 미측정)",
+   "source": "docs/handoff/A-결과.md, docs/261115-2107-방향-점검-보고서.md"
+  },
+  {
+   "id": "p1b2",
+   "item": "P1-b2 근접 관측 파일럿",
+   "state": "wait",
+   "state_ko": "승인 대기",
+   "detail": "결정 1~4 승인 칸이 비어 있음. 높이 게이트(새 안전 임계값) 결정이 걸림",
+   "source": "docs/gates/G07-P1-b2-승인-요청-문서.md §5"
+  }
+ ]
+}
