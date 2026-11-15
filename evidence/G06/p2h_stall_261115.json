@@ -1,0 +1,140 @@
+{
+ "source": "evidence/G01/raw/g01_p2h_result-real-261115-233026.json (raw, gitignore)",
+ "run": "G07 P2h --real, 2026-11-15 23:30, 쓰기 26회(열기 4 + 닫기 3×6 + 마무리 4), 재전송 0, ended=completed",
+ "start_S": 177,
+ "summary": {
+  "stall_readbacks": [
+   142,
+   142,
+   142
+  ],
+  "range": 0,
+  "mean": 142.0,
+  "pass_range": true,
+  "pass_window": true
+ },
+ "trials": [
+  {
+   "trial": 1,
+   "steps": [
+    {
+     "command": 120,
+     "final_readback": 119,
+     "stall": false,
+     "poll_end_ms": 3974
+    },
+    {
+     "command": 130,
+     "final_readback": 129,
+     "stall": false,
+     "poll_end_ms": 3974
+    },
+    {
+     "command": 135,
+     "final_readback": 133,
+     "stall": false,
+     "poll_end_ms": 3968
+    },
+    {
+     "command": 140,
+     "final_readback": 139,
+     "stall": false,
+     "poll_end_ms": 3975
+    },
+    {
+     "command": 145,
+     "final_readback": 142,
+     "stall": true,
+     "poll_end_ms": 1568
+    }
+   ],
+   "stall_readback": 142,
+   "return_final": 100
+  },
+  {
+   "trial": 2,
+   "steps": [
+    {
+     "command": 120,
+     "final_readback": 119,
+     "stall": false,
+     "poll_end_ms": 3973
+    },
+    {
+     "command": 130,
+     "final_readback": 129,
+     "stall": false,
+     "poll_end_ms": 3975
+    },
+    {
+     "command": 135,
+     "final_readback": 133,
+     "stall": false,
+     "poll_end_ms": 3969
+    },
+    {
+     "command": 140,
+     "final_readback": 138,
+     "stall": false,
+     "poll_end_ms": 3975
+    },
+    {
+     "command": 145,
+     "final_readback": 142,
+     "stall": true,
+     "poll_end_ms": 1569
+    }
+   ],
+   "stall_readback": 142,
+   "return_final": 100
+  },
+  {
+   "trial": 3,
+   "steps": [
+    {
+     "command": 120,
+     "final_readback": 119,
+     "stall": false,
+     "poll_end_ms": 3973
+    },
+    {
+     "command": 130,
+     "final_readback": 128,
+     "stall": false,
+     "poll_end_ms": 3973
+    },
+    {
+     "command": 135,
+     "final_readback": 133,
+     "stall": false,
+     "poll_end_ms": 3975
+    },
+    {
+     "command": 140,
+     "final_readback": 138,
+     "stall": false,
+     "poll_end_ms": 3970
+    },
+    {
+     "command": 145,
+     "final_readback": 142,
+     "stall": true,
+     "poll_end_ms": 1567
+    }
+   ],
+   "stall_readback": 142,
+   "return_final": 100
+  }
+ ],
+ "free_motion_reference_P2g": {
+  "140": "139~140",
+  "160": "159",
+  "179": "177"
+ },
+ "notes": [
+  "정체: 명령 145에서 회독 142, 3회 모두 같음(잔차 3°=판정 문턱)",
+  "정체 단계 폴링은 이동 시간(약 1.5 s)에 끝나 복귀가 3초 안에 이루어짐(H4)",
+  "명령 145의 자유 이동 회독은 약 144로 예상(미측정) → 정체 142와 차이 약 2°뿐, 파지 성공 판정에는 더 큰 명령(예: 150)에서의 비교 측정이 필요"
+ ],
+ "user_report": "발열, 떨림 등 이상 소견 없음(2026-11-15 23:40). 블록 눌림·밀림·홀더 걸림은 언급 없음(미확인)"
+}
