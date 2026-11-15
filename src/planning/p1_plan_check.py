@@ -2,6 +2,7 @@
 정상 경로 15이동과 중단 시의 상태별 복귀 경로 전부를, 블록(실측 위치, 반폭 +3 mm)·종이·베이스에 대해 0.5° 간격으로 최선+비관적 4변형과 그리퍼 캡 간격 2종(열림, 오므림 UNVERIFIED)에서 평가한다.
 사용: python3 -I src/planning/p1_plan_check.py plan.json [out.json]   종료 코드 1 = 여유 기준 미달"""
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,8 +17,9 @@ from planning.dry_run import TRUTH, TABLE_Z, HULL_KEYS                  # noqa: 
 from planning import p1_poses as P                                      # noqa: E402
 
 CENTER = (0.0014, 0.189)
-GATE_MM = 20.0
-CAP_X = {"closed": 0.00485, "open": 0.0292}
+GATE_MM = float(os.environ.get("P1_GATE_MM", "20"))   # P1: 20 mm, P1-b2(더 가까운 자세): 10 mm(승인 문서 제안)
+# 캡 중심 x·쌍 중심 옵셋 조합: 열림, 오므림 가정 4.85 mm, 사진 대조값 7.1 mm(옵셋 −3 mm, UNVERIFIED) 등
+CAP_GEOMS = [(0.0292, 0.0), (0.00485, 0.0), (0.0071, -0.003), (0.0071, 0.0), (0.012, -0.003)]
 STEP = 0.5
 
 
@@ -25,8 +27,8 @@ def eval_state(fk, hulls, q, box):
     w = {"box": 1e9, "table": 1e9, "base": 1e9}
     for t in TRUTH.values():
         f = fk.fk(np.array([list(q) + [90.0]]), gains=t.gains, tool_offset=t.tool_offset())
-        for cx in CAP_X.values():
-            c = clearances(f, hulls, finger_capsules(0.09 + t.tip_y, cx), TABLE_Z, dz=t.dz, boxes=[box])
+        for cx, off in CAP_GEOMS:
+            c = clearances(f, hulls, finger_capsules(0.09 + t.tip_y, cx, off), TABLE_Z, dz=t.dz, boxes=[box])
             for k, v in (("box", c["box"]), ("table", c["table"]), ("base", c.get("base", 1e9))):
                 w[k] = min(w[k], v)
     return w

@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/tools/direction_check.py\" --hook 2>/dev/null || true",
+            "timeout": 20,
+            "statusMessage": "방향 점검 기준 확인 중..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "DC_EVENT=SessionStart python3 \"$(git rev-parse --show-toplevel)/tools/direction_check.py\" --hook 2>/dev/null || true",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

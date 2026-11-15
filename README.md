@@ -1,6 +1,6 @@
 # DOFBOT RGB-D Manipulation — Dual Camera v2
 
-**상태: DESIGN_DRAFT_STATIC_CHECKS_ONLY / 실물 검증 NOT_RUN.** (정적 검증이 확인하는 것은 파일 존재, 예시 설정 안전 플래그, 단위 테스트뿐이며 설계의 타당성이 검증된 것은 아니다. 진단: `docs/261112-0748-설계진단보고서.md`)
+**상태(2026-11-15): 실기기 시험 진행 중 / 정적 검증 `PASS_STATIC_ONLY`, 합격 임계값 미동결, P&P 미착수.** G01.5·G02(조건부)·G04 확증까지 완료했고 G07 전 폐루프 접촉 파일럿(③)의 관측 단계 P1을 마쳤다. 진행 상황의 단일 정본은 `PROJECT-STATUS.md`이고 방향 점검은 `docs/261115-0902-프로젝트-방향-점검-보고서.md`다. (정적 검증이 확인하는 것은 파일 존재, 예시 설정 안전 플래그, 단위 테스트뿐이며 설계의 타당성이 검증된 것은 아니다.)
 
 DOFBOT Pro + 말단 DaBai RGB-D (eye-in-hand) + **고정 Orbbec Gemini 335L (eye-to-hand)** 기반 Pick & Place. Gemini 335L은 필수 시스템 구성요소이며, 실제 시야/깊이/베이스 정합 검증 전에는 위치추정 근거로 쓰지 않는다. 기존 고정 카메라를 이동시키지 않는다.
 
@@ -20,7 +20,7 @@ DOFBOT Pro + 말단 DaBai RGB-D (eye-in-hand) + **고정 Orbbec Gemini 335L (eye
 - `docs/agent-work-order.md`: Cursor Agent 첫 실행 의뢰서
 
 ## 실행
-`python3 scripts/validate_design.py` (하드웨어 명령 없음). `python3 -m unittest discover -s tests -v`.
+`python3 scripts/validate_design.py` (하드웨어 명령 없음). `python3 -m unittest discover -s tests -v`. **단위 테스트 일부(`test_planning_g06`, `test_urdf_fk`)는 scipy·numpy가 필요하므로 해당 패키지가 있는 환경(예: `~/projects/simple-vision-tech-poc/.venv/bin/python`)에서 실행한다. 시스템 python3에서는 1개 오류가 난다.**
 
 **중요:** `configs/project.example.json`은 안전한 예시 설정이다. 보정 결과나 로봇 실기기 동작을 의미하지 않는다. 실물 테스트는 안전 확보 및 승인 후 별도 진행.
 

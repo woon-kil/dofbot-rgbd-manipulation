@@ -49,12 +49,12 @@ def load_link_hull(name, mesh_dir=MESH_DIR):
     return Hull(read_stl_vertices(Path(mesh_dir) / ("%s.STL" % name)))
 
 
-def finger_capsules(tip_y, center_x=CAP_CENTER_X):
+def finger_capsules(tip_y, center_x=CAP_CENTER_X, x_offset=0.0):
     """arm5 프레임 캡슐 목록 [(p0, p1, r)]. tip_y: 캡 끝면의 arm5 y(m). 캡 두 개 + 금속 링크 연장 두 개.
     center_x: 캡 중심의 arm5 x(m). 기본은 J6=98(안쪽 간격 48.7 mm). 오므린 그리퍼(J6=179)는 간격 미실측이라 UNVERIFIED 가정으로 호출자가 값을 준다."""
     caps = []
     for sx in (-1.0, 1.0):
-        x = sx * center_x
+        x = sx * center_x + x_offset   # x_offset: 쌍 중심의 arm5 x 치우침(오므림 사진 대조 −3 mm, UNVERIFIED)
         caps.append((np.array([x, tip_y, 0.0]), np.array([x, tip_y - CAP_LENGTH, 0.0]), CAP_RADIUS))
         caps.append((np.array([x, tip_y - CAP_LENGTH, 0.0]), np.array([x, tip_y - CAP_LENGTH - FINGER_BAR_LENGTH, 0.0]), FINGER_BAR_RADIUS))
     return caps
