@@ -3,8 +3,11 @@ import sys, tempfile
 from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT / "scripts"))
-import pytest
-cv2 = pytest.importorskip("cv2")
+import unittest
+try:
+    import cv2
+except ImportError:                      # cv2 없는 환경(시스템 python)에서는 모듈 전체를 건너뜀
+    raise unittest.SkipTest("cv2 없음")
 import g01_e0g_analyze as E
 
 
