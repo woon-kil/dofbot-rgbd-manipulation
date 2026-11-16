@@ -1,0 +1,55 @@
+{
+  "robot_commands": 0,
+  "center0_px": [
+    698.0,
+    334.875
+  ],
+  "heights": [
+    {
+      "h_mm": 0,
+      "n_detected": 2,
+      "n_shots": 2,
+      "center_mean_px": [
+        698.0,
+        334.875
+      ],
+      "shift_y_px": 0.0,
+      "shift_total_px": 0.0,
+      "side_px_mean": 31.402533531188965,
+      "repeat_diff_px": 0.25,
+      "pred_px": [
+        698.0,
+        334.875
+      ],
+      "pred_shift_total_px": 0.0,
+      "blob_bottom_shift_px": 0.0,
+      "id1_visible": true
+    }
+  ],
+  "Q3_id1": {
+    "measured_px": [
+      693.375,
+      288.5
+    ],
+    "ref_px": [
+      699.0,
+      292.2
+    ],
+    "diff_px": 6.732802165517706
+  },
+  "Q3_id1_vs_1115_info": {
+    "ok_by_old_rule": false
+  },
+  "Q3_base_shift": [
+    {
+      "file": "e0g_h0_r2.png",
+      "dx": 0.009576218530241931,
+      "dy": -0.027578009984360108,
+      "response": 1.0062649974116573
+    }
+  ],
+  "Q3_ok": true,
+  "repeat_max_px": 0.25,
+  "repeat_ok": true,
+  "model_ok_all": true
+}
