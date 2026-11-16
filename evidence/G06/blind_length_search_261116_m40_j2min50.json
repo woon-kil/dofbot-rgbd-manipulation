@@ -1,0 +1,67 @@
+{
+ "margin_px": 40.0,
+ "j2_min": 50.0,
+ "n_visible": 2114,
+ "results": {
+  "d10_gate0": {
+   "blind_mm": 31.9,
+   "q(J2,J3,J4)": [
+    65.0,
+    16.0,
+    22.0
+   ],
+   "FK_TCP_z_plate_mm": 31.2,
+   "n_candidates": 2114
+  },
+  "d10_gate30": {
+   "blind_mm": 31.9,
+   "q(J2,J3,J4)": [
+    65.0,
+    16.0,
+    22.0
+   ],
+   "FK_TCP_z_plate_mm": 31.2,
+   "n_candidates": 2062
+  },
+  "d10_gate44": {
+   "blind_mm": 37.9,
+   "q(J2,J3,J4)": [
+    64.0,
+    27.0,
+    12.0
+   ],
+   "FK_TCP_z_plate_mm": 45.3,
+   "n_candidates": 1116
+  },
+  "d20_gate0": {
+   "blind_mm": 36.8,
+   "q(J2,J3,J4)": [
+    65.0,
+    16.0,
+    22.0
+   ],
+   "FK_TCP_z_plate_mm": 31.2,
+   "n_candidates": 2114
+  },
+  "d20_gate30": {
+   "blind_mm": 36.8,
+   "q(J2,J3,J4)": [
+    65.0,
+    16.0,
+    22.0
+   ],
+   "FK_TCP_z_plate_mm": 31.2,
+   "n_candidates": 2062
+  },
+  "d20_gate44": {
+   "blind_mm": 45.3,
+   "q(J2,J3,J4)": [
+    63.0,
+    28.0,
+    11.0
+   ],
+   "FK_TCP_z_plate_mm": 44.1,
+   "n_candidates": 1116
+  }
+ }
+}
