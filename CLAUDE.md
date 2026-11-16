@@ -4,7 +4,7 @@
 - `git commit` 직후 훅(`.claude/settings.json`)과 세션 시작 때 `tools/direction_check.py --hook`이 돈다. 마지막 점검 이후 **커밋 8개 / 신규 실기기 실행 기록 3개 / 2일** 중 하나가 쌓이면 `[방향 점검 알림]`이 나온다(기준은 환경변수 `DC_COMMITS`·`DC_REAL`·`DC_DAYS`로 조정).
 - **알림이 보이면** 하던 작업을 정리한 뒤 `docs/direction-checks/CHECKLIST.md`로 점검하고, `docs/YYMMDD-HHMM-방향-점검-보고서.md`를 쓰고, `python3 tools/direction_check.py --mark-reviewed <보고서>`로 기준점을 갱신한 뒤 사용자에게 요약 보고한다. 사용자가 보류하면 기준점은 갱신하지 않는다.
 - 수동 확인: `python3 tools/direction_check.py --status`. 상태 파일: `docs/direction-checks/state.json`.
-- 점검은 읽기·기록 작업이며 하드웨어 명령을 보내지 않는다. 정적 검증·테스트는 venv(`~/projects/simple-vision-tech-poc/.venv/bin/python`)로 실행한다.
+- 점검은 읽기·기록 작업이며 하드웨어 명령을 보내지 않는다. 정적 검증·테스트는 프로젝트 가상환경(`.venv/bin/python`, `requirements.txt`로 numpy 2.5.4·opencv-python-headless 4.14.0.94·scipy 1.18.1 고정, 2026-11-16)으로 실행한다: `.venv/bin/python -I -m unittest discover -s tests`. (생성: `python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt`. 로컬 `scripts/` 래퍼의 기본 파이썬은 아직 옛 경로 `~/projects/simple-vision-tech-poc/.venv`이며 환경변수 `P1_CHECK_PY`로 바꿀 수 있다.)
 
 ## 다음 작업 제시 전 큰틀 점검 (2026-11-15, 사용자 요청 — 강제)
 **다음 작업·선택지·권장안을 사용자에게 제시하기 전에 반드시 먼저 이 작업이 전체 프로젝트의 큰틀에서 제대로 된 방향인지 점검하고, 점검 결과를 제안에 함께 적는다.** 점검 없이 제시하지 않는다. (훅으로 강제하지 않는다: 키워드 추정 오탐과 형식 채우기 위험이 이득보다 크다고 판단해 2026-11-15 Stop 훅을 제거했다. 빠뜨리면 사용자가 지적한다.)

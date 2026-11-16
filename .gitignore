@@ -18,3 +18,10 @@ evidence/**/raw/
 scripts/
 evidence/**/*.svg
 .gstack/
+
+# 프로젝트 가상환경(2026-11-16): 버전은 requirements.txt로 고정, 환경 자체는 추적하지 않는다
+.venv/
+*.pyc
+.DS_Store
+# 개인 공간 사진 위에 그린 안내 도식(사진은 data/에만 있고 SVG 안에 상대 경로로 참조됨). 이미 추적 중인 파일은 영향 없음
+results/26*도식.svg
