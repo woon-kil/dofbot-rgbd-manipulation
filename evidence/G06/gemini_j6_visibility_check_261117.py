@@ -18,7 +18,7 @@ def chain(g):
     r3=Tm([0.0045,0.047275,0.0045],0.42401,-g); l3=Tm([-0.0045,0.047275,0.0045],2.7292,g)
     return {'rlink1':r1,'rlink2':r2,'rlink3':r3,'llink1':l1,'llink2':l2,'llink3':l3}
 import os
-q=[float(os.environ.get("J1","109.5")),70.9,14.0,30.2]; o=D.fk.fk(np.array([q+[90.0]])); t=o['tcp'][0][0]*1000; R=o['tcp'][1][0]
+q=[float(os.environ.get(k,v)) for k,v in (("J1","109.5"),("J2","70.9"),("J3","14.0"),("J4","30.2"))]; o=D.fk.fk(np.array([q+[90.0]])); t=o['tcp'][0][0]*1000; R=o['tcp'][1][0]
 for j6,g in ((178,-1.5),(140,-1.1),(100,-0.79)):
     ch=chain(g); res=[]
     for s in 'rl':
