@@ -3,6 +3,7 @@ v1(`gemini_fingertip_detect_r15.py`)은 어두운 화소 문턱이라 흰 종이
 규칙(사진을 보기 전 고정, 사후 조정 금지):
  - 기준 사진: 실행 직전 같은 장면(눈금자·사람 없음, 팔 K1)에서 Gemini로 찍은 1장.
  - 차분: |회색조(사진) − 회색조(기준)| > 45, 3x3 열기(open) 1회.
+ - **노출 방어:** 열기 전 ROI 안 차분 마스크 비율이 0.40을 넘으면 '판정 불가: 노출 차이'로 제외한다(기준 사진과 노출이 달라 ROI 전체가 변한 경우).
  - ROI: 예측 픽셀(오프셋 22.5 mm 투영) 기준 x ±60, y ±60 px.
  - ROI 안 차분 성분 중 면적 ≥ 800 px인 것의 합집합에서, 최하단 y_max를 구하고 y ≥ y_max − 14 px인 화소만 모아 x로 2-means 군집(초기값 최소·최대 x). 군집 간 중심 거리 < 8 px이거나 한 군집 화소가 < 15개면 '병합: 제외'.
  - 각 군집의 아래끝 = 군집 최하단 y, x = 최하단 4행 x 평균. 중간점 = 두 아래끝의 평균.
@@ -16,7 +17,9 @@ import gemini_fingertip_detect_r15 as D1
 def detect_v2(img_path, ref_path, pred):
     g=cv2.cvtColor(cv2.imread(img_path),cv2.COLOR_BGR2GRAY).astype(np.int16); r=cv2.cvtColor(cv2.imread(ref_path),cv2.COLOR_BGR2GRAY).astype(np.int16)
     H,W=g.shape; x0=int(max(0,pred[0]-60)); x1=int(min(W,pred[0]+60)); y0=int(max(0,pred[1]-60)); y1=int(min(H,pred[1]+60))
-    m=(np.abs(g[y0:y1,x0:x1]-r[y0:y1,x0:x1])>45).astype(np.uint8); m=cv2.morphologyEx(m,cv2.MORPH_OPEN,np.ones((3,3),np.uint8))
+    m=(np.abs(g[y0:y1,x0:x1]-r[y0:y1,x0:x1])>45).astype(np.uint8)
+    if m.mean()>0.40: return None,'판정 불가: 노출 차이(차분 비율 %.2f)'%m.mean()
+    m=cv2.morphologyEx(m,cv2.MORPH_OPEN,np.ones((3,3),np.uint8))
     nc,lab,st,_=cv2.connectedComponentsWithStats(m,8); keep=np.zeros_like(m)
     for i in range(1,nc):
         if st[i,cv2.CC_STAT_AREA]>=800: keep[lab==i]=1
