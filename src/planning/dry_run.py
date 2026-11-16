@@ -20,11 +20,11 @@ from planning.observe import PoseGrid                       # noqa: E402
 from planning.reach import Model, solve_ik, tip_state       # noqa: E402
 
 TABLE_Z = -0.011   # 흰 보드 면의 FK 월드 z (판 윗면 +11 mm, 사용자 실측 2026-11-14)
-BEST = Model(gains=(1.0, 0.913, 1.0, 1.0), dz=-0.0104, tip_y=-0.004)
+BEST = Model(gains=(1.0, 0.913, 1.0, 1.0), dz=-0.0225, tip_y=-0.004)   # 2026-11-16 R14(D1-A): 캡 아래끝 = TCP − 22.5 mm(7점 중 6점 22.5 ± 1.6 mm). 이전 −0.0104(S4-8·S4-9 기반)는 실제보다 12.1 mm 높았다
 TRUTH = {"best": BEST}
 for g2 in (0.863, 0.963):
     for ty in (-0.002, -0.006):
-        TRUTH["pess_g2=%.3f_tip=%.0f" % (g2, ty * 1000)] = Model(gains=(1.0, g2, 1.0, 1.0), dz=-0.015, tip_y=ty)
+        TRUTH["pess_g2=%.3f_tip=%.0f" % (g2, ty * 1000)] = Model(gains=(1.0, g2, 1.0, 1.0), dz=-0.026, tip_y=ty)   # 비관 변형: 오프셋 22.5 + 3 mm(이전 −0.015)
 HULL_KEYS = {"base_link": "base_link", "Arm1_Joint": "Arm1_Link", "Arm2_Joint": "Arm2_Link", "Arm3_Joint": "Arm3_Link",
              "Arm4_Joint": "Arm4_Link", "dabai": "DaBai_DCW2_Link", "arm5": "Arm5_Link"}
 TILTS = (-15.0, -10.0, -5.0, 0.0, 5.0, 10.0, 15.0)
