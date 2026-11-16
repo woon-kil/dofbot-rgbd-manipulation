@@ -8,12 +8,19 @@ v1(`gemini_fingertip_detect_r15.py`)은 어두운 화소 문턱이라 흰 종이
  - ROI 안 차분 성분 중 면적 ≥ 800 px인 것의 합집합에서, 최하단 y_max를 구하고 y ≥ y_max − 14 px인 화소만 모아 x로 2-means 군집(초기값 최소·최대 x). 군집 간 중심 거리 < 8 px이거나 한 군집 화소가 < 15개면 '병합: 제외'.
  - 각 군집의 아래끝 = 군집 최하단 y, x = 최하단 4행 x 평균. 중간점 = 두 아래끝의 평균.
  - 사진 유효: 촬영 시간 ≤ hold_s − 2 s(D1 초안 부록 G).
+ - **사진 높이식(두 번째 추정, 사전 등록 — D3 승인 검토 지적 1):** 높이 추정 h_photo = h_pred − Δy_px / s_h. h_pred = FK(원시)의 캡 아래끝 높이(종이 위, TCP − 22.5 mm 손가락 축 방향), Δy_px = 검출 중간점 y − 예측 y, s_h = 예측 위치에서 평면 모델로 구한 높이 1 mm당 영상 y 이동(px/mm, 위로 올라가면 y 감소, 블록 근처 약 0.81). 수평 위치는 FK 값을 쓰므로 FK 수평 오차 5 mm는 높이 약 ±6 mm로 섞인다(한계). 눈 읽기가 1차 추정이고 사진은 2차 추정이며, **일치 기준은 |h_photo − 눈 읽기| ≤ 4 mm**(세 자세 중 2자세 이상 + 같은 부호 편향이 없을 때). 일치하지 않으면 눈 읽기를 따르고 사진은 참고로 기록한다.
  - 사전 등록 높이식은 D1 초안 부록 B, 오프셋 비교는 예측 픽셀(FK 원시 각도, TCP − 22.5 mm 손가락 축 방향)과의 차이(px → 국소 px/mm).
 사용: python3 -I gemini_fingertip_detect_v2.py [--post-hoc] <결과.json> <사진 접두사> <기준 사진> [출력.json]"""
 import sys, json
 sys.path.insert(0,'evidence/G06'); sys.path.insert(0,'scripts'); sys.path.insert(0,'src')
 import cv2, numpy as np
 import gemini_fingertip_detect_r15 as D1
+def height_scale(q, off=22.5):
+    """예측 위치에서 높이 1 mm당 영상 y 이동(px/mm, 부호: 위로 올라가면 y 감소 → 양수로 반환)."""
+    import numpy as _np
+    o=D1.fk.fk(_np.array([list(q)+[90.0]])); t=o['tcp'][0][0]*1000; R=o['tcp'][1][0]; ax=R[:,1]; ax=ax if ax[2]<0 else -ax
+    b=t+ax*(off/abs(ax[2])); hh=(b[2]+11)/1000.0
+    return float(D1.P(-b[0],b[1],hh)[1]-D1.P(-b[0],b[1],hh+0.001)[1])
 def detect_v2(img_path, ref_path, pred):
     g=cv2.cvtColor(cv2.imread(img_path),cv2.COLOR_BGR2GRAY).astype(np.int16); r=cv2.cvtColor(cv2.imread(ref_path),cv2.COLOR_BGR2GRAY).astype(np.int16)
     H,W=g.shape; x0=int(max(0,pred[0]-60)); x1=int(min(W,pred[0]+60)); y0=int(max(0,pred[1]-60)); y1=int(min(H,pred[1]+60))
@@ -46,7 +53,7 @@ if __name__=='__main__':
         if any(v is None for v in q): none=True; rb=p['readback']; q=[(v if v is not None else rb[k]+0.5) for v,k in zip(q,'1234')]
         pred,(sx,sy)=D1.predict(q); mid,why=detect_v2(f'{pre}{pid}.png',ref,pred)
         row={'pose_id':pid,'q_none_filled':none,'pred_px':[round(float(pred[0]),1),round(float(pred[1]),1)],'status':why,'label':'참고용, 결정 근거 아님(사후)' if POST else '사전 등록 규칙 v2'}
-        if mid is not None: row['mid_px']=[round(mid[0],1),round(mid[1],1)]; row['diff_px']=[round(mid[0]-pred[0],1),round(mid[1]-pred[1],1)]; row['diff_mm']=[round((mid[0]-pred[0])/sx,1),round((mid[1]-pred[1])/sy,1)]
+        if mid is not None: row['mid_px']=[round(mid[0],1),round(mid[1],1)]; row['diff_px']=[round(mid[0]-pred[0],1),round(mid[1]-pred[1],1)]; row['diff_mm']=[round((mid[0]-pred[0])/sx,1),round((mid[1]-pred[1])/sy,1)]; sh=height_scale(q); row['s_h_px_per_mm']=round(sh,2); row['dh_mm_photo_minus_pred']=round(-(mid[1]-pred[1])/sh,1)   # 사진 높이식: h_photo = h_pred + 이 값(= −Δy/s_h)
         rows.append(row); print(row)
     ok=[r for r in rows if 'diff_px' in r]
     if ok: a=np.array([r['diff_px'] for r in ok]); print('평균 diff px',a.mean(0).round(1).tolist(),'표준편차',a.std(0).round(1).tolist(),'n',len(ok))
