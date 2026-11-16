@@ -1,0 +1,338 @@
+{
+ "plan_set": "13",
+ "start": [
+  89,
+  92,
+  92,
+  92
+ ],
+ "forward": {
+  "box": 10.0,
+  "table": 14.6,
+  "base": 21.0
+ },
+ "forward_per_move": [
+  {
+   "n": 1,
+   "move": "J3→72",
+   "worst_mm": {
+    "box": 209.2,
+    "table": 75.5,
+    "base": 66.6
+   }
+  },
+  {
+   "n": 2,
+   "move": "J4→72",
+   "worst_mm": {
+    "box": 210.8,
+    "table": 75.5,
+    "base": 66.6
+   }
+  },
+  {
+   "n": 3,
+   "move": "J3→52",
+   "worst_mm": {
+    "box": 210.8,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 4,
+   "move": "J4→52",
+   "worst_mm": {
+    "box": 213.3,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 5,
+   "move": "J3→32",
+   "worst_mm": {
+    "box": 158.5,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 6,
+   "move": "J4→32",
+   "worst_mm": {
+    "box": 122.4,
+    "table": 75.5,
+    "base": 66.6
+   }
+  },
+  {
+   "n": 7,
+   "move": "J3→14",
+   "worst_mm": {
+    "box": 68.6,
+    "table": 75.5,
+    "base": 66.6
+   }
+  },
+  {
+   "n": 8,
+   "move": "J4→12",
+   "worst_mm": {
+    "box": 32.7,
+    "table": 62.7,
+    "base": 45.7
+   }
+  },
+  {
+   "n": 9,
+   "move": "J1→90",
+   "worst_mm": {
+    "box": 32.7,
+    "table": 62.7,
+    "base": 45.5
+   }
+  },
+  {
+   "n": 10,
+   "move": "J2→82",
+   "worst_mm": {
+    "box": 10.1,
+    "table": 37.6,
+    "base": 39.2
+   }
+  },
+  {
+   "n": 11,
+   "move": "J3→10",
+   "worst_mm": {
+    "box": 10.0,
+    "table": 28.4,
+    "base": 29.7
+   }
+  },
+  {
+   "n": 12,
+   "move": "J4→11",
+   "worst_mm": {
+    "box": 13.7,
+    "table": 27.7,
+    "base": 27.7
+   }
+  },
+  {
+   "n": 13,
+   "move": "J2→76",
+   "worst_mm": {
+    "box": 16.3,
+    "table": 14.6,
+    "base": 21.0
+   }
+  }
+ ],
+ "return": [
+  {
+   "after_move": 0,
+   "state": [
+    89,
+    92,
+    92,
+    92
+   ],
+   "worst_mm": {
+    "box": 1000000000000.0,
+    "table": 1000000000000.0,
+    "base": 1000000000000.0
+   }
+  },
+  {
+   "after_move": 1,
+   "state": [
+    89,
+    92,
+    72,
+    92
+   ],
+   "worst_mm": {
+    "box": 209.2,
+    "table": 75.5,
+    "base": 66.6
+   }
+  },
+  {
+   "after_move": 2,
+   "state": [
+    89,
+    92,
+    72,
+    72
+   ],
+   "worst_mm": {
+    "box": 209.2,
+    "table": 75.5,
+    "base": 66.6
+   }
+  },
+  {
+   "after_move": 3,
+   "state": [
+    89,
+    92,
+    52,
+    72
+   ],
+   "worst_mm": {
+    "box": 209.2,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 4,
+   "state": [
+    89,
+    92,
+    52,
+    52
+   ],
+   "worst_mm": {
+    "box": 209.2,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 5,
+   "state": [
+    89,
+    92,
+    32,
+    52
+   ],
+   "worst_mm": {
+    "box": 158.5,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 6,
+   "state": [
+    89,
+    92,
+    32,
+    32
+   ],
+   "worst_mm": {
+    "box": 122.4,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 7,
+   "state": [
+    89,
+    92,
+    14,
+    32
+   ],
+   "worst_mm": {
+    "box": 68.6,
+    "table": 75.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 8,
+   "state": [
+    89,
+    92,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 32.7,
+    "table": 62.7,
+    "base": 45.7
+   }
+  },
+  {
+   "after_move": 9,
+   "state": [
+    90,
+    92,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 32.7,
+    "table": 62.7,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 10,
+   "state": [
+    90,
+    82,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 10.0,
+    "table": 37.6,
+    "base": 38.9
+   }
+  },
+  {
+   "after_move": 11,
+   "state": [
+    90,
+    82,
+    10,
+    12
+   ],
+   "worst_mm": {
+    "box": 13.2,
+    "table": 28.4,
+    "base": 29.4
+   }
+  },
+  {
+   "after_move": 12,
+   "state": [
+    90,
+    82,
+    10,
+    11
+   ],
+   "worst_mm": {
+    "box": 15.3,
+    "table": 27.7,
+    "base": 27.4
+   }
+  },
+  {
+   "after_move": 13,
+   "state": [
+    90,
+    76,
+    10,
+    11
+   ],
+   "worst_mm": {
+    "box": 15.3,
+    "table": 14.6,
+    "base": 20.7
+   }
+  }
+ ],
+ "min_mm": {
+  "box": 10.0,
+  "table": 14.6,
+  "base": 20.7
+ },
+ "gate_mm": 10.0,
+ "pass": true
+}
