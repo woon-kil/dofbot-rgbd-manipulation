@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1280 720" width="640" height="360" font-family="sans-serif">
+<image href="../data/g04/p1b2c_ruler1.png" x="0" y="0" width="1280" height="720"/>
+<circle cx="776" cy="289" r="16" fill="none" stroke="#00e5ff" stroke-width="4"/><circle cx="776" cy="289" r="3" fill="#00e5ff"/>
+<line x1="776" y1="305" x2="736" y2="374" stroke="#00e5ff" stroke-width="2"/>
+<text x="736" y="394" font-size="17" fill="#00e5ff" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="middle" font-weight="bold">① 손끝이 내려올 자리(위에서 본 모습)</text>
+<line x1="734" y1="291" x2="754" y2="289" stroke="#ffeb3b" stroke-width="4" stroke-dasharray="8 6"/>
+<text x="725" y="449" font-size="16" fill="#ffeb3b" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="middle" font-weight="bold">노란 점선: J1 110, 손끝이 블록에서 옆으로 약 67 mm</text>
+<rect x="893" y="259" width="18" height="30" fill="none" stroke="#76ff03" stroke-width="4"/>
+<text x="912" y="244" font-size="17" fill="#76ff03" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="middle" font-weight="bold">② 눈금자(새 자리)</text>
+<text x="912" y="264" font-size="15" fill="#76ff03" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="middle" font-weight="bold">손끝에서 옆 약 100 mm</text>
+<line x1="788" y1="255" x2="832" y2="287" stroke="#ff1744" stroke-width="5"/><line x1="832" y1="255" x2="788" y2="287" stroke="#ff1744" stroke-width="5"/>
+<line x1="810" y1="287" x2="840" y2="407" stroke="#ff1744" stroke-width="2"/>
+<text x="840" y="427" font-size="16" fill="#ff1744" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="middle" font-weight="bold">③ 옛 눈금자 자리: 팔과 부딪힘 → 옮김</text>
+<text x="30" y="40" font-size="18" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="start" font-weight="bold">위 = 베이스 쪽, 아래 = 사용자 쪽, 오른쪽 = 사용자 오른쪽(사진 기준)</text>
+<text x="30" y="66" font-size="15" fill="#fff" stroke="#000" stroke-width="3" paint-order="stroke" text-anchor="start" font-weight="bold">평면 모델 환산 ±10 mm(사진 위 위치는 눈대중 보조)</text>
+</svg>
