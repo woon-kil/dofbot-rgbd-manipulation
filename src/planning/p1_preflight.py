@@ -10,6 +10,7 @@ from pathlib import Path
 
 K1 = (89, 91, 91, 91, 90, 179)                      # 기준 K1 기립(오므림) 자세: evidence/G01/raw/g01_5b4_s4212_result-real-261115-022536.json
 TOL = {1: 2.0, 2: 2.0, 3: 2.0, 4: 2.0, 5: 1.0, 6: 1.0}   # J1~J4 ±2°, J5 ±1°, J6 ±1°(오므림 유지 확인)  — 2-1절 점검 2 제안값
+J6_CLOSED = (177, 179)    # J6-1(사용자 승인 2026-11-16 12:01): 오므림 J6 회독 허용 177~179(P2h·P2i에서 승인한 오므린 시작값 범위와 같음, 179 복귀 뒤 회독 177 선례). 열림 쪽(예: 98)은 계속 실패
 MARKER_ID = 7
 MARKER_TOL_PX = 4.0     # 마커 중심 허용(약 3 mm) — 점검 3 제안값
 STILL_TOL_PX = 0.5      # 기준 사진 대비 카메라 이동(위상 상관) 참고 폭 — 점검 3 제안값. 2026-11-15 실기기에서 카메라가 2.46 px 움직여 게이트에서 기록 항목으로 내렸다(아래 check_scene)
@@ -23,7 +24,9 @@ def check_readback(rb, k1=K1, tol=TOL):
     for j in range(1, 7):
         v = rb[j - 1] if j - 1 < len(rb) else None
         d = None if v is None else v - k1[j - 1]
-        rows.append({"joint": j, "readback": v, "expected": k1[j - 1], "diff": d, "tol": tol[j], "ok": d is not None and abs(d) <= tol[j]})
+        ok = d is not None and abs(d) <= tol[j]
+        if j == 6: ok = v is not None and J6_CLOSED[0] <= v <= J6_CLOSED[1]   # J6는 K1 ±1 대신 오므림 범위로 판정(J6-1)
+        rows.append({"joint": j, "readback": v, "expected": k1[j - 1], "diff": d, "tol": tol[j], "ok": ok, **({"range": list(J6_CLOSED)} if j == 6 else {})})
     return {"name": "readback_vs_K1", "ok": all(r["ok"] for r in rows), "rows": rows}
 
 

@@ -26,9 +26,17 @@ class ReadbackTest(unittest.TestCase):
         self.assertFalse(r["ok"]); self.assertEqual([x["joint"] for x in r["rows"] if not x["ok"]], [6])
 
     def test_boundaries(self):
-        self.assertTrue(PF.check_readback([91, 93, 93, 89, 91, 180])["ok"])       # J1~J4 ±2, J5·J6 ±1 경계
+        self.assertTrue(PF.check_readback([91, 93, 93, 89, 91, 179])["ok"])       # J1~J4 ±2, J5 ±1 경계(J6는 오므림 범위 177~179)
         self.assertFalse(PF.check_readback([92, 91, 91, 91, 90, 179])["ok"])      # J1 +3
         self.assertFalse(PF.check_readback([89, 91, 91, 91, 92, 179])["ok"])      # J5 +2
+
+    def test_j6_closed_range_177_to_179(self):     # J6-1: 오므림 177~179 통과, 176·180·열림은 실패, None 실패
+        for v in (177, 178, 179): self.assertTrue(PF.check_readback([89, 91, 91, 91, 90, v])["ok"], v)
+        for v in (176, 180, 98): self.assertFalse(PF.check_readback([89, 91, 91, 91, 90, v])["ok"], v)
+        self.assertFalse(PF.check_readback([89, 91, 91, 91, 90, None])["ok"])
+
+    def test_actual_jetson_readback_20261116_passes(self):   # 2026-11-16 실회독 89,92,92,92,90,177(J6-1 전에는 J6 −2로 실패)
+        r = PF.check_readback([89, 92, 92, 92, 90, 177]); self.assertTrue(r["ok"], r)
 
     def test_none_fails(self):
         r = PF.check_readback([89, None, 91, 91, 90, 179])
