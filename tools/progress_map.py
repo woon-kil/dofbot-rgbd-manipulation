@@ -39,7 +39,7 @@ def count_decisions():
         if not re.match(r"^\|\s*\d+\s*\|", line):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        last = cells[-1]
+        last = cells[-1].lstrip("*").strip()   # 굵은 글씨(**[x] ...)로 시작하는 결정 칸도 센다
         rows += 1
         if last.startswith("[x]"):
             n["done"] += 1
