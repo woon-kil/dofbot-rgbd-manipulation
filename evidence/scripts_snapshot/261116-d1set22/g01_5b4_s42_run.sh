@@ -55,7 +55,8 @@ if [ "${MODE}" = real ] && [ "${SET}" != 16 ] && [ "${SET}" != 17 ] && [ "${SET}
   CAP=""
 fi
 # 터미널 벨(\a)은 설정에 따라 소리가 안 날 수 있어, 이동 직전 안내 줄("[이동 N/8]")을 보면 맥에서 직접 소리를 낸다.
-gemini_photo_bg() { local pid="$1"; ( while ! mkdir /tmp/g01_d1_photo.lock 2>/dev/null; do sleep 2; done; bash "${ROOT}/scripts/p1_m3_gemini_photo.sh" "d1_${TS}_${pid}" > "${ROOT}/evidence/G06/d1_photo_${TS}_${pid}.log" 2>&1 || true; rmdir /tmp/g01_d1_photo.lock ) >/dev/null 2>&1 & }   # D1-A: 측정 대기가 시작되면 Gemini 사진 1장(약 40초, 팔 명령 없음). 실패해도 시험은 계속(눈 읽기가 기준)
+rmdir /tmp/g01_d1_photo.lock 2>/dev/null || true   # 이전 실행이 죽으며 남긴 사진 잠금 제거(없으면 무시)
+gemini_photo_bg() { local pid="$1"; ( while ! mkdir /tmp/g01_d1_photo.lock 2>/dev/null; do sleep 2; done; bash "${ROOT}/scripts/p1_m3_gemini_photo.sh" "d1_${TS}_${pid}" > "${ROOT}/evidence/G06/d1_photo_${TS}_${pid}.log" 2>&1 || true; rmdir /tmp/g01_d1_photo.lock; afplay /System/Library/Sounds/Ping.aiff >/dev/null 2>&1 ) >/dev/null 2>&1 & }   # D1-A: 측정 대기가 시작되면 Gemini 사진 1장(약 40초, 팔 명령 없음). 실패해도 시험은 계속(눈 읽기가 기준)
 beep_watch() { while IFS= read -r l; do case "$l" in *"[이동 "*) afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &;; *"[측정 대기]"*) afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 & if [ "${SET}" = 22 ]; then PH=$(echo "$l" | sed -n 's/.*자세 \([0-9][0-9]*\)에서.*/\1/p'); [ -n "${PH}" ] && gemini_photo_bg "${PH}"; fi;; esac; done; }
 ssh -t -o ConnectTimeout=8 "${H}" "cd ~/${RD} && python3 g01_5b4_s42_test.py --plan plan.json ${ARGS} --run-id ${TS} --out ~/${RD}/result.json" | tee >(beep_watch) || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
 if [ "${MODE}" = real ]; then
