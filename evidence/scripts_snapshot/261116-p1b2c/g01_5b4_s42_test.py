@@ -126,8 +126,8 @@ def hold_for_measure(plan, pid, a, rec, arm=None):
         import termios; termios.tcflush(sys.stdin.fileno(), termios.TCIFLUSH)
     except Exception: pass
     secs = int(plan.get("hold_max_s", 180)); t0 = time.monotonic(); base = {k: read_valid(arm, k) for k in (2, 3, 4)} if arm is not None else {}
-    if plan.get("set") == "20":   # P1-b2 (b)·#11 D1(A2): 사람이 할 일은 측면 폰 촬영과 종이 위 손끝 높이 mm 한 값 입력
-        say("\n[측정 대기] 자세 C(모델 손끝 높이 44.1 mm)에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손을 넣지 마세요.** 지금 측면 폰으로 손끝(캡 끝면 가운데)과 눈금자가 함께 찍히게 사진을 찍고, 종이 위에서 손끝까지의 높이를 눈금자로 읽어 mm 숫자 한 개를 쓴 뒤(예: 42) Enter를 누르세요(최대 %d초 뒤 자동으로 계속, 값을 못 읽으면 그냥 Enter)." % secs)
+    if plan.get("set") == "20":   # P1-b2 (b)·#11 D1(A2): 사람이 할 일은 손끝 높이를 눈으로 읽어 mm 한 값 입력(폰은 기록용), 그 뒤 팔이 자동 복귀한다
+        say("\n[측정 대기] 자세 C(모델 손끝 높이 44.1 mm)에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손과 머리를 넣지 마세요.** 해야 할 일: ① 눈금자 쪽에서 눈높이를 손끝 높이에 맞춰 손끝(캡 끝면) 가장 낮은 곳의 눈금을 읽습니다(폰 사진은 기록용, 읽는 값은 눈으로). ② **읽은 뒤 몸을 팔에서 충분히 떼고** mm 숫자 한 개를 쓴 다음(예: 42, 못 읽으면 숫자 없이) Enter를 누르세요. **Enter를 누르거나 %d초가 지나면 팔이 자동으로 복귀 이동을 시작합니다.**" % secs)
     else:
         say("\n[측정 대기] 자세 %s에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손을 넣지 마세요.** 읽은 값을 한 줄에 쓰고(예: 74 75) Enter를 누르세요(최대 %d초 뒤 자동으로 계속)." % (pid, secs))
     ended = "timeout"; last_say = 0
