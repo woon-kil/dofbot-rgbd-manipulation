@@ -6,8 +6,11 @@
  - 검출: gemini_fingertip_detect_v2.py의 detect_v2(차분 > 45, 노출 방어 0.40, 2-means 군집 간격 ≥ 8 px), ROI = 예측 중점 ±60 px. 규칙 수정 없음.
  - **측정 가능성 판정:** 점 0(오므림 178)에서 두 캡이 검출되지 않으면(미검출·병합·노출) 이 실행 전체를 '판정 불가'로 둔다(규칙을 고치지 않는다).
  - 점이 '정지 중 J2~J4 처짐'(drift)으로 표시됐거나 J6 도착 실패면 그 점은 '판정 불가'.
- - 화소 Δv = v(점) − v(점 0). 예측 Δv는 같은 투영의 예측 중점 차. 허용 ±3.7 px(= 높이 ±2.5 mm × 약 1.5 px/mm, 근사; 정확한 px/mm는 height_scale로 보고에 함께 적는다).
- - 판정 역할: 점 2(J6 100)만 가설을 가린다: |Δv| < 3.7이면 '0 근처(J6 영향 없음)', 예측 ±3.7 이내면 '메시 예측과 일치', 그 외 '다른 값'. 점 1·3(140)은 값 보고용. 반복성 = 점 4 대 점 0의 중점 차(px).
+ - **사진 유효성(D 시리즈 규칙):** 래퍼가 남기는 evidence/G06/d1_photo_<TS>_2501N.log의 photo_end_epoch − photo_start_epoch(촬영 길이, Mac 시계)가 그 점의 hold_s − 2(Jetson 정지 길이)를 넘으면 '판정 불가: 사진 시간'. Mac·Jetson 절대 시각은 비교하지 않고 길이만 비교한다.
+ - **캡별 기록(도구 확장, 규칙 변경 아님):** detect_v2 중점 판정은 그대로 두고, 같은 규칙으로 두 캡 점과 가로 간격(예측 13/45/66 px)을 함께 기록해 J6↔grip 대응 가정을 확인한다.
+ - 화소 Δv = v(점) − v(점 0). 예측 Δv는 같은 투영의 예측 중점 차(점 2: 약 −11.5 px).
+ - **허용치(수정 2026-11-17, advisor):** 자세 A에서 `height_scale`(gemini_fingertip_detect_v2.height_scale)을 계산해 0.865 px/mm(앞뒤 국소 1.10 px/mm). 높이 허용 ±2.5 mm = ±2.16 px, 검출 흩어짐 상한 약 2 mm × 1.10 = 2.2 px를 제곱합 평균으로 합쳐 **TOL = 3.1 px**. 이전 "1.5 px/mm → 3.7 px"은 철회. 0 근처 구간 |Δv| < 3.1 px와 메시 일치 구간 [−14.6, −8.4] px는 겹치지 않는다(간격 5.3 px).
+ - 판정 역할: 점 2(J6 100)만 가설을 가린다: |Δv| < TOL이면 '0 근처(J6 영향 없음)', 예측 ±TOL 이내면 '메시 예측과 일치', 그 외 '다른 값'. 점 1·3(140)은 값 보고용. 반복성 = 점 4 대 점 0의 중점 차(px).
  - **높이와 앞뒤는 한 대의 카메라로 분리되지 않는다**: 결과 보고에서 mm 환산값은 '캡이 메시 방향으로 움직인다는 가정 아래 환산'이라고 쓴다."""
 import sys, json, os
 sys.path.insert(0, 'evidence/G06'); sys.path.insert(0, 'scripts'); sys.path.insert(0, 'src')
@@ -19,6 +22,7 @@ def _stl(p):
     if b[:5] == b'solid' and b'facet' in b[:400]: return np.array(re.findall(rb'vertex\s+(\S+)\s+(\S+)\s+(\S+)', b), dtype=float)
     n = struct.unpack('<I', b[80:84])[0]; a = np.frombuffer(b[84:84+n*50], dtype=np.dtype([('n', '<3f4'), ('v', '<9f4'), ('a', '<u2')])); return a['v'].reshape(-1, 3).astype(float)
 M = {k: _stl('data/refs/dofbot_meshes/%s.STL' % k) * 1e3 for k in ('rlink1', 'rlink2', 'rlink3', 'llink1', 'llink2', 'llink3')}
+TOL = 3.1   # px (위 허용치 규칙)
 GRIP = {178: -1.5, 140: -1.1, 100: -0.79}   # J6 → grip_joint(rad), P2g 안쪽 간격 대응(UNVERIFIED)
 def _Rz(a): c, s = np.cos(a), np.sin(a); R = np.eye(4); R[:2, :2] = [[c, -s], [s, c]]; return R
 def _Tm(xyz, yaw, ang): m = _Rz(yaw) @ _Rz(ang); m[:3, 3] = np.array(xyz) * 1e3; return m
@@ -32,6 +36,33 @@ def caps_px(q, j6):
         pts = np.vstack([(np.c_[M[k], np.ones(len(M[k]))] @ ch[k].T)[:, :3] for k in ch if k[0] == s]); p = pts[np.argmax(pts[:, 1])].copy(); p[1] += 4.0
         w = t + R @ np.array([p[0], p[1] - 90, 0]); out.append(np.array(D.P(-w[0], w[1], (w[2] + 11) / 1000)))
     return out
+import cv2
+def detect_caps(img_path, ref_path, pred):
+    """detect_v2와 같은 규칙으로 두 캡 아래끝 점을 돌려준다(도구 확장: 가로 간격 기록용). 실패하면 None."""
+    g = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.int16); r = cv2.cvtColor(cv2.imread(ref_path), cv2.COLOR_BGR2GRAY).astype(np.int16)
+    H, W = g.shape; x0 = int(max(0, pred[0]-60)); x1 = int(min(W, pred[0]+60)); y0 = int(max(0, pred[1]-60)); y1 = int(min(H, pred[1]+60))
+    m = (np.abs(g[y0:y1, x0:x1]-r[y0:y1, x0:x1]) > 45).astype(np.uint8)
+    if m.mean() > 0.40: return None
+    m = cv2.morphologyEx(m, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)); nc, lab, st, _ = cv2.connectedComponentsWithStats(m, 8); keep = np.zeros_like(m)
+    for i in range(1, nc):
+        if st[i, cv2.CC_STAT_AREA] >= 800: keep[lab == i] = 1
+    ys, xs = np.nonzero(keep)
+    if len(ys) == 0: return None
+    ymax = ys.max(); sel = ys >= ymax-14; yy = ys[sel]; xx = xs[sel].astype(float); c = np.array([xx.min(), xx.max()])
+    for _ in range(20):
+        a = np.abs(xx[:, None]-c[None, :]).argmin(1)
+        if (a == 0).sum() == 0 or (a == 1).sum() == 0: break
+        c = np.array([xx[a == 0].mean(), xx[a == 1].mean()])
+    a = np.abs(xx[:, None]-c[None, :]).argmin(1)
+    if abs(c[0]-c[1]) < 8 or (a == 0).sum() < 15 or (a == 1).sum() < 15: return None
+    pts = []
+    for k in (0, 1):
+        yk = yy[a == k]; xk = xx[a == k]; yb = yk.max(); pts.append((x0+float(xk[yk >= yb-4].mean()), y0+float(yb)))
+    return pts
+def photo_len(logpath):
+    try:
+        t = open(logpath).read(); a = int(re.search(r'photo_start_epoch=(\d+)', t).group(1)); b = int(re.search(r'photo_end_epoch=(\d+)', t).group(1)); return b-a
+    except Exception: return None
 if __name__ == '__main__':
     res = json.load(open(sys.argv[1])); pre = sys.argv[2]; ref = sys.argv[3]; rows = []
     pr = res['poses'][0]; pts = pr['j6_points']; drift = {d['point'] for d in pr.get('drift', [])}
@@ -43,7 +74,11 @@ if __name__ == '__main__':
         if lab in drift: row['status'] = '판정 불가: 정지 중 처짐'
         elif not os.path.exists(img): row['status'] = '사진 없음'
         else:
+            ts = pre[len('data/g04/d1_'):].rstrip('_') if pre.startswith('data/g04/d1_') else None; ln = photo_len('evidence/G06/d1_photo_%s_2501%d.log' % (ts, idx)) if ts else None; row['photo_len_s'] = ln; row['hold_s'] = pt.get('hold_s')
+            if ln is None or pt.get('hold_s') is None or ln > pt['hold_s'] - 2: rows.append({**row, 'status': '판정 불가: 사진 시간(촬영 %s s > 정지 %s s − 2 또는 기록 없음)' % (ln, pt.get('hold_s'))}); print(rows[-1]); continue
             mid, why = D2.detect_v2(img, ref, mid_pred); row['status'] = why
+            cp = detect_caps(img, ref, mid_pred) if mid is not None else None
+            if cp: row['caps_px'] = [[round(x, 1) for x in q_] for q_ in sorted(cp)]; row['cap_gap_px'] = round(abs(cp[0][0] - cp[1][0]), 1); row['pred_cap_gap_px'] = round(abs(c[0][0] - c[1][0]), 1)
             if mid is not None: row['mid_px'] = [round(mid[0], 1), round(mid[1], 1)]; row['diff_px'] = [round(mid[0] - mid_pred[0], 1), round(mid[1] - mid_pred[1], 1)]
         rows.append(row); print(row)
     r0 = rows[0] if rows else None
@@ -55,6 +90,6 @@ if __name__ == '__main__':
         r4 = next((r for r in rows if r['label'] == '4' and 'mid_px' in r), None)
         if r4: verdict['repeatability_px'] = [round(r4['mid_px'][0] - r0['mid_px'][0], 1), round(r4['mid_px'][1] - r0['mid_px'][1], 1)]
         r2 = next((r for r in rows if r['label'] == '2' and 'dv_obs_px' in r), None)
-        if r2: verdict['point2'] = '0 근처(J6 영향 없음)' if abs(r2['dv_obs_px']) < 3.7 else ('메시 예측과 일치' if abs(r2['dv_obs_px'] - r2['dv_pred_px']) <= 3.7 else '다른 값')
+        if r2: verdict['point2'] = '0 근처(J6 영향 없음)' if abs(r2['dv_obs_px']) < TOL else ('메시 예측과 일치' if abs(r2['dv_obs_px'] - r2['dv_pred_px']) <= TOL else '다른 값')
     print(verdict)
     if len(sys.argv) > 4: json.dump({'rows': rows, 'verdict': verdict}, open(sys.argv[4], 'w'), ensure_ascii=False, indent=1)
