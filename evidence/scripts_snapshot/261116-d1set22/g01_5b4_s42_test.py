@@ -129,7 +129,7 @@ def hold_for_measure(plan, pid, a, rec, arm=None):
     secs = int(plan.get("hold_max_s", 180)); t0 = time.monotonic(); base = {k: read_valid(arm, k) for k in (2, 3, 4)} if arm is not None else {}
     if plan.get("set") in ("21", "22"):   # D0·D1-A: 단계마다 눈 읽기 한 값 입력, 하한 미만이면 중단·복귀
         say("\n[측정 대기] D0 자세 %s에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손과 머리를 넣지 마세요.** 해야 할 일: ① 눈금자 쪽에서 눈높이를 손끝 높이에 맞춰 손끝(캡 아래끝) 가장 낮은 곳의 **종이 위 높이(mm)**를 읽습니다(폰 사진은 기록용). ② **읽은 뒤 몸을 팔에서 충분히 떼고** mm 정수 한 개를 쓴 다음 Enter를 누르세요(최대 %d초). 값이 숫자가 아니거나 이 단계 하한(%s mm) 미만이면 **더 내려가지 않고 복귀 질문**이 나옵니다. 값이 충분하면 다음 단계(또는 마지막이면 복귀)로 자동 이동합니다. **빈 Enter나 시간 초과는 값이 없는 것이라 중단·복귀 질문이 나옵니다.**" % (pid, secs, (plan.get("hold_min_mm") or {}).get(str(pid), "?")))
-    if plan.get("set") == "22": say("  [세트 22] 눈금자는 두 번째 소리(Ping) 뒤에만 정지한 손끝 옆에 직접 대어 읽으세요(팔·손끝에 닿지 않게 20 mm 이상 띄움). 읽은 뒤 눈금자와 손·머리를 팔 범위 밖으로 완전히 치우고 값을 쓴 다음 Enter를 누르세요.")
+        if plan.get("set") == "22": say("  [세트 22] 눈금자는 두 번째 소리(Ping) 뒤에만 정지한 손끝 옆에 직접 대어 읽으세요(팔·손끝에 닿지 않게 20 mm 이상 띄움). 읽은 뒤 눈금자와 손·머리를 팔 범위 밖으로 완전히 치우고 값을 쓴 다음 Enter를 누르세요.")
     elif plan.get("set") == "20":   # P1-b2 (b)·#11 D1(A2): 사람이 할 일은 손끝 높이를 눈으로 읽어 mm 한 값 입력(폰은 기록용), 그 뒤 팔이 자동 복귀한다
         say("\n[측정 대기] 자세 C(모델 손끝 높이 44.1 mm)에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손과 머리를 넣지 마세요.** 해야 할 일: ① 눈금자 쪽에서 눈높이를 손끝 높이에 맞춰 손끝(캡 끝면) 가장 낮은 곳의 눈금을 읽습니다(폰 사진은 기록용, 읽는 값은 눈으로). ② **읽은 뒤 몸을 팔에서 충분히 떼고** mm 숫자 한 개를 쓴 다음(예: 42, 못 읽으면 숫자 없이) Enter를 누르세요. **Enter를 누르거나 %d초가 지나면 팔이 자동으로 복귀 이동을 시작합니다.**" % secs)
     else:
@@ -145,7 +145,7 @@ def hold_for_measure(plan, pid, a, rec, arm=None):
         if el - last_say >= 30: last_say = el; say("  측정 대기 %d초 경과(남은 %d초)." % (el, secs - el))
     if plan.get("gemini_photo") and time.monotonic() - t0 < 55.0:   # D1-A: Gemini 사진(약 40초)이 끝나기 전에 팔이 움직이지 않게 최소 55초까지 정지
         say("  (Gemini 사진 촬영이 끝나도록 55초까지 팔은 그대로 있습니다. 가만히 계세요.)"); time.sleep(max(0.0, 55.0 - (time.monotonic() - t0)))
-    rec["hold_s"] = round(time.monotonic() - t0, 1); rec["hold_ended_by"] = ended
+    rec["hold_s"] = round(time.monotonic() - t0, 1); rec["hold_ended_by"] = ended; rec["hold_start_epoch"] = round(time.time() - (time.monotonic() - t0), 1); rec["hold_end_epoch"] = round(time.time(), 1)
     say("  측정 대기 종료(%s, %.0f초)." % (ended, rec["hold_s"]))
 
 
