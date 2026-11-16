@@ -1,0 +1,63 @@
+{
+  "run_id": "261116-000337",
+  "mode": "dry_run",
+  "started_at": "2026-11-15T23:03:38",
+  "windows": {
+    "open": [
+      95,
+      179
+    ],
+    "press": [
+      95,
+      155
+    ],
+    "finish": [
+      95,
+      179
+    ]
+  },
+  "allowed_times_ms": [
+    1500,
+    3000,
+    4800
+  ],
+  "phases": [
+    {
+      "phase": "dry_run_plan",
+      "open": [
+        177,
+        160,
+        140,
+        120,
+        100
+      ],
+      "press_steps": [
+        120,
+        140,
+        150,
+        155
+      ],
+      "finish": [
+        100,
+        120,
+        140,
+        160,
+        179
+      ]
+    }
+  ],
+  "free_trials": [],
+  "block_trials": [],
+  "interrupted": false,
+  "ended": "completed",
+  "adapter_logs": [
+    [
+      [
+        "read",
+        177
+      ]
+    ]
+  ],
+  "writes_total": 0,
+  "finished_at": "2026-11-15T23:03:43"
+}

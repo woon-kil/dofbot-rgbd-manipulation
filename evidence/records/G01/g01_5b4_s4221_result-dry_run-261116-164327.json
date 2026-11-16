@@ -1,0 +1,386 @@
+{
+  "run_id": "261116-164327",
+  "mode": "dry_run",
+  "kind": "s42_21",
+  "plan_set": "21",
+  "plan_gate": {
+    "pose_min_required": 33.0,
+    "base_min_required": 70.0,
+    "base_z": 83.4,
+    "pose_z": {
+      "2101": 58.2,
+      "2102": 49.3,
+      "2103": 38.1,
+      "2104": 33.2
+    },
+    "transition_min": {
+      "2101": 58.2,
+      "2102": 49.3,
+      "2103": 38.1,
+      "2104": 33.2
+    },
+    "return_j12_min": 33.2,
+    "return_full_min": 33.2
+  },
+  "started_at": "2026-11-16T15:44:34",
+  "state0": {
+    "1": 89,
+    "2": 93,
+    "3": 93,
+    "4": 92,
+    "5": 90,
+    "6": 178
+  },
+  "steps": [
+    {
+      "n": 1,
+      "joint": 3,
+      "target": 73,
+      "time_ms": 8000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 93,
+        "4": 92
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 2,
+      "joint": 4,
+      "target": 72,
+      "time_ms": 8000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 73,
+        "4": 92
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 3,
+      "joint": 3,
+      "target": 53,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 73,
+        "4": 72
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 4,
+      "joint": 4,
+      "target": 52,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 53,
+        "4": 72
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 5,
+      "joint": 3,
+      "target": 33,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 53,
+        "4": 52
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 6,
+      "joint": 4,
+      "target": 32,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 33,
+        "4": 52
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 7,
+      "joint": 3,
+      "target": 14,
+      "time_ms": 3000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 33,
+        "4": 32
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 8,
+      "joint": 4,
+      "target": 12,
+      "time_ms": 3000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 14,
+        "4": 32
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 9,
+      "joint": 1,
+      "target": 110,
+      "time_ms": 8000,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2101,
+      "cmd_before": {
+        "1": 89,
+        "2": 93,
+        "3": 14,
+        "4": 12
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 10,
+      "joint": 3,
+      "target": 23,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2101,
+      "cmd_before": {
+        "1": 110,
+        "2": 93,
+        "3": 14,
+        "4": 12
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 11,
+      "joint": 4,
+      "target": 28,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2101,
+      "cmd_before": {
+        "1": 110,
+        "2": 93,
+        "3": 23,
+        "4": 12
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 12,
+      "joint": 2,
+      "target": 69,
+      "time_ms": 8000,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2101,
+      "cmd_before": {
+        "1": 110,
+        "2": 93,
+        "3": 23,
+        "4": 28
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 13,
+      "joint": 3,
+      "target": 22,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2102,
+      "cmd_before": {
+        "1": 110,
+        "2": 69,
+        "3": 23,
+        "4": 28
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 14,
+      "joint": 4,
+      "target": 31,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2102,
+      "cmd_before": {
+        "1": 110,
+        "2": 69,
+        "3": 22,
+        "4": 28
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 15,
+      "joint": 2,
+      "target": 66,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2102,
+      "cmd_before": {
+        "1": 110,
+        "2": 69,
+        "3": 22,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 16,
+      "joint": 4,
+      "target": 33,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2103,
+      "cmd_before": {
+        "1": 110,
+        "2": 66,
+        "3": 22,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 17,
+      "joint": 2,
+      "target": 62,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2103,
+      "cmd_before": {
+        "1": 110,
+        "2": 66,
+        "3": 22,
+        "4": 33
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 18,
+      "joint": 2,
+      "target": 61,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2104,
+      "cmd_before": {
+        "1": 110,
+        "2": 62,
+        "3": 22,
+        "4": 33
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 19,
+      "joint": 4,
+      "target": 34,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2104,
+      "cmd_before": {
+        "1": 110,
+        "2": 61,
+        "3": 22,
+        "4": 33
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 20,
+      "joint": 3,
+      "target": 21,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2104,
+      "cmd_before": {
+        "1": 110,
+        "2": 61,
+        "3": 22,
+        "4": 34
+      },
+      "point": "dry_run_move"
+    }
+  ],
+  "poses": [],
+  "ended": "completed",
+  "return_steps": [],
+  "adapter_log": {
+    "1": [
+      [
+        "read",
+        89
+      ]
+    ],
+    "2": [
+      [
+        "read",
+        93
+      ]
+    ],
+    "3": [
+      [
+        "read",
+        93
+      ]
+    ],
+    "4": [
+      [
+        "read",
+        92
+      ]
+    ]
+  },
+  "finished_at": "2026-11-16T15:45:02"
+}

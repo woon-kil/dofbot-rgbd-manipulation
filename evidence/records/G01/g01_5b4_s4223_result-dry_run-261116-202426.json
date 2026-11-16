@@ -1,0 +1,370 @@
+{
+  "run_id": "261116-202426",
+  "mode": "dry_run",
+  "kind": "s42_23",
+  "plan_set": "23",
+  "plan_gate": {
+    "pose_min_required": 33.0,
+    "base_min_required": 70.0,
+    "base_z": 79.3,
+    "pose_z": {
+      "2301": 42.8,
+      "2302": 42.8,
+      "2303": 38.9,
+      "2304": 35.2
+    },
+    "transition_min": {
+      "2301": 42.8,
+      "2302": 42.8,
+      "2303": 38.9,
+      "2304": 35.2
+    },
+    "return_j12_min": 35.2,
+    "return_full_min": 35.2
+  },
+  "started_at": "2026-11-16T19:27:04",
+  "state0": {
+    "1": 89,
+    "2": 92,
+    "3": 92,
+    "4": 91,
+    "5": 90,
+    "6": 178
+  },
+  "steps": [
+    {
+      "n": 1,
+      "joint": 3,
+      "target": 72,
+      "time_ms": 8000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 92,
+        "4": 91
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 2,
+      "joint": 4,
+      "target": 71,
+      "time_ms": 8000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 72,
+        "4": 91
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 3,
+      "joint": 3,
+      "target": 52,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 72,
+        "4": 71
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 4,
+      "joint": 4,
+      "target": 51,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 52,
+        "4": 71
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 5,
+      "joint": 3,
+      "target": 32,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 52,
+        "4": 51
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 6,
+      "joint": 4,
+      "target": 31,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 32,
+        "4": 51
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 7,
+      "joint": 3,
+      "target": 14,
+      "time_ms": 3000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 32,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 8,
+      "joint": 4,
+      "target": 11,
+      "time_ms": 3000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 14,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 9,
+      "joint": 1,
+      "target": 110,
+      "time_ms": 8000,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2301,
+      "cmd_before": {
+        "1": 89,
+        "2": 92,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 10,
+      "joint": 3,
+      "target": 30,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2301,
+      "cmd_before": {
+        "1": 110,
+        "2": 92,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 11,
+      "joint": 4,
+      "target": 25,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2301,
+      "cmd_before": {
+        "1": 110,
+        "2": 92,
+        "3": 30,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 12,
+      "joint": 2,
+      "target": 60,
+      "time_ms": 8000,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2301,
+      "cmd_before": {
+        "1": 110,
+        "2": 92,
+        "3": 30,
+        "4": 25
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 13,
+      "joint": 1,
+      "target": 120,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2302,
+      "cmd_before": {
+        "1": 110,
+        "2": 60,
+        "3": 30,
+        "4": 25
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 14,
+      "joint": 1,
+      "target": 110,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2303,
+      "cmd_before": {
+        "1": 120,
+        "2": 60,
+        "3": 30,
+        "4": 25
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 15,
+      "joint": 3,
+      "target": 29,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2303,
+      "cmd_before": {
+        "1": 110,
+        "2": 60,
+        "3": 30,
+        "4": 25
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 16,
+      "joint": 4,
+      "target": 24,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2303,
+      "cmd_before": {
+        "1": 110,
+        "2": 60,
+        "3": 29,
+        "4": 25
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 17,
+      "joint": 2,
+      "target": 59,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2304,
+      "cmd_before": {
+        "1": 110,
+        "2": 60,
+        "3": 29,
+        "4": 24
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 18,
+      "joint": 4,
+      "target": 26,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2304,
+      "cmd_before": {
+        "1": 110,
+        "2": 59,
+        "3": 29,
+        "4": 24
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 19,
+      "joint": 3,
+      "target": 28,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 2304,
+      "cmd_before": {
+        "1": 110,
+        "2": 59,
+        "3": 29,
+        "4": 26
+      },
+      "point": "dry_run_move"
+    }
+  ],
+  "poses": [],
+  "ended": "completed",
+  "return_steps": [],
+  "adapter_log": {
+    "1": [
+      [
+        "read",
+        89
+      ]
+    ],
+    "2": [
+      [
+        "read",
+        92
+      ]
+    ],
+    "3": [
+      [
+        "read",
+        92
+      ]
+    ],
+    "4": [
+      [
+        "read",
+        91
+      ]
+    ]
+  },
+  "finished_at": "2026-11-16T19:28:14"
+}

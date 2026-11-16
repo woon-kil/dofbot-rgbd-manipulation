@@ -1,0 +1,471 @@
+{
+  "run_id": "261115-105808",
+  "mode": "dry_run",
+  "kind": "s42_14",
+  "plan_set": "14",
+  "plan_gate": {
+    "pose_min_required": 60.0,
+    "base_min_required": 70.0,
+    "base_z": 76.6,
+    "pose_z": {
+      "1401": 184.1,
+      "1402": 204.1,
+      "1403": 202.9,
+      "1404": 96.3
+    },
+    "transition_min": {
+      "1401": 184.1,
+      "1402": 184.1,
+      "1403": 184.1,
+      "1404": 96.3
+    },
+    "return_j12_min": 76.6,
+    "return_full_min": 76.6
+  },
+  "started_at": "2026-11-15T10:01:35",
+  "state0": {
+    "1": 89,
+    "2": 91,
+    "3": 92,
+    "4": 91,
+    "5": 90,
+    "6": 179
+  },
+  "steps": [
+    {
+      "n": 1,
+      "joint": 3,
+      "target": 72,
+      "time_ms": 8000,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 92,
+        "4": 91
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 2,
+      "joint": 4,
+      "target": 71,
+      "time_ms": 8000,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 72,
+        "4": 91
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 3,
+      "joint": 3,
+      "target": 52,
+      "time_ms": 1500,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 72,
+        "4": 71
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 4,
+      "joint": 4,
+      "target": 51,
+      "time_ms": 1500,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 52,
+        "4": 71
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 5,
+      "joint": 3,
+      "target": 32,
+      "time_ms": 1500,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 52,
+        "4": 51
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 6,
+      "joint": 4,
+      "target": 31,
+      "time_ms": 1500,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 32,
+        "4": 51
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 7,
+      "joint": 3,
+      "target": 14,
+      "time_ms": 3000,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 32,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 8,
+      "joint": 4,
+      "target": 11,
+      "time_ms": 3000,
+      "phase": "A",
+      "pose_id": null,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 14,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 9,
+      "joint": 1,
+      "target": 90.0,
+      "time_ms": 8000,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 89,
+        "2": 91,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 10,
+      "joint": 2,
+      "target": 92.0,
+      "time_ms": 8000,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 91,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 11,
+      "joint": 3,
+      "target": 38.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 12,
+      "joint": 4,
+      "target": 23.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 38.0,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 13,
+      "joint": 2,
+      "target": 100.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1402,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 38.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 14,
+      "joint": 3,
+      "target": 50.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1402,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 100.0,
+        "3": 38.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 15,
+      "joint": 4,
+      "target": 15.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1402,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 100.0,
+        "3": 50.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 16,
+      "joint": 2,
+      "target": 92.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 100.0,
+        "3": 50.0,
+        "4": 15.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 17,
+      "joint": 4,
+      "target": 23.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 50.0,
+        "4": 15.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 18,
+      "joint": 3,
+      "target": 38.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 50.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 19,
+      "joint": 2,
+      "target": 104.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1403,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 38.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 20,
+      "joint": 3,
+      "target": 50.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1403,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 104.0,
+        "3": 38.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 21,
+      "joint": 4,
+      "target": 15.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1403,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 104.0,
+        "3": 50.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 22,
+      "joint": 2,
+      "target": 92.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 104.0,
+        "3": 50.0,
+        "4": 15.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 23,
+      "joint": 4,
+      "target": 23.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 50.0,
+        "4": 15.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 24,
+      "joint": 3,
+      "target": 38.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1401,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 50.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 25,
+      "joint": 2,
+      "target": 94.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1404,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 92.0,
+        "3": 38.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 26,
+      "joint": 3,
+      "target": 18.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1404,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 94.0,
+        "3": 38.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 27,
+      "joint": 4,
+      "target": 11.0,
+      "time_ms": 1500,
+      "phase": "B",
+      "pose_id": 1404,
+      "cmd_before": {
+        "1": 90.0,
+        "2": 94.0,
+        "3": 18.0,
+        "4": 23.0
+      },
+      "point": "dry_run_move"
+    }
+  ],
+  "poses": [],
+  "ended": "completed",
+  "return_steps": [],
+  "adapter_log": {
+    "1": [
+      [
+        "read",
+        89
+      ]
+    ],
+    "2": [
+      [
+        "read",
+        92
+      ]
+    ],
+    "3": [
+      [
+        "read",
+        92
+      ]
+    ],
+    "4": [
+      [
+        "read",
+        91
+      ]
+    ]
+  },
+  "finished_at": "2026-11-15T10:02:14"
+}

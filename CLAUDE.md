@@ -20,3 +20,6 @@
 ## 플랜 제시 전 advisor 검토 (2026-11-16, 사용자 요청 — 원칙)
 **플랜·승인 요청 문서·시험 설계·선택지 권장안을 사용자에게 제시하기 전에 항상 `advisor`를 호출해 검토를 통과시킨다.** 검토에서 나온 차단 항목은 고친 뒤 제시하고, 제시문에 "advisor 검토 반영" 사실과 고친 내용을 적는다(검토 결과와 고친 문서를 함께 보여 준 뒤 승인을 요청). `.sh` 실행 안내 직전 advisor(전역 규칙)와는 별개로 추가 적용한다. 이 프로젝트에서는 codex 자문 게이트를 advisor로 대체한다. 생략: 사용자가 이미 정한 작업을 그대로 수행할 때, 한 줄 문서 수정.
 
+## 인용한 실기기 기록은 추적 복사본으로 (2026-11-16, 사용자 승인)
+`evidence/**/raw/`는 추적하지 않는다. 문서가 근거로 인용하는 raw JSON은 `python3 tools/verify_records.py --add <raw 경로>`로 `evidence/records/`에 복사하고 sha256을 `MANIFEST.tsv`에 남긴 뒤 커밋한다. 검증은 `python3 tools/verify_records.py`. 사진·영상·G00 원문 로그는 복사하지 않는다. 상세: `evidence/records/README.md`.
+

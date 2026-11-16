@@ -1,0 +1,66 @@
+{
+  "run_id": "261112-113818",
+  "mode": "dry_run",
+  "started_at": "2026-11-12T10:38:19",
+  "delta_deg": 5,
+  "times_ms": [
+    1500,
+    3000,
+    1500
+  ],
+  "steps": [
+    {
+      "point": "start",
+      "angle": 100,
+      "caliper_mm": "48.5"
+    },
+    {
+      "point": "dry_run_move",
+      "angle": 95,
+      "time_ms": 1500
+    },
+    {
+      "point": "dry_run_move",
+      "angle": 90,
+      "time_ms": 3000
+    },
+    {
+      "point": "dry_run_move",
+      "angle": 100,
+      "time_ms": 1500
+    }
+  ],
+  "interrupted": false,
+  "ended": "completed",
+  "targets": [
+    100,
+    95,
+    90,
+    100
+  ],
+  "adapter_log": [
+    [
+      "read",
+      100
+    ],
+    [
+      "write",
+      95,
+      1500,
+      "dry_run"
+    ],
+    [
+      "write",
+      90,
+      3000,
+      "dry_run"
+    ],
+    [
+      "write",
+      100,
+      1500,
+      "dry_run"
+    ]
+  ],
+  "finished_at": "2026-11-12T10:40:52"
+}

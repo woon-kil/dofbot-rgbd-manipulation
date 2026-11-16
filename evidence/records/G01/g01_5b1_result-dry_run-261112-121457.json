@@ -1,0 +1,74 @@
+{
+  "run_id": "261112-121457",
+  "mode": "dry_run",
+  "stage": "G01.5b-1 J5",
+  "started_at": "2026-11-12T11:14:58",
+  "delta_deg": 5,
+  "window": [
+    60,
+    120
+  ],
+  "times_ms": [
+    1500,
+    3000,
+    1500
+  ],
+  "state0": {
+    "1": 90,
+    "2": 90,
+    "3": 90,
+    "4": 90,
+    "5": 90,
+    "6": 99
+  },
+  "steps": [
+    {
+      "point": "dry_run_move",
+      "angle": 95,
+      "time_ms": 1500
+    },
+    {
+      "point": "dry_run_move",
+      "angle": 100,
+      "time_ms": 3000
+    },
+    {
+      "point": "dry_run_move",
+      "angle": 90,
+      "time_ms": 1500
+    }
+  ],
+  "interrupted": false,
+  "ended": "completed",
+  "targets": [
+    90,
+    95,
+    100,
+    90
+  ],
+  "adapter_log": [
+    [
+      "read",
+      90
+    ],
+    [
+      "write",
+      95,
+      1500,
+      "dry_run"
+    ],
+    [
+      "write",
+      100,
+      3000,
+      "dry_run"
+    ],
+    [
+      "write",
+      90,
+      1500,
+      "dry_run"
+    ]
+  ],
+  "finished_at": "2026-11-12T11:16:37"
+}

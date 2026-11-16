@@ -1,0 +1,62 @@
+{
+  "run_id": "261115-232228",
+  "mode": "dry_run",
+  "started_at": "2026-11-15T22:22:29",
+  "windows": {
+    "open": [
+      95,
+      179
+    ],
+    "block": [
+      95,
+      150
+    ],
+    "finish": [
+      95,
+      179
+    ]
+  },
+  "allowed_times_ms": [
+    1500,
+    3000,
+    4800
+  ],
+  "stall_deg": 3,
+  "phases": [
+    {
+      "phase": "dry_run_plan",
+      "open": [
+        177,
+        160,
+        140,
+        120,
+        100
+      ],
+      "close_steps": [
+        120,
+        130,
+        135,
+        140,
+        145,
+        150
+      ],
+      "finish": [
+        100,
+        120,
+        140,
+        160,
+        179
+      ]
+    }
+  ],
+  "trials": [],
+  "interrupted": false,
+  "ended": "completed",
+  "adapter_log_last": [
+    [
+      "read",
+      177
+    ]
+  ],
+  "finished_at": "2026-11-15T22:22:32"
+}

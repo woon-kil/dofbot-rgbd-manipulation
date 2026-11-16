@@ -1,0 +1,26 @@
+{
+  "run_id": "261112-133023",
+  "mode": "real",
+  "stage": "G01.5b-3 J4",
+  "joint": 4,
+  "started_at": "2026-11-12T12:30:24",
+  "delta_deg": 5,
+  "window": [
+    80,
+    100
+  ],
+  "times_ms": [
+    8000,
+    1500,
+    1500,
+    1500
+  ],
+  "state0": null,
+  "steps": [],
+  "interrupted": false,
+  "ended": "aborted",
+  "abort_reason": "승인 문구 불일치. 명령은 보내지 않았다.",
+  "time_ratio": "생략: 같은 폭 비례 비교는 G01.5b-2(J1)에서 1.999/1.994로 확인됨. 이번 이동은 첫 이동 8000 ms(동결 상한)와 1500 ms 반복성 자료",
+  "adapter_log": [],
+  "finished_at": "2026-11-12T12:30:56"
+}
