@@ -25,10 +25,8 @@ for k,(u,v) in tips.items():
     svg.append(f'<circle cx="{u:.0f}" cy="{v:.0f}" r="14" fill="none" stroke="{col}" stroke-width="4"/><circle cx="{u:.0f}" cy="{v:.0f}" r="3" fill="{col}"/>')
 txt(tips['J1 110 손끝(2401)'][0]-110,tips['J1 110 손끝(2401)'][1]+70,'② J1 110 손끝(2401·2404, 캡 아래끝 위치)','#00e5ff',16,'middle')
 txt(tips['J1 120 손끝(2402)'][0]-10,tips['J1 120 손끝(2402)'][1]-26,'③ J1 120 손끝(2402)','#ffeb3b',16,'middle')
-# 눈금자 사용 구역: 손끝 옆 팔 이동 범위 밖(바깥쪽 = 사용자 쪽, 아래)
-ru=P(130.0,260.0,0.0)   # 팔 도달 y(약 200 mm) 밖 사용자 쪽
-svg.append(f'<rect x="{ru[0]-24:.0f}" y="{ru[1]-18:.0f}" width="48" height="36" fill="none" stroke="#ff9100" stroke-width="3"/>')
-txt(ru[0]-60,ru[1]+40,'④ 눈금자 평소 자리(x 130, y 260 mm: 팔 범위 밖). 두 번째 소리 뒤에만 손끝 옆에 직접 대어 읽음','#ff9100',15,'middle')
+# ④ 눈금자: 평소 탁자 밖(손에 들고 대기) — 탁자 위 자리를 정하지 않는다(팔 경로 간섭 계산 불필요, 기준 사진·측정 사진에 눈금자가 찍히지 않음)
+txt(30,70,'④ 눈금자: 평소 탁자 밖(손에 들고 대기), 두 번째 소리 뒤에만 정지한 손끝 옆에 직접 대어 읽음','#ff9100',17)
 txt(30,40,'위 = 베이스 쪽, 아래 = 사용자 쪽, 오른쪽 = 사용자 오른쪽(사진 기준). 평면 모델 환산 ±10 mm','#fff',17)
 svg.append('</svg>'); open('results/261116-d3-종이연장-손끝자리-도식.svg','w',encoding='utf-8').write('\n'.join(svg))
 print('요소 | 글의 값(프로젝트 x,y mm) | 그린 픽셀 | 픽셀 역산(x,y mm) | 일치')
@@ -36,6 +34,5 @@ print('종이 오른쪽 경계', (round(ex,1),round(ey,1)),(edge_u,258.0),tuple(
 for k,v in tips.items(): print(k,tuple(round(x,1) for x in tip_mm[k]),v,tuple(round(x,1) for x in inv(*v)),True)
 for (x,y),(u,w) in zip(ext,ext_px):
     xi,yi=inv(u,w); print('연장 모서리',(round(x,1),round(y,1)),(round(float(u),1),round(float(w),1)),(round(xi,1),round(yi,1)),abs(x-xi)<0.2 and abs(y-yi)<0.2)
-u4,v4=P(130.0,260.0,0.0); print('눈금자 평소 자리 x,y 글 (130, 260) 픽셀',(round(float(u4),1),round(float(v4),1)),'역산',tuple(round(float(a),1) for a in inv(u4,v4)),True)
 print('연장 종이 가로(경계에서 오른쪽) %.0f mm, 세로 %.0f mm'%(ext[1][0]-ext[0][0],ext[2][1]-ext[1][1]))
 print('J1 110 손끝 x %.1f, J1 120 손끝 x %.1f (옆 거리 차 %.1f mm), 종이 경계 x %.1f → J1 120 손끝은 경계에서 %.1f mm'%(tip_mm['J1 110 손끝(2401)'][0],tip_mm['J1 120 손끝(2402)'][0],tip_mm['J1 120 손끝(2402)'][0]-tip_mm['J1 110 손끝(2401)'][0],ex,tip_mm['J1 120 손끝(2402)'][0]-ex))
