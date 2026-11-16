@@ -66,5 +66,6 @@ fi
 scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
 python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'자세=',len(j.get('poses',[])),'returned_to_start=',j.get('returned_to_start'))" "${OUT}" "${TS}" "${MODE}"
 echo "저장: ${OUT}"
-echo "비상 절차: 시험은 마지막에 시작값 S로 복귀한다. 복귀 없이 끝났거나 관절에서 소리·발열·처짐이 있으면 손부터 빼고, 낙하 받침 위치를 확인한 뒤 담당자가 전원을 차단한다."
+PADTXT="낙하 받침 위치를 확인한 뒤"; [ "${SET}" = 20 ] && PADTXT="팔 주변(넘어질 수 있는 범위, 낙하 받침 없음)을 확인한 뒤"   # 세트 20은 사용자 결정으로 받침 없음
+echo "비상 절차: 시험은 마지막에 시작값 S로 복귀한다. 복귀 없이 끝났거나 관절에서 소리·발열·처짐이 있으면 손부터 빼고, ${PADTXT} 담당자가 전원을 차단한다."
 echo "이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽으므로 원래 위치로 돌아가지 않는다. 원래 시작 자세는 기록(JSON)의 state0(J1~J6 시작 회독)에 있다."
