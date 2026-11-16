@@ -162,5 +162,48 @@ class SceneTest(unittest.TestCase):
         self.assertFalse(r["ok"], r); self.assertGreater(r["block_move_in_scene_px"], 4.0)
 
 
+class SceneRoiTest(unittest.TestCase):
+    """S1: 이동·응답 추정을 베이스+종이 ROI로 한정. 합성 사진: ROI 안 질감은 (5, 4) px 이동, ROI 밖 배경은 전혀 다른 질감."""
+
+    def _pair(self, d, outside_same):
+        import cv2, numpy as np
+        rng = np.random.default_rng(3)
+        ref = np.full((720, 1280, 3), 200, np.uint8)
+        tex = rng.integers(40, 230, (400, 420, 1), dtype=np.uint8)
+        ref[0:400, 480:900] = tex
+        out_ref = rng.integers(40, 230, (720, 1280, 1), dtype=np.uint8); mask = np.ones((720, 1280), bool); mask[0:400, 480:900] = False
+        ref[mask] = out_ref[mask]
+        im = ref.copy()
+        im[0:400, 480:900] = np.roll(np.roll(ref[0:400, 480:900], 4, axis=0), 5, axis=1)       # ROI 안: (5, 4) px 이동
+        if not outside_same:
+            out_im = rng.integers(40, 230, (720, 1280, 1), dtype=np.uint8); im[mask] = out_im[mask]   # ROI 밖: 전혀 다른 배경
+        tag = cv2.aruco.generateImageMarker(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11), 7, 40)
+        tag = cv2.copyMakeBorder(tag, 8, 8, 8, 8, cv2.BORDER_CONSTANT, value=255)
+        for img, dx, dy in ((ref, 0, 0), (im, 5, 4)):
+            y0, x0 = 250 + dy, 680 + dx; img[y0:y0 + tag.shape[0], x0:x0 + tag.shape[1]] = tag[..., None]
+        fr, fi = Path(d) / "ref.png", Path(d) / "im.png"; cv2.imwrite(str(fr), ref); cv2.imwrite(str(fi), im)
+        return fr, fi
+
+    def test_background_change_outside_roi_does_not_block(self):
+        import cv2
+        with tempfile.TemporaryDirectory() as d:
+            fr, fi = self._pair(d, outside_same=False)
+            c, _, _ = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11), cv2.aruco.DetectorParameters()).detectMarkers(cv2.cvtColor(cv2.imread(str(fr)), cv2.COLOR_BGR2GRAY))
+            m = tuple(float(v) for v in c[0].reshape(4, 2).mean(0))
+            r = PF.check_scene(fi, fr, m)
+        self.assertTrue(r["response_ok"], r); self.assertLess(r["block_move_in_scene_px"], 1.0, r); self.assertTrue(r["ok"], r)
+        self.assertLess(r["full_image_info"]["response"], 0.5, r)        # 전체 영상 추정은 배경 변화로 낮다(참고 기록)
+
+    def test_block_moved_inside_scene_still_fails(self):
+        import cv2
+        with tempfile.TemporaryDirectory() as d:
+            fr, fi = self._pair(d, outside_same=False)
+            r = PF.check_scene(fi, fr, (705.0, 270.0))                       # 기준 마커 위치를 8 px 어긋나게 주면 블록이 움직인 것
+        self.assertFalse(r["ok"], r); self.assertGreater(r["block_move_in_scene_px"], 4.0)
+
+    def test_roi_is_documented(self):
+        self.assertEqual(PF.SCENE_ROI, (480, 0, 900, 400)); self.assertEqual(PF.RESPONSE_MIN, 0.5); self.assertEqual(PF.MARKER_TOL_PX, 4.0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -13,6 +13,7 @@ TOL = {1: 2.0, 2: 2.0, 3: 2.0, 4: 2.0, 5: 1.0, 6: 1.0}   # J1~J4 ±2°, J5 ±1°
 MARKER_ID = 7
 MARKER_TOL_PX = 4.0     # 마커 중심 허용(약 3 mm) — 점검 3 제안값
 STILL_TOL_PX = 0.5      # 기준 사진 대비 카메라 이동(위상 상관) 참고 폭 — 점검 3 제안값. 2026-11-15 실기기에서 카메라가 2.46 px 움직여 게이트에서 기록 항목으로 내렸다(아래 check_scene)
+SCENE_ROI = (480, 0, 900, 400)   # S1(사용자 승인 2026-11-16 11:45): 이동·응답 추정 영역 = 로봇 베이스+종이(x0, y0, x1, y1). 왼쪽 물건·사람·아래 테이블처럼 시험마다 달라지는 배경이 블록과 무관하게 게이트를 막지 않게 한다. 응답 최소·블록 허용은 그대로
 RESPONSE_MIN = 0.5      # 전체 이동 추정(위상 상관 응답)의 신뢰 하한. 같은 장면의 영역별 응답은 0.74~0.98이었다. 낮으면 ‘블록의 장면 내 이동’ 계산을 믿을 수 없어 실패 처리(제안값)
 
 
@@ -28,7 +29,7 @@ def check_readback(rb, k1=K1, tol=TOL):
 
 def check_scene(image_path, ref_path, marker_ref_px, marker_tol=MARKER_TOL_PX, still_tol=STILL_TOL_PX):
     """Gemini 사진 점검. 게이트: **블록이 장면 안에서 확정 자리에서 움직이지 않았다** = (마커 id 7 중심 이동) − (기준 사진 대비 전체 영상 이동) 의 크기가 marker_tol(약 3 mm) 이하, 그리고 전체 이동 추정 신뢰(위상 상관 응답) ≥ RESPONSE_MIN.
-    기록(게이트 아님): 카메라 이동(전체 영상 이동 px). 카메라가 조금 움직여도 마커와 배경이 같이 움직이면 블록은 그대로다 — 이 점검이 막으려는 것은 블록 이동이고, 큰 이동 M3의 팔 이동에는 Gemini를 쓰지 않는다.
+    기록(게이트 아님): 카메라 이동(ROI 이동 px, 전체 영상 추정은 full_image_info에 참고로 기록). 카메라가 조금 움직여도 마커와 배경이 같이 움직이면 블록은 그대로다 — 이 점검이 막으려는 것은 블록 이동이고, 큰 이동 M3의 팔 이동에는 Gemini를 쓰지 않는다.
     (변경 이력: 처음 게이트는 ‘카메라 이동 ≤ 0.5 px 그리고 마커 중심 ≤ 4 px’였고 2026-11-15 실기기에서 카메라가 균일하게 2.46 px 움직여 실패했다. 영역별로 전 영역이 같은 방향으로 움직이고 마커 잔차는 0.23 px였다.)"""
     import cv2
     import numpy as np
@@ -38,7 +39,9 @@ def check_scene(image_path, ref_path, marker_ref_px, marker_tol=MARKER_TOL_PX, s
     if im.shape != rf.shape:
         return {"name": "scene", "ok": False, "error": "사진 크기가 기준과 다르다 %s vs %s" % (im.shape, rf.shape)}
     a = cv2.cvtColor(rf, cv2.COLOR_BGR2GRAY).astype(np.float32); b = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    (sx, sy), resp = cv2.phaseCorrelate(a, b, cv2.createHanningWindow((a.shape[1], a.shape[0]), cv2.CV_32F))
+    x0, y0, x1, y1 = SCENE_ROI
+    (sx, sy), resp = cv2.phaseCorrelate(a[y0:y1, x0:x1], b[y0:y1, x0:x1], cv2.createHanningWindow((x1 - x0, y1 - y0), cv2.CV_32F))   # S1: ROI만으로 추정(전체 영상이 아님)
+    (fsx, fsy), fresp = cv2.phaseCorrelate(a, b, cv2.createHanningWindow((a.shape[1], a.shape[0]), cv2.CV_32F))   # 참고 기록: 전체 영상 추정(게이트 아님)
     shift = float(np.hypot(sx, sy))
     det = cv2.aruco.ArucoDetector(cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11), cv2.aruco.DetectorParameters())
     corners, ids, _ = det.detectMarkers(b.astype(np.uint8))
@@ -53,7 +56,8 @@ def check_scene(image_path, ref_path, marker_ref_px, marker_tol=MARKER_TOL_PX, s
     return {"name": "scene", "ok": marker_ok and response_ok, "block_move_in_scene_px": None if block_rel is None else round(block_rel, 2), "marker_tol_px": marker_tol,
             "camera_shift_px": round(shift, 3), "camera_shift_xy_px": [round(float(sx), 2), round(float(sy), 2)], "camera_shift_ref_px": still_tol, "phase_response": round(float(resp), 3), "response_min": RESPONSE_MIN,
             "marker_center_px": None if cen is None else [round(float(cen[0]), 2), round(float(cen[1]), 2)], "marker_ref_px": list(marker_ref_px), "marker_move_px": None if marker_move is None else [round(marker_move[0], 2), round(marker_move[1], 2)],
-            "camera_still_ok": shift <= still_tol, "marker_ok": marker_ok, "response_ok": response_ok}
+            "camera_still_ok": shift <= still_tol, "marker_ok": marker_ok, "response_ok": response_ok,
+            "roi": list(SCENE_ROI), "full_image_info": {"shift_xy_px": [round(float(fsx), 2), round(float(fsy), 2)], "response": round(float(fresp), 3)}}
 
 
 def check_projection(poses_path, margin=47.0):
