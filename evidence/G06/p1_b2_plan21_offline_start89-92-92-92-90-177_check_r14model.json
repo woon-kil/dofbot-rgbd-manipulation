@@ -1,0 +1,499 @@
+{
+ "plan_set": "21",
+ "start": [
+  89,
+  92,
+  92,
+  92
+ ],
+ "forward": {
+  "box": 18.0,
+  "table": 18.7,
+  "base": 42.2
+ },
+ "forward_per_move": [
+  {
+   "n": 1,
+   "move": "J3→72",
+   "worst_mm": {
+    "box": 208.5,
+    "table": 74.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 2,
+   "move": "J4→72",
+   "worst_mm": {
+    "box": 210.1,
+    "table": 74.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 3,
+   "move": "J3→52",
+   "worst_mm": {
+    "box": 210.1,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "n": 4,
+   "move": "J4→52",
+   "worst_mm": {
+    "box": 212.6,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "n": 5,
+   "move": "J3→32",
+   "worst_mm": {
+    "box": 157.5,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "n": 6,
+   "move": "J4→32",
+   "worst_mm": {
+    "box": 121.4,
+    "table": 74.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 7,
+   "move": "J3→14",
+   "worst_mm": {
+    "box": 67.6,
+    "table": 74.5,
+    "base": 65.6
+   }
+  },
+  {
+   "n": 8,
+   "move": "J4→12",
+   "worst_mm": {
+    "box": 31.7,
+    "table": 61.7,
+    "base": 45.3
+   }
+  },
+  {
+   "n": 9,
+   "move": "J1→110",
+   "worst_mm": {
+    "box": 31.7,
+    "table": 61.7,
+    "base": 42.2
+   }
+  },
+  {
+   "n": 10,
+   "move": "J3→23",
+   "worst_mm": {
+    "box": 33.0,
+    "table": 61.7,
+    "base": 42.2
+   }
+  },
+  {
+   "n": 11,
+   "move": "J4→28",
+   "worst_mm": {
+    "box": 60.1,
+    "table": 74.5,
+    "base": 60.1
+   }
+  },
+  {
+   "n": 12,
+   "move": "J2→69",
+   "worst_mm": {
+    "box": 25.0,
+    "table": 42.6,
+    "base": 64.5
+   }
+  },
+  {
+   "n": 13,
+   "move": "J3→22",
+   "worst_mm": {
+    "box": 22.7,
+    "table": 39.7,
+    "base": 64.4
+   }
+  },
+  {
+   "n": 14,
+   "move": "J4→31",
+   "worst_mm": {
+    "box": 22.7,
+    "table": 39.7,
+    "base": 64.4
+   }
+  },
+  {
+   "n": 15,
+   "move": "J2→66",
+   "worst_mm": {
+    "box": 21.5,
+    "table": 34.1,
+    "base": 63.6
+   }
+  },
+  {
+   "n": 16,
+   "move": "J4→33",
+   "worst_mm": {
+    "box": 21.5,
+    "table": 34.1,
+    "base": 63.6
+   }
+  },
+  {
+   "n": 17,
+   "move": "J2→62",
+   "worst_mm": {
+    "box": 19.3,
+    "table": 23.5,
+    "base": 62.0
+   }
+  },
+  {
+   "n": 18,
+   "move": "J2→61",
+   "worst_mm": {
+    "box": 18.3,
+    "table": 20.2,
+    "base": 61.3
+   }
+  },
+  {
+   "n": 19,
+   "move": "J4→34",
+   "worst_mm": {
+    "box": 18.3,
+    "table": 20.2,
+    "base": 61.3
+   }
+  },
+  {
+   "n": 20,
+   "move": "J3→21",
+   "worst_mm": {
+    "box": 18.0,
+    "table": 18.7,
+    "base": 60.6
+   }
+  }
+ ],
+ "return": [
+  {
+   "after_move": 0,
+   "state": [
+    89,
+    92,
+    92,
+    92
+   ],
+   "worst_mm": {
+    "box": 1000000000000.0,
+    "table": 1000000000000.0,
+    "base": 1000000000000.0
+   }
+  },
+  {
+   "after_move": 1,
+   "state": [
+    89,
+    92,
+    72,
+    92
+   ],
+   "worst_mm": {
+    "box": 208.5,
+    "table": 74.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 2,
+   "state": [
+    89,
+    92,
+    72,
+    72
+   ],
+   "worst_mm": {
+    "box": 208.5,
+    "table": 74.5,
+    "base": 65.6
+   }
+  },
+  {
+   "after_move": 3,
+   "state": [
+    89,
+    92,
+    52,
+    72
+   ],
+   "worst_mm": {
+    "box": 208.5,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 4,
+   "state": [
+    89,
+    92,
+    52,
+    52
+   ],
+   "worst_mm": {
+    "box": 208.5,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 5,
+   "state": [
+    89,
+    92,
+    32,
+    52
+   ],
+   "worst_mm": {
+    "box": 157.5,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 6,
+   "state": [
+    89,
+    92,
+    32,
+    32
+   ],
+   "worst_mm": {
+    "box": 121.4,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 7,
+   "state": [
+    89,
+    92,
+    14,
+    32
+   ],
+   "worst_mm": {
+    "box": 67.6,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 8,
+   "state": [
+    89,
+    92,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 31.7,
+    "table": 61.7,
+    "base": 45.3
+   }
+  },
+  {
+   "after_move": 9,
+   "state": [
+    110,
+    92,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 33.0,
+    "table": 61.7,
+    "base": 42.2
+   }
+  },
+  {
+   "after_move": 10,
+   "state": [
+    110,
+    92,
+    23,
+    12
+   ],
+   "worst_mm": {
+    "box": 60.1,
+    "table": 74.5,
+    "base": 60.1
+   }
+  },
+  {
+   "after_move": 11,
+   "state": [
+    110,
+    92,
+    23,
+    28
+   ],
+   "worst_mm": {
+    "box": 94.6,
+    "table": 74.5,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 12,
+   "state": [
+    110,
+    69,
+    23,
+    28
+   ],
+   "worst_mm": {
+    "box": 25.0,
+    "table": 42.6,
+    "base": 64.5
+   }
+  },
+  {
+   "after_move": 13,
+   "state": [
+    110,
+    69,
+    22,
+    28
+   ],
+   "worst_mm": {
+    "box": 22.7,
+    "table": 39.7,
+    "base": 64.4
+   }
+  },
+  {
+   "after_move": 14,
+   "state": [
+    110,
+    69,
+    22,
+    31
+   ],
+   "worst_mm": {
+    "box": 27.4,
+    "table": 44.3,
+    "base": 64.6
+   }
+  },
+  {
+   "after_move": 15,
+   "state": [
+    110,
+    66,
+    22,
+    31
+   ],
+   "worst_mm": {
+    "box": 21.5,
+    "table": 34.1,
+    "base": 63.6
+   }
+  },
+  {
+   "after_move": 16,
+   "state": [
+    110,
+    66,
+    22,
+    33
+   ],
+   "worst_mm": {
+    "box": 24.3,
+    "table": 37.2,
+    "base": 63.6
+   }
+  },
+  {
+   "after_move": 17,
+   "state": [
+    110,
+    62,
+    22,
+    33
+   ],
+   "worst_mm": {
+    "box": 19.3,
+    "table": 23.5,
+    "base": 62.0
+   }
+  },
+  {
+   "after_move": 18,
+   "state": [
+    110,
+    61,
+    22,
+    33
+   ],
+   "worst_mm": {
+    "box": 18.3,
+    "table": 20.2,
+    "base": 61.3
+   }
+  },
+  {
+   "after_move": 19,
+   "state": [
+    110,
+    61,
+    22,
+    34
+   ],
+   "worst_mm": {
+    "box": 19.4,
+    "table": 21.6,
+    "base": 61.5
+   }
+  },
+  {
+   "after_move": 20,
+   "state": [
+    110,
+    61,
+    21,
+    34
+   ],
+   "worst_mm": {
+    "box": 18.0,
+    "table": 18.7,
+    "base": 60.6
+   }
+  }
+ ],
+ "min_mm": {
+  "box": 18.0,
+  "table": 18.7,
+  "base": 42.2
+ },
+ "gate_mm": 10.0,
+ "pass": true
+}
