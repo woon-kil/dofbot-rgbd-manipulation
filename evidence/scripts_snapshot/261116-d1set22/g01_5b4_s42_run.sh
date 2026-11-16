@@ -34,7 +34,7 @@ a=Arm_Device(); print(\",\".join(str(a.Arm_serial_servo_read(i)) for i in range(
 echo "현재 회독(J1~J6): ${START}"
 case "${START}" in *None*|"") echo "회독에 None이 있다. 중단(팔은 움직이지 않았다)"; exit 8;; esac
 PLAN="${ROOT}/evidence/G01/s4_2_plan_${SET}_${TS}.json"
-RN=""; if [ "${SET}" = 16 ] || [ "${SET}" = 17 ] || [ "${SET}" = 18 ] || [ "${SET}" = 19 ]; then RN="--return-nominal"; fi   # 복귀 목표를 K1 명목값으로 고정(복귀 래칫 차단, docs/*복귀래칫-재발-이슈보고서.md). 다른 세트는 기존 동작 유지
+RN=""; if [ "${SET}" = 16 ] || [ "${SET}" = 17 ] || [ "${SET}" = 18 ] || [ "${SET}" = 19 ] || [ "${SET}" = 22 ]; then RN="--return-nominal"; fi   # 복귀 목표를 K1 명목값으로 고정(복귀 래칫 차단, docs/*복귀래칫-재발-이슈보고서.md). 다른 세트는 기존 동작 유지
 python3 "${ROOT}/scripts/g01_s42_plan.py" --set "${SET}" --start "${START}" ${RN} --out "${PLAN}" || { echo "이동 계획 게이트 실패. 중단(팔은 움직이지 않았다)"; exit 8; }
 if [ "${SET}" = 12 ] || [ "${SET}" = 20 ] || [ "${SET}" = 21 ] || [ "${SET}" = 22 ] || [ "${SET}" = 14 ] || [ "${SET}" = 15 ] || [ "${SET}" = 16 ] || [ "${SET}" = 17 ] || [ "${SET}" = 18 ] || [ "${SET}" = 19 ]; then   # P1: 실행 시점 회독으로 만든 계획 전체(정상+복귀 상태별 경로)를 블록·종이·베이스 충돌 모델로 다시 검증한다(scipy 필요: venv 파이썬)
   if [ "${SET}" = 20 ] || [ "${SET}" = 21 ] || [ "${SET}" = 22 ]; then export P1_GATE_MM=10; fi
