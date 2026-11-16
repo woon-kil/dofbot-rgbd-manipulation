@@ -5,7 +5,7 @@
  - 한 성분당 아래끝 = 성분 최하단 y, x = 최하단 4행의 x 평균. 두 성분이면 중간점, 하나뿐이거나 면적 비 ≥ 1.6이면 '병합: 제외'.
  - 원시 각도가 None인 관절은 readback(정수)+0.5로 두고 FK 범위(정수, 정수+1)를 병기한다.
  - 환산: 예측 위치에서 평면 모델로 구한 국소 px/mm(옆, 앞뒤)를 쓴다(블록 근처 1.32 / 1.07).
-사용: python3 -I gemini_fingertip_detect_r15.py <결과.json> <사진 접두사 data/g04/d1_261116-185300_> [출력.json]"""
+사용: python3 -I gemini_fingertip_detect_r15.py [--post-hoc] <결과.json> <사진 접두사 data/g04/d1_261116-185300_> [출력.json]"""
 import sys, json
 sys.path.insert(0,'scripts'); sys.path.insert(0,'src')
 import cv2, numpy as np
@@ -35,6 +35,8 @@ def detect(img_path, pred):
     if max(pts[0][2],pts[1][2])/min(pts[0][2],pts[1][2])>=1.6: return None,'병합: 제외(면적 비 %.1f)'%(max(pts[0][2],pts[1][2])/min(pts[0][2],pts[1][2])),pts
     return ((pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2),'ok',pts
 if __name__=='__main__':
+    POST_HOC='--post-hoc' in sys.argv; sys.argv=[x for x in sys.argv if x!='--post-hoc']   # 사전 등록하지 않은 방법·수정 규칙으로 기존 사진을 볼 때 지정: 출력에 '참고용, 결정 근거 아님'을 붙인다
+    if POST_HOC: print('※ 사후 분석: 참고용, 결정 근거 아님(사전 등록 규칙이 아님)')
     res=json.load(open(sys.argv[1])); pre=sys.argv[2]; rows=[]
     for p in res['poses']:
         pid=p['pose_id']; r=p['capture']['raw_pre']; q=[r[k]['deg'] for k in '1234']; none4=False
@@ -44,7 +46,7 @@ if __name__=='__main__':
         mid,why,pts=detect(f'{pre}{pid}.png',pred)
         row={'pose_id':pid,'q_raw':[round(v,1) for v in q],'q_none_filled':none4,'pred_px':[round(float(pred[0]),1),round(float(pred[1]),1)],'status':why}
         if mid is not None: row['mid_px']=[round(mid[0],1),round(mid[1],1)]; row['diff_px']=[round(mid[0]-pred[0],1),round(mid[1]-pred[1],1)]; row['local_px_per_mm']=[round(sx,2),round(sy,2)]; row['diff_mm']=[round((mid[0]-pred[0])/sx,1),round((mid[1]-pred[1])/sy,1)]
-        rows.append(row); print({k:(float(v) if hasattr(v,'item') else v) for k,v in row.items()})
+        row['label']='참고용, 결정 근거 아님(사후)' if POST_HOC else '사전 등록 규칙'; rows.append(row); print({k:(float(v) if hasattr(v,'item') else v) for k,v in row.items()})
     ok=[r for r in rows if 'diff_px' in r]
     if ok:
         a=np.array([r['diff_px'] for r in ok]); print('평균 diff px',a.mean(0).round(1).tolist(),'표준편차',a.std(0).round(1).tolist(),'n',len(ok))
