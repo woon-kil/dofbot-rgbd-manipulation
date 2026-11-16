@@ -17,7 +17,11 @@ from planning.dry_run import TRUTH, TABLE_Z, HULL_KEYS                  # noqa: 
 from planning import p1_poses as P                                      # noqa: E402
 
 CENTER = (0.0014, 0.189)
-GATE_MM = float(os.environ.get("P1_GATE_MM", "20"))   # P1: 20 mm, P1-b2(더 가까운 자세): 10 mm(승인 문서 제안)
+GATE_MM = float(os.environ.get("P1_GATE_MM", "20"))
+_DZX = float(os.environ.get("P1_DZ_EXTRA_MM", "0"))   # D1-A: 실제 손끝이 FK보다 최대 이만큼(mm) 낮은 변형을 모든 모델에 추가(D0 실측 26~36 mm, 사용자 승인 D1-2). 0이면 기존 동작
+if _DZX > 0:
+    import dataclasses as _dc
+    for _k, _t in list(TRUTH.items()): TRUTH[_k + "_dzx"] = _dc.replace(_t, dz=-_DZX / 1000)   # P1: 20 mm, P1-b2(더 가까운 자세): 10 mm(승인 문서 제안)
 # 캡 중심 x·쌍 중심 옵셋 조합: 열림, 오므림 가정 4.85 mm, 사진 대조값 7.1 mm(옵셋 −3 mm, UNVERIFIED) 등
 CAP_GEOMS = [(0.0292, 0.0), (0.00485, 0.0), (0.0071, -0.003), (0.0071, 0.0), (0.012, -0.003)]
 STEP = 0.5

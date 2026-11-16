@@ -1,0 +1,522 @@
+{
+ "plan_set": "22",
+ "start": [
+  89,
+  93,
+  93,
+  92
+ ],
+ "forward": {
+  "box": 14.3,
+  "table": 14.1,
+  "base": 34.0
+ },
+ "forward_per_move": [
+  {
+   "n": 1,
+   "move": "J3→73",
+   "worst_mm": {
+    "box": 196.3,
+    "table": 55.5,
+    "base": 46.8
+   }
+  },
+  {
+   "n": 2,
+   "move": "J4→72",
+   "worst_mm": {
+    "box": 198.2,
+    "table": 55.5,
+    "base": 46.8
+   }
+  },
+  {
+   "n": 3,
+   "move": "J3→53",
+   "worst_mm": {
+    "box": 198.2,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "n": 4,
+   "move": "J4→52",
+   "worst_mm": {
+    "box": 200.7,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "n": 5,
+   "move": "J3→33",
+   "worst_mm": {
+    "box": 144.4,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "n": 6,
+   "move": "J4→32",
+   "worst_mm": {
+    "box": 107.5,
+    "table": 55.5,
+    "base": 46.3
+   }
+  },
+  {
+   "n": 7,
+   "move": "J3→14",
+   "worst_mm": {
+    "box": 51.6,
+    "table": 55.5,
+    "base": 46.3
+   }
+  },
+  {
+   "n": 8,
+   "move": "J4→12",
+   "worst_mm": {
+    "box": 15.1,
+    "table": 45.1,
+    "base": 38.9
+   }
+  },
+  {
+   "n": 9,
+   "move": "J1→110",
+   "worst_mm": {
+    "box": 15.1,
+    "table": 45.1,
+    "base": 34.0
+   }
+  },
+  {
+   "n": 10,
+   "move": "J3→16",
+   "worst_mm": {
+    "box": 17.5,
+    "table": 45.1,
+    "base": 34.0
+   }
+  },
+  {
+   "n": 11,
+   "move": "J4→31",
+   "worst_mm": {
+    "box": 23.3,
+    "table": 50.7,
+    "base": 37.9
+   }
+  },
+  {
+   "n": 12,
+   "move": "J2→71",
+   "worst_mm": {
+    "box": 14.3,
+    "table": 14.1,
+    "base": 47.3
+   }
+  },
+  {
+   "n": 13,
+   "move": "J3→27",
+   "worst_mm": {
+    "box": 14.3,
+    "table": 14.1,
+    "base": 45.5
+   }
+  },
+  {
+   "n": 14,
+   "move": "J2→65",
+   "worst_mm": {
+    "box": 23.4,
+    "table": 26.7,
+    "base": 43.4
+   }
+  },
+  {
+   "n": 15,
+   "move": "J4→23",
+   "worst_mm": {
+    "box": 15.0,
+    "table": 14.9,
+    "base": 43.4
+   }
+  },
+  {
+   "n": 16,
+   "move": "J3→31",
+   "worst_mm": {
+    "box": 15.0,
+    "table": 14.9,
+    "base": 42.8
+   }
+  },
+  {
+   "n": 17,
+   "move": "J4→25",
+   "worst_mm": {
+    "box": 20.0,
+    "table": 26.2,
+    "base": 42.8
+   }
+  },
+  {
+   "n": 18,
+   "move": "J2→61",
+   "worst_mm": {
+    "box": 18.4,
+    "table": 15.6,
+    "base": 40.9
+   }
+  },
+  {
+   "n": 19,
+   "move": "J3→38",
+   "worst_mm": {
+    "box": 18.4,
+    "table": 15.6,
+    "base": 39.9
+   }
+  },
+  {
+   "n": 20,
+   "move": "J2→57",
+   "worst_mm": {
+    "box": 23.4,
+    "table": 21.9,
+    "base": 37.7
+   }
+  },
+  {
+   "n": 21,
+   "move": "J4→21",
+   "worst_mm": {
+    "box": 19.4,
+    "table": 16.1,
+    "base": 37.7
+   }
+  }
+ ],
+ "return": [
+  {
+   "after_move": 0,
+   "state": [
+    89,
+    93,
+    93,
+    92
+   ],
+   "worst_mm": {
+    "box": 1000000000000.0,
+    "table": 1000000000000.0,
+    "base": 1000000000000.0
+   }
+  },
+  {
+   "after_move": 1,
+   "state": [
+    89,
+    93,
+    73,
+    92
+   ],
+   "worst_mm": {
+    "box": 196.3,
+    "table": 55.5,
+    "base": 46.8
+   }
+  },
+  {
+   "after_move": 2,
+   "state": [
+    89,
+    93,
+    73,
+    72
+   ],
+   "worst_mm": {
+    "box": 196.3,
+    "table": 55.5,
+    "base": 46.8
+   }
+  },
+  {
+   "after_move": 3,
+   "state": [
+    89,
+    93,
+    53,
+    72
+   ],
+   "worst_mm": {
+    "box": 196.3,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 4,
+   "state": [
+    89,
+    93,
+    53,
+    52
+   ],
+   "worst_mm": {
+    "box": 196.3,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 5,
+   "state": [
+    89,
+    93,
+    33,
+    52
+   ],
+   "worst_mm": {
+    "box": 144.4,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 6,
+   "state": [
+    89,
+    93,
+    33,
+    32
+   ],
+   "worst_mm": {
+    "box": 107.5,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 7,
+   "state": [
+    89,
+    93,
+    14,
+    32
+   ],
+   "worst_mm": {
+    "box": 51.6,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 8,
+   "state": [
+    89,
+    93,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 15.1,
+    "table": 45.1,
+    "base": 38.9
+   }
+  },
+  {
+   "after_move": 9,
+   "state": [
+    110,
+    93,
+    14,
+    12
+   ],
+   "worst_mm": {
+    "box": 17.5,
+    "table": 45.1,
+    "base": 34.0
+   }
+  },
+  {
+   "after_move": 10,
+   "state": [
+    110,
+    93,
+    16,
+    12
+   ],
+   "worst_mm": {
+    "box": 23.3,
+    "table": 50.7,
+    "base": 37.9
+   }
+  },
+  {
+   "after_move": 11,
+   "state": [
+    110,
+    93,
+    16,
+    31
+   ],
+   "worst_mm": {
+    "box": 61.8,
+    "table": 55.5,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 12,
+   "state": [
+    110,
+    71,
+    16,
+    31
+   ],
+   "worst_mm": {
+    "box": 14.3,
+    "table": 14.1,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 13,
+   "state": [
+    110,
+    71,
+    27,
+    31
+   ],
+   "worst_mm": {
+    "box": 33.2,
+    "table": 48.2,
+    "base": 45.5
+   }
+  },
+  {
+   "after_move": 14,
+   "state": [
+    110,
+    65,
+    27,
+    31
+   ],
+   "worst_mm": {
+    "box": 23.4,
+    "table": 26.7,
+    "base": 43.4
+   }
+  },
+  {
+   "after_move": 15,
+   "state": [
+    110,
+    65,
+    27,
+    23
+   ],
+   "worst_mm": {
+    "box": 15.0,
+    "table": 14.9,
+    "base": 43.4
+   }
+  },
+  {
+   "after_move": 16,
+   "state": [
+    110,
+    65,
+    31,
+    23
+   ],
+   "worst_mm": {
+    "box": 20.0,
+    "table": 26.2,
+    "base": 42.8
+   }
+  },
+  {
+   "after_move": 17,
+   "state": [
+    110,
+    65,
+    31,
+    25
+   ],
+   "worst_mm": {
+    "box": 22.2,
+    "table": 29.3,
+    "base": 42.8
+   }
+  },
+  {
+   "after_move": 18,
+   "state": [
+    110,
+    61,
+    31,
+    25
+   ],
+   "worst_mm": {
+    "box": 18.4,
+    "table": 15.6,
+    "base": 40.9
+   }
+  },
+  {
+   "after_move": 19,
+   "state": [
+    110,
+    61,
+    38,
+    25
+   ],
+   "worst_mm": {
+    "box": 28.0,
+    "table": 36.4,
+    "base": 39.9
+   }
+  },
+  {
+   "after_move": 20,
+   "state": [
+    110,
+    57,
+    38,
+    25
+   ],
+   "worst_mm": {
+    "box": 23.4,
+    "table": 21.9,
+    "base": 37.7
+   }
+  },
+  {
+   "after_move": 21,
+   "state": [
+    110,
+    57,
+    38,
+    21
+   ],
+   "worst_mm": {
+    "box": 19.4,
+    "table": 16.1,
+    "base": 37.7
+   }
+  }
+ ],
+ "min_mm": {
+  "box": 14.3,
+  "table": 14.1,
+  "base": 34.0
+ },
+ "gate_mm": 10.0,
+ "pass": true
+}
