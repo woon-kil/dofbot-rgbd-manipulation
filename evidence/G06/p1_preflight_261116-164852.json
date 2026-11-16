@@ -1,0 +1,78 @@
+{
+ "ok": true,
+ "checks": [
+  {
+   "name": "readback_vs_K1",
+   "ok": true,
+   "rows": [
+    {
+     "joint": 1,
+     "readback": 89.0,
+     "expected": 89,
+     "diff": 0.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 2,
+     "readback": 93.0,
+     "expected": 91,
+     "diff": 2.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 3,
+     "readback": 93.0,
+     "expected": 91,
+     "diff": 2.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 4,
+     "readback": 92.0,
+     "expected": 91,
+     "diff": 1.0,
+     "tol": 2.0,
+     "ok": true
+    },
+    {
+     "joint": 5,
+     "readback": 90.0,
+     "expected": 90,
+     "diff": 0.0,
+     "tol": 1.0,
+     "ok": true
+    },
+    {
+     "joint": 6,
+     "readback": 178.0,
+     "expected": 179,
+     "diff": -1.0,
+     "tol": 1.0,
+     "ok": true,
+     "range": [
+      177,
+      179
+     ]
+    }
+   ]
+  },
+  {
+   "name": "scripts_sha256",
+   "ok": true,
+   "n": 16,
+   "mismatch": [],
+   "manifest_sha256": "c5aa53966e0c92a044fe41bc60903c7c55d9f7827edc23fdfc21c025967c44f2"
+  },
+  {
+   "name": "src_sha256",
+   "ok": true,
+   "n": 25,
+   "mismatch": [],
+   "manifest_sha256": "31d3547dd9e696d535bcfa44ba824a0a046cc2530ac0646fd754ed931cdbd2fa"
+  }
+ ],
+ "note": "읽기 전용 점검. 하나라도 실패하면 팔을 움직이지 않는다."
+}
