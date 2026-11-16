@@ -41,7 +41,7 @@ if __name__=='__main__':
     for p in res['poses']:
         pid=p['pose_id']; r=p['capture']['raw_pre']; q=[r[k]['deg'] for k in '1234']; none4=False
         if any(v is None for v in q):
-            none4=True; rb=p['readback']; q=[(v if v is not None else rb[k]+0.5) for v,k in zip(q,'1234')]
+            none4=True; rb=p['readback']; q=[(v if v is not None else (rb[k]+0.5 if k=='1' else rb[k]-0.5)) for v,k in zip(q,'1234')]   # 정수 회독: J1은 내림(실제 ∈ [정수, 정수+1) → +0.5), J2~J4는 올림(실제 ∈ (정수−1, 정수] → −0.5)
         pred,(sx,sy)=predict(q)
         mid,why,pts=detect(f'{pre}{pid}.png',pred)
         row={'pose_id':pid,'q_raw':[round(v,1) for v in q],'q_none_filled':none4,'pred_px':[round(float(pred[0]),1),round(float(pred[1]),1)],'status':why}

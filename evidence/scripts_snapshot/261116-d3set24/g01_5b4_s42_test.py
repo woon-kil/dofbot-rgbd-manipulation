@@ -39,7 +39,9 @@ class FakeArmS(FakeArm):
         super().__init__(pos); self.hyst = hyst; self.ignore = set(ignore_ids); self.floors = dict(floors or {}); self.nw = 0; self.drop_nth = drop_nth
         self.read_quiet = read_quiet; self.last_read = -1e9; self.quiet_drops = 0   # 실측 기제 모사: 마지막 읽기 뒤 read_quiet초 안에 온 쓰기는 버려진다
     def Arm_serial_servo_read(self, id):
-        self.last_read = time.monotonic(); return super().Arm_serial_servo_read(id)
+        self.last_read = time.monotonic(); v = super().Arm_serial_servo_read(id)
+        if v is None or getattr(self, "none_ids", None) and id in self.none_ids: return v
+        import math as _m; p_ = self._p(id); return int(_m.ceil(p_ - 1e-9)) if id in (2, 3, 4) else int(_m.floor(p_ + 1e-9))   # 실제 SDK: J2~J4는 180−절삭이라 올림, J1은 내림(D0~D2 기록으로 확인)
     def raw_servo_read(self, id):   # 가짜: Arm_Lib 환산의 역(원시 900~3100 = 0~180°, J2~J4는 반전)을 연속 위치에 적용
         self.last_read = time.monotonic(); a = 180.0 - self._p(id) if id in (2, 3, 4) else self._p(id); return int(round(900 + a * 2200.0 / 180.0))
     def Arm_serial_servo_write(self, id, angle, time_ms):
@@ -279,16 +281,25 @@ def main():
             if mv.get("capture") and mode != "dry_run":
                 pid = mv["pose_id"]; cap = capture(plan, pid, arm, ads, a)
                 result["poses"].append({"pose_id": pid, "commanded": dict(cmd), "readback": {str(k): last_valid(step["series"][str(k)]) if k in (1, 2, 3, 4) else None for k in (1, 2, 3, 4)}, "target_pose": plan["poses"][str(pid)], "capture": cap})
-                pc_ = (plan.get("progress_check") or {}).get(str(pid))   # D3 진행 판정(높이 기준을 원시 각도 창으로 환산, 승인 D3-5): 벗어나면 측정·하강 없이 멈추고 복귀
-                if pc_ and mode != "dry_run":
-                    raw_ = (cap or {}).get("raw_pre") or {}
-                    def _dg(k_): v_ = (raw_.get(str(k_)) or {}).get("deg"); return v_ if v_ is not None else (result["poses"][-1]["readback"].get(str(k_)) or 0) + 0.5   # 원시 None이면 정수 + 0.5
-                    bad_ = []
-                    if "j4_min" in pc_ and _dg(4) < pc_["j4_min"]: bad_.append("J4 원시 %.2f < %.1f" % (_dg(4), pc_["j4_min"]))
-                    if "j3_range" in pc_ and not (pc_["j3_range"][0] <= _dg(3) <= pc_["j3_range"][1]): bad_.append("J3 원시 %.2f 창 %s 밖" % (_dg(3), pc_["j3_range"]))
-                    if "j2_min" in pc_ and _dg(2) < pc_["j2_min"]: bad_.append("J2 원시 %.2f < %.1f" % (_dg(2), pc_["j2_min"]))
-                    result["poses"][-1]["progress_check"] = {"rule": pc_, "bad": bad_}
-                    if bad_: raise Abort("D3 진행 판정 실패(자세 %s): %s. 측정·하강 없이 복귀합니다." % (pid, ", ".join(bad_)))
+                hc_ = (plan.get("height_check") or {}).get(str(pid))   # D3 진행 판정(승인 D3-5): 원시 각도로 선형 예측한 캡 아래끝 높이가 문턱 미만이면 측정·하강 없이 복귀(재명령 없음)
+                if hc_ and mode != "dry_run":
+                    raw_ = (cap or {}).get("raw_pre") or {}; rb_ = result["poses"][-1]["readback"]; mdl_ = plan["height_check"]["model"]; q0_ = mdl_["q_ref"]; ah_ = mdl_["a"]
+                    def _dg(k_):
+                        v_ = (raw_.get(str(k_)) or {}).get("deg")
+                        if v_ is not None: return v_, False
+                        if rb_.get(str(k_)) is None: return None, True
+                        return (rb_[str(k_)] + 0.5 if k_ == 1 else rb_[str(k_)] - 1.0), True   # 원시 None 대체(보수): J1은 내림이라 정수+0, J2~J4는 올림이라 실제 ∈ (정수−1, 정수] → 정수−1
+                    j2_, n2_ = _dg(2); j3_, n3_ = _dg(3); j4_, n4_ = _dg(4); bad_ = []
+                    if str(pid) == "2403" and (n3_ or n4_): bad_.append("J3/J4 원시 회독 없음(None) — 판정 불가, 안전 쪽 정지")
+                    elif None in (j2_, j3_, j4_): bad_.append("회독 없음")
+                    else:
+                        j2u_ = hc_.get("j2_assumed", j2_)   # 2403: 다음 하강의 최악 J2 가정(54.5), 2404: 실제 원시 J2
+                        hp_ = mdl_["h_ref"] + ah_[0] * (j2u_ - q0_[0]) + ah_[1] * (j3_ - q0_[1]) + ah_[2] * (j4_ - q0_[2])
+                        result["poses"][-1]["pred_cap_mm"] = round(hp_, 2)
+                        if hp_ < hc_["h_min"]: bad_.append("예측 캡 아래끝 %.1f mm < %.1f (J2 %.2f 가정/실제, J3 %.2f, J4 %.2f)" % (hp_, hc_["h_min"], j2u_, j3_, j4_))
+                        if "j2_min" in hc_ and j2_ < hc_["j2_min"]: bad_.append("J2 원시 %.2f < %.1f" % (j2_, hc_["j2_min"]))
+                    result["poses"][-1]["height_check"] = {"rule": hc_, "bad": bad_}
+                    if bad_: raise Abort("D3 진행 판정 실패(자세 %s): %s. 측정·하강 없이 복귀합니다." % (pid, "; ".join(bad_)))
                 hold_for_measure(plan, pid, a, result["poses"][-1], arm)
                 if plan.get("hold_min_mm"):   # D0 중단 규칙(코드): 입력값이 숫자가 아니거나 하한 미만이면 더 내려가지 않는다(복귀 질문으로 이어짐)
                     rec_ = result["poses"][-1]

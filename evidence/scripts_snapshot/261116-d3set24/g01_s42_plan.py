@@ -185,7 +185,7 @@ def main():
     if a.set == "21": plan["no_camera"] = True; plan["hold_min_mm"] = {"2101": 40, "2102": 32, "2103": 22, "2104": 18}   # D0: 카메라 없음, 입력(실제 최저점 mm) 하한 미만이면 중단·복귀
     if a.set == "22": plan["no_camera"] = True; plan["gemini_photo"] = True; plan["hold_min_mm"] = {"2202": 24, "2203": 20, "2204": 20, "2205": 12}   # D1-A: 눈 읽기 입력 12 mm 미만이면 중단·복귀, 자세마다 Gemini 사진(Mac 래퍼가 측정 대기 때 촬영)
     if a.set == "23": plan["no_camera"] = True; plan["gemini_photo"] = True; plan["hold_min_mm"] = {"2301": 17, "2302": 17, "2303": 17, "2304": 12}   # D2: 입력(실제 캡 아래끝 mm) 하한 미만이면 중단·복귀(1→2: 입력−5≥12, 2→3: 입력−3.3≥12 → 15.3, 보수적으로 17)
-    if a.set == "24": plan["no_camera"] = True; plan["gemini_photo"] = True; plan["hold_min_mm"] = {"2401": 21, "2402": 21, "2404": 12}; plan["progress_check"] = {"2403": {"j4_min": 28.0, "j3_range": [28.0, 29.5]}, "2404": {"j2_min": 54.5}}   # D3: 하강 전 입력 하한 21(2401·2402)·2404 하한 12, 높이 기준 진행 판정(원시 각도 창, 승인 D3-5)
+    if a.set == "24": plan["no_camera"] = True; plan["gemini_photo"] = True; plan["hold_min_mm"] = {"2401": 21, "2402": 21, "2404": 12}; plan["height_check"] = {"model": json.load(open("evidence/G06/d3_height_model.json")), "2403": {"j2_assumed": 54.5, "h_min": 12.5}, "2404": {"h_min": 12.5, "j2_min": 54.5}}   # D3: 하강 전 입력 하한 21(2401·2402)·2404 하한 12, 높이 기준 진행 판정(선형 높이 예측, 승인 D3-5; 창 방식 폐기: advisor 4차)
     plan["return_target"] = list(ret_target); plan["return_nominal"] = bool(a.return_nominal)
     plan["raw_after"] = (a.set in ("16", "17", "18", "19"))   # 러너가 이동마다 원시 값 두 시점을 기록
     for n, m in enumerate(moves, 1): m["n"] = n
