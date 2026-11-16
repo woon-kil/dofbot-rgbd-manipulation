@@ -51,7 +51,11 @@ if __name__=='__main__':
     for p in res['poses']:
         pid=p['pose_id']; r=p['capture']['raw_pre']; q=[r[k]['deg'] for k in '1234']; none=False
         if any(v is None for v in q): none=True; rb=p['readback']; q=[(v if v is not None else (rb[k]+0.5 if k=='1' else rb[k]-0.5)) for v,k in zip(q,'1234')]   # 정수 회독: J1은 내림(실제 ∈ [정수, 정수+1) → +0.5), J2~J4는 올림(실제 ∈ (정수−1, 정수] → −0.5)
-        pred,(sx,sy)=D1.predict(q); mid,why=detect_v2(f'{pre}{pid}.png',ref,pred)
+        pred,(sx,sy)=D1.predict(q)
+        import os as _os
+        if not _os.path.exists(f'{pre}{pid}.png'):   # 측정 대기가 없는 자세(예: 세트 24의 2403)는 사진이 없다 — 판정 규칙 변경 아님(도구 오류 수정)
+            rows.append({'pose_id':pid,'status':'사진 없음(측정 없는 자세)'}); print(rows[-1]); continue
+        mid,why=detect_v2(f'{pre}{pid}.png',ref,pred)
         row={'pose_id':pid,'q_none_filled':none,'pred_px':[round(float(pred[0]),1),round(float(pred[1]),1)],'status':why,'label':'참고용, 결정 근거 아님(사후)' if POST else '사전 등록 규칙 v2'}
         if mid is not None: row['mid_px']=[round(mid[0],1),round(mid[1],1)]; row['diff_px']=[round(mid[0]-pred[0],1),round(mid[1]-pred[1],1)]; row['diff_mm']=[round((mid[0]-pred[0])/sx,1),round((mid[1]-pred[1])/sy,1)]; sh=height_scale(q); row['s_h_px_per_mm']=round(sh,2); row['dh_mm_photo_minus_pred']=round(-(mid[1]-pred[1])/sh,1)   # 사진 높이식: h_photo = h_pred + 이 값(= −Δy/s_h)
         rows.append(row); print(row)

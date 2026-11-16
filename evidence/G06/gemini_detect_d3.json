@@ -1,0 +1,78 @@
+[
+ {
+  "pose_id": 2401,
+  "q_none_filled": false,
+  "pred_px": [
+   781.3,
+   271.9
+  ],
+  "status": "ok",
+  "label": "사전 등록 규칙 v2",
+  "mid_px": [
+   786.2,
+   274.0
+  ],
+  "diff_px": [
+   4.9,
+   2.1
+  ],
+  "diff_mm": [
+   3.8,
+   1.9
+  ],
+  "s_h_px_per_mm": 0.78,
+  "dh_mm_photo_minus_pred": -2.7
+ },
+ {
+  "pose_id": 2402,
+  "q_none_filled": false,
+  "pred_px": [
+   819.4,
+   256.9
+  ],
+  "status": "ok",
+  "label": "사전 등록 규칙 v2",
+  "mid_px": [
+   824.0,
+   261.5
+  ],
+  "diff_px": [
+   4.7,
+   4.6
+  ],
+  "diff_mm": [
+   3.7,
+   4.4
+  ],
+  "s_h_px_per_mm": 0.8,
+  "dh_mm_photo_minus_pred": -5.8
+ },
+ {
+  "pose_id": 2403,
+  "status": "사진 없음(측정 없는 자세)"
+ },
+ {
+  "pose_id": 2404,
+  "q_none_filled": false,
+  "pred_px": [
+   786.5,
+   284.4
+  ],
+  "status": "ok",
+  "label": "사전 등록 규칙 v2",
+  "mid_px": [
+   789.6,
+   288.0
+  ],
+  "diff_px": [
+   3.0,
+   3.6
+  ],
+  "diff_mm": [
+   2.4,
+   3.4
+  ],
+  "s_h_px_per_mm": 0.75,
+  "dh_mm_photo_minus_pred": -4.8
+ }
+]
