@@ -126,7 +126,10 @@ def hold_for_measure(plan, pid, a, rec, arm=None):
         import termios; termios.tcflush(sys.stdin.fileno(), termios.TCIFLUSH)
     except Exception: pass
     secs = int(plan.get("hold_max_s", 180)); t0 = time.monotonic(); base = {k: read_valid(arm, k) for k in (2, 3, 4)} if arm is not None else {}
-    say("\n[측정 대기] 자세 %s에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손을 넣지 마세요.** 읽은 값을 한 줄에 쓰고(예: 74 75) Enter를 누르세요(최대 %d초 뒤 자동으로 계속)." % (pid, secs))
+    if plan.get("set") == "20":   # P1-b2 (b)·#11 D1(A2): 사람이 할 일은 측면 폰 촬영과 종이 위 손끝 높이 mm 한 값 입력
+        say("\n[측정 대기] 자세 C(모델 손끝 높이 44.1 mm)에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손을 넣지 마세요.** 지금 측면 폰으로 손끝(캡 끝면 가운데)과 눈금자가 함께 찍히게 사진을 찍고, 종이 위에서 손끝까지의 높이를 눈금자로 읽어 mm 숫자 한 개를 쓴 뒤(예: 42) Enter를 누르세요(최대 %d초 뒤 자동으로 계속, 값을 못 읽으면 그냥 Enter)." % secs)
+    else:
+        say("\n[측정 대기] 자세 %s에서 멈춥니다(서보에 쓰기를 보내지 않고 J2~J4 회독만 읽어 처짐을 감시합니다). **팔 이동 범위 안에 손을 넣지 마세요.** 읽은 값을 한 줄에 쓰고(예: 74 75) Enter를 누르세요(최대 %d초 뒤 자동으로 계속)." % (pid, secs))
     ended = "timeout"; last_say = 0
     while time.monotonic() - t0 < secs:
         if select.select([sys.stdin], [], [], 1.0)[0]: rec["user_entry"] = sys.stdin.readline().strip(); ended = "enter"; break   # 사용자가 Enter 전에 쓴 측정값(예: "74 75")을 기록에 남긴다
