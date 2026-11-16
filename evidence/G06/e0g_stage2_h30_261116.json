@@ -1,0 +1,92 @@
+{
+  "robot_commands": 0,
+  "center0_px": [
+    698.0,
+    334.875
+  ],
+  "heights": [
+    {
+      "h_mm": 0,
+      "n_detected": 2,
+      "n_shots": 2,
+      "center_mean_px": [
+        698.0,
+        334.875
+      ],
+      "shift_y_px": 0.0,
+      "shift_total_px": 0.0,
+      "side_px_mean": 31.402533531188965,
+      "repeat_diff_px": 0.25,
+      "pred_px": [
+        698.0,
+        334.875
+      ],
+      "pred_shift_total_px": 0.0,
+      "blob_bottom_shift_px": 0.0,
+      "id1_visible": true
+    },
+    {
+      "h_mm": 30,
+      "n_detected": 2,
+      "n_shots": 2,
+      "center_mean_px": [
+        702.75,
+        312.5
+      ],
+      "shift_y_px": 22.375,
+      "shift_total_px": 22.87363383898588,
+      "side_px_mean": 33.78141403198242,
+      "repeat_diff_px": 0.0,
+      "pred_px": [
+        702.6728776784195,
+        312.0518863661606
+      ],
+      "pred_shift_total_px": 23.29657274666419,
+      "shift_along_pred_px": 22.873035545794995,
+      "ratio_to_pred": 0.9818197635560003,
+      "model_ok": true,
+      "blob_bottom_shift_px": 20.0,
+      "id1_visible": false
+    }
+  ],
+  "Q3_id1": {
+    "measured_px": [
+      693.375,
+      288.5
+    ],
+    "ref_px": [
+      699.0,
+      292.2
+    ],
+    "diff_px": 6.732802165517706
+  },
+  "Q3_id1_vs_1115_info": {
+    "ok_by_old_rule": false
+  },
+  "Q3_base_shift": [
+    {
+      "file": "e0g_h0_r2.png",
+      "dx": 0.009576218530241931,
+      "dy": -0.027578009984360108,
+      "response": 1.0062649974116573
+    },
+    {
+      "file": "e0g_h30_r1.png",
+      "dx": -0.03122736679074478,
+      "dy": -0.04682240390365422,
+      "response": 0.9910965147724858
+    },
+    {
+      "file": "e0g_h30_r2.png",
+      "dx": -0.015325692561305004,
+      "dy": -0.06093248028049203,
+      "response": 0.9960615580611759
+    }
+  ],
+  "Q3_ok": true,
+  "repeat_max_px": 0.25,
+  "repeat_ok": true,
+  "slope_px_per_mm": 0.7624345181931665,
+  "min_discriminable_mm": 0.9836910345787673,
+  "model_ok_all": true
+}
