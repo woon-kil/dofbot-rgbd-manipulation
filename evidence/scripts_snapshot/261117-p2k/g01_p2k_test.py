@@ -178,12 +178,19 @@ def p2k_j6_sequence(plan, arm, pose_rec, a, mode):
     s6 = ad6.read_start(); P2K["ad6"] = ad6; P2K["start6"] = s6; P2K["cur6"] = s6
     if s6 not in (177, 178, 179): raise Abort("J6 시작 회독 %s가 177~179가 아니다. J6 이동 없음." % s6)
     targets = [s6] + list(cfg["j6_targets"]); ad6.set_targets(targets); times = cfg["j6_times_ms"]
+    if mode == "dry_run":   # dry run: 팔이 움직이지 않으므로 정지·도착 검사는 건너뛰고 읽기·목록·속도 검사·dry_run 쓰기 기록만 한다(실제 Arm_Lib에서 새 경로 확인)
+        for i, (tgt, t_ms) in enumerate(zip(targets[1:], times), 1):
+            ad6.confirm_hands_clear(); ad6.move(tgt, t_ms); P2K["cur6"] = tgt; say("  dry_run: J6 점 %d 이동 %d (time %d ms) — 쓰기 0회, 정지·도착 검사 생략" % (i, tgt, t_ms))
+        ad6.confirm_hands_clear(); ad6.return_to_start(cfg["return_ms"]); P2K["cur6"] = s6; say("  dry_run: J6 복귀 검사(시작값 %s, %d ms) — 쓰기 0회" % (s6, cfg["return_ms"])); return
     pts = pose_rec.setdefault("j6_points", [])
     def snap(label, tgt): return {"label": label, "j6_target": tgt, "raw_pre_arm": raw_set(arm), "start_epoch": round(time.time(), 1)}
     pt = snap("start", s6); pt.update(p2k_hold(plan, "0", arm, pose_rec, a)); pt["raw_post_arm"] = raw_set(arm); pts.append(pt)
     for i, (tgt, t_ms) in enumerate(zip(targets[1:], times), 1):
-        ad6.confirm_hands_clear(); time.sleep(QUIET_S); ad6.move(tgt, t_ms); P2K["cur6"] = tgt
+        before6 = P2K["cur6"]; ad6.confirm_hands_clear(); time.sleep(QUIET_S); ad6.move(tgt, t_ms); P2K["cur6"] = tgt
         wait = 2 * t_ms + 1000; series = poll(ad6, wait); last = next((v for _, v in reversed(series) if v is not None), None)   # 가짜 서보도 실시간으로 움직이므로 대기를 줄이지 않는다; last = next((v for _, v in reversed(series) if v is not None), None)
+        if last is not None and abs(last - before6) <= 1 and abs(tgt - before6) >= 10 and RETRIES["n"] < MAX_RETRIES:   # 쓰기 누락 의심(회독이 이전 값 ±1): 읽기를 멈춘 뒤 같은 목표를 1회만 다시 보낸다(질문 없음, 이동 쓰기 재전송 누적 상한 공유)
+            say("  ! J6가 움직이지 않았습니다(회독 %s, 목표 %d). 쓰기 누락으로 보고 같은 목표를 1회 다시 보냅니다." % (last, tgt)); RETRIES["n"] += 1; time.sleep(QUIET_S); ad6.confirm_hands_clear(); ad6.repeat_last(t_ms); pose_rec.setdefault("j6_retries", []).append({"target": tgt})
+            series = poll(ad6, wait); last = next((v for _, v in reversed(series) if v is not None), None)
         if last is None or abs(last - tgt) > 3: raise Abort("J6 도착 실패(회독 %s, 목표 %d, 허용 3°). J6 추가 이동 없음, 복귀 질문으로 이어집니다." % (last, tgt))
         if abs(last - tgt) >= 2: say("  ! 경고: J6 회독 잔차가 %d°입니다. 소리·떨림·발열을 확인하세요." % abs(last - tgt))
         pt = snap(str(i), tgt); pt.update({"j6_series_tail": series[-3:], "j6_final_readback": last}); pt.update(p2k_hold(plan, str(i), arm, pose_rec, a)); pt["raw_post_arm"] = raw_set(arm); pts.append(pt)
@@ -287,6 +294,7 @@ def main():
         if any(state[i] is None for i in range(1, 7)): raise Abort("회독 None이 있다. 쓰기 없음.")
         for k in range(1, 7):
             if abs(state[k] - ps[str(k)]) > START_TOL: raise Abort("J%d 현재 회독 %s가 계획 시작값 %s와 %d° 넘게 다르다. 계획을 다시 만든 뒤 실행하세요. 쓰기 없음." % (k, state[k], ps[str(k)], START_TOL))
+        if plan.get("p2k") and not (177 <= state[6] <= 179): raise Abort("J6 회독 %s가 177~179(오므림)가 아니다. P2k는 오므린 그리퍼에서만 시작한다. 쓰기 없음." % state[6])
         # 이동 목록 → 관절별 목표 목록(첫 항목은 실제 시작값)
         lists = {j: [state[j]] + [m["target"] for m in moves if m["joint"] == j] for j in (1, 2, 3, 4)}
         times = [m["time_ms"] for m in moves] + [3000, 1500, 8000]
@@ -323,6 +331,7 @@ def main():
             if a.stop_after is not None and n > a.stop_after: raise KeyboardInterrupt()
             step = run_move(ads, arm, mv, cmd, start_all, result, n, N, mode, countdown); result["steps"].append(step); done_moves = n; wrote = wrote or mode != "dry_run"
             if plan.get("raw_after") and mode != "dry_run": step["raw_after"] = raw_after_pair(arm)   # 세트 16: 이동마다 원시 값 두 시점(읽기 전용)
+            if mv.get("capture") and mode == "dry_run" and plan.get("p2k"): p2k_j6_sequence(plan, arm, {"pose_id": mv["pose_id"]}, a, mode)
             if mv.get("capture") and mode != "dry_run":
                 pid = mv["pose_id"]; cap = capture(plan, pid, arm, ads, a)
                 result["poses"].append({"pose_id": pid, "commanded": dict(cmd), "readback": {str(k): last_valid(step["series"][str(k)]) if k in (1, 2, 3, 4) else None for k in (1, 2, 3, 4)}, "target_pose": plan["poses"][str(pid)], "capture": cap})
@@ -381,6 +390,7 @@ def main():
                 else: result["returned_to_start"] = False
             except BaseException as e: result["return_error"] = repr(e); say("복귀 처리 중단:", repr(e))
         result["adapter_log"] = {str(j): [(["write", *l[1:3], "fake" if (a.fake and l[0] == "write") else l[3], *l[4:]] if l[0] == "write" else list(l)) for l in ads[j].log] for j in ads if hasattr(ads[j], "log")}
+        if P2K["ad6"] is not None: result["j6_adapter_log"] = [list(l) for l in P2K["ad6"].log]
         result["finished_at"] = datetime.datetime.now().isoformat(timespec="seconds")
         Path(a.out).write_text(json.dumps(result, ensure_ascii=False, indent=2, default=lambda o: float(o)) + "\n", encoding="utf-8"); say("기록 저장:", a.out)
 
