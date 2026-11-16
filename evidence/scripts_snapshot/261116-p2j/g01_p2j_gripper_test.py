@@ -86,7 +86,7 @@ def main():
     try:
         print("G07 P2j K1 직립 J6별 캡 끝 위치 측정(%s): 그리퍼 서보 6만 움직인다. 팔 관절은 명령하지 않는다. 물체 없음." % mode)
         print("사전 확인:")
-        for k, q in enumerate(("전원 차단 담당자가 현재 자리에 있다", "팔이 K1 기립(대기) 자세이고 낙하 받침이 준비돼 있다(전원 차단 시 직립 팔이 낙하할 수 있음)", "손가락 사이에 물체·손·케이블이 없다", "폰·쇠자·스티커가 SVG 안내대로 놓였다: 스티커는 Arm5 서보 상자 앞면(J6와 무관한 기준점), 쇠자는 오른쪽 열림 범위 밖 +80 mm 고정이며 손가락과 같은 깊이, 폰은 arm5 z축 방향에서 본다(손은 점 사이 이동 전에 뗀다)", "영상 모드 시험 녹화로 눈금·손끝·초점이 보임을 확인했다"), 1): print("  %d. %s" % (k, q))
+        for k, q in enumerate(("전원 차단 담당자가 현재 자리에 있다", "팔이 K1 기립(대기) 자세이고 낙하 받침이 준비돼 있다(전원 차단 시 직립 팔이 낙하할 수 있음)", "손가락 사이에 물체·손·케이블이 없다", "폰은 거치대에 고정(줌·초점·노출 잠금, 타이머/리모컨)돼 있고 스티커는 Arm5 서보 상자 앞면에 있다. 쇠자·클램프는 손가락 뒤쪽에 있고 볼트를 포함한 손가락 움직임에 닿지 않음을 확인했다(사용자 확인, 간격 수치 없음)(손은 점 사이 이동 전에 뗀다)", "영상 모드 시험 녹화로 눈금·손끝·초점이 보임을 확인했다"), 1): print("  %d. %s" % (k, q))
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if mode != "dry_run":   # dry run은 사진·쓰기가 없어 아래 입력을 받지 않는다(입력 최소화)
             result["layout_note"] = input("측정 배치 한 줄 설명(예: 폰 위치·쇠자·기준 스티커 위치, 엔터=건너뜀): ").strip() or None
@@ -118,7 +118,7 @@ def main():
             return {"photo": ph, "epoch": round(time.time(), 1)} if ph else None   # epoch: 폰 사진 EXIF 시각과 J6 점의 대응을 독립 확인하기 위한 기록
         result["steps"].append({"point": "start", "angle": s, "photo": measure("시작", s)}); prev_angle = s
         for i, (tgt, t_ms) in enumerate(zip(targets[1:], tms), 1):
-            if mode != "dry_run" and not ask("손을 뗐고 쇠자는 열림 범위 밖 고정 자리, 스티커는 상자 앞면에 그대로 있습니까? 다음 이동 %d/%d: %d (time %d ms)" % (i, len(targets) - 1, tgt, t_ms)): raise Abort("손 제거 미확인. 추가 명령 없음.")
+            if mode != "dry_run" and not ask("손을 뗐고 쇠자·클램프는 손가락 뒤쪽 고정 자리, 스티커는 상자 앞면, 폰은 거치대에 그대로 있습니까? 다음 이동 %d/%d: %d (time %d ms)" % (i, len(targets) - 1, tgt, t_ms)): raise Abort("손 제거 미확인. 추가 명령 없음.")
             ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.move(tgt, t_ms); writes_done = writes_done or mode != "dry_run"; before = cur_angle; cur_angle = tgt
             if mode == "dry_run":
                 print("  dry_run: 이동 없음(쓰기 0회, 도착 검사 생략)"); result["steps"].append({"point": "dry_run_move", "angle": tgt, "time_ms": t_ms}); continue
@@ -127,7 +127,7 @@ def main():
             step = {"point": "move", "n": i, "angle": tgt, "time_ms": t_ms, "settle_ms": st, "final_readback": last, "series": series}; result["steps"].append(step)
             print("  -> 이동 %d, time %d ms: 정착 %s ms, 최종 회독 %s" % (tgt, t_ms, st, last))
             if last is None or abs(last - tgt) > 3:
-                if last is not None and abs(last - before) <= 1 and abs(tgt - before) >= 10 and ask("  서보가 움직이지 않았습니다(쓰기 누락 의심). 손이 없고 쇠자가 열림 범위 밖임을 확인했고 같은 목표를 한 번만 다시 보낼까요?"):
+                if last is not None and abs(last - before) <= 1 and abs(tgt - before) >= 10 and ask("  서보가 움직이지 않았습니다(쓰기 누락 의심). 손이 없고 쇠자·클램프가 손가락 뒤쪽 자리에 그대로 있음을 확인했고 같은 목표를 한 번만 다시 보낼까요?"):
                     ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.repeat_last(t_ms); step["repeated"] = True
                     series = poll(ad, wait); st = settle_ms(series); last = next((v for _, v in reversed(series) if v is not None), None); step.update({"settle_ms": st, "final_readback": last, "series": series})
                 if last is None or abs(last - tgt) > 3:
@@ -153,7 +153,7 @@ def main():
             try:
                 s0 = result["targets"][0]; dist = abs((cur_angle if cur_angle is not None else s0) - s0); t_ret = return_time(dist)
                 if t_ret is None: print("복귀 폭 %d°가 승인된 시간으로 갈 수 없다. 복귀 명령을 보내지 않는다." % dist); result["returned_to_start"] = False
-                elif ask("그리퍼가 시작값 S=%d가 아닐 수 있습니다(마지막 명령 %s). S로 복귀 쓰기를 1회 보낼까요? 시간 %d ms (손을 뗀 뒤에만 y, 쇠자는 열림 범위 밖에 둔다)" % (s0, cur_angle, t_ret)):
+                elif ask("그리퍼가 시작값 S=%d가 아닐 수 있습니다(마지막 명령 %s). S로 복귀 쓰기를 1회 보낼까요? 시간 %d ms (손을 뗀 뒤에만 y, 쇠자·클램프는 손가락 뒤쪽 자리에 둔다)" % (s0, cur_angle, t_ret)):
                     ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.return_to_start(t_ret); result["returned_to_start"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송")
                 else: result["returned_to_start"] = False
             except BaseException as e: result["return_error"] = repr(e); print("복귀 처리 중단:", repr(e))
