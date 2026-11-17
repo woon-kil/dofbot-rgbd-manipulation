@@ -110,6 +110,7 @@ def main():
         print("\n중단(Ctrl-C): 드라이버를 정리합니다."); 
     finally:
         pa_driver("stop"); (D / ("%s_cycles.json" % S)).write_text(json.dumps(cycles, ensure_ascii=False, indent=2) + "\n")
+        run(["scp", "-q", "-o", "BatchMode=yes", "p620:dofbot-g01-work/pa/driver_*.log", str(D)])      # start마다 따로 남긴 드라이버 로그(원인 분석 증거)
         run(["ssh", "-o", "ControlPath=/tmp/pa-ssh-%C", "-O", "exit", "p620"])      # 재사용 연결 정리
     print(run([PY, "-I", str(ROOT / "scripts" / "pa_eval.py"), S]).stdout); print("세션:", S); return 0
 

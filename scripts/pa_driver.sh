@@ -16,7 +16,7 @@ running() { docker ps --format '{{.Names}}' | grep -q "^${NAME}$"; }
 exists() { docker ps -a --format '{{.Names}}' | grep -q "^${NAME}$"; }
 stop_all() {
   if running; then
-    docker exec "$NAME" bash -lc 'pkill -INT -f "[c]omponent_container|[o]rbbec_camera_node|[g]emini_330_series" >/dev/null 2>&1 || true' >/dev/null 2>&1 || true
+    docker exec "$NAME" bash -lc 'pkill -INT -f "[o]rbbec_camera_node|[g]emini_330_series" >/dev/null 2>&1 || true' >/dev/null 2>&1 || true
     sleep 4
     docker exec "$NAME" bash -lc 'pgrep -f "[c]omponent_container|[o]rbbec_camera_node" >/dev/null && { pkill -f "[c]omponent_container|[o]rbbec_camera_node" >/dev/null 2>&1 || true; sleep 2; } || true' >/dev/null 2>&1 || true
     docker exec -u 0 "$NAME" chown -R "$(id -u):$(id -g)" /work >/dev/null 2>&1 || true
@@ -49,10 +49,10 @@ for n in $(docker ps --format '{{.Names}}'); do
   if [[ "$d" == *"$node"* ]]; then echo "다른 컨테이너가 점유: $n"; exit 3; fi
 done
 docker volume inspect "$VOL" >/dev/null
-mkdir -p "$PADIR"; : > "$PADIR/driver.log"
+mkdir -p "$PADIR"; LOGF="driver_$(date +%s).log"; : > "$PADIR/$LOGF"; ln -sf "$LOGF" "$PADIR/driver.log"   # start마다 로그 파일을 따로 두어 덮어쓰지 않는다(driver.log는 최신을 가리키는 링크)
 docker run -d --name "$NAME" --device "$node" -v "$WORK:/work" -v "$VOL:/opt/cad-less-install:ro" -e HOME=/tmp "$IMAGE" sleep "$((MAXSEC + 60))" >/dev/null
-docker exec -d "$NAME" bash -lc 'set +u; source /opt/ros/humble/setup.bash; source /opt/cad-less-install/setup.bash; set -u; exec timeout -s INT -k 15 '"$MAXSEC"' ros2 launch orbbec_camera gemini_330_series.launch.py enable_point_cloud:=false enable_colored_point_cloud:=false enable_publish_extrinsic:=true > /work/pa/driver.log 2>&1'
-ok=0; for _ in $(seq 1 90); do grep -q "Serial number:" "$PADIR/driver.log" 2>/dev/null && { ok=1; break; }; sleep 1; done
+docker exec -d "$NAME" bash -lc 'set +u; source /opt/ros/humble/setup.bash; source /opt/cad-less-install/setup.bash; set -u; exec timeout -s INT -k 15 '"$MAXSEC"' ros2 launch orbbec_camera gemini_330_series.launch.py enable_point_cloud:=false enable_colored_point_cloud:=false enable_publish_extrinsic:=true > /work/pa/'"$LOGF"' 2>&1'
+ok=0; for _ in $(seq 1 90); do grep -q "Serial number:" "$PADIR/$LOGF" 2>/dev/null && { ok=1; break; }; sleep 1; done
 [ $ok -eq 1 ] || { echo "드라이버가 시리얼을 보고하지 않음"; exit 4; }
 sleep "$WARMUP"
 printf 'started_epoch %s\nwarmup_sec %s\nmax_sec %s\n' "$(date +%s.%N)" "$WARMUP" "$MAXSEC" > "$STATE"
