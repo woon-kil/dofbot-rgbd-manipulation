@@ -88,10 +88,10 @@ def test_within_pair_noise_alone_does_not_make_undecidable():
 def test_m2c_within_start_18_pairs_and_cross_start_pair_excluded():
     s = [_snap(i, side=28.5 + (0.45 if i % 2 else 0.0)) for i in range(1, 21)]
     r = E.m2(s, BASES4)["m2c"]
-    assert r["pass"] and r["n_pairs"] == 18                                     # 18쌍(기동 안), 최대 0.45 < 0.5
+    assert r["pass"] and r["n_pairs"] == 18                                     # 18쌍(기동 안), 최대 0.45 < 0.7
     s2 = [_snap(i, side=28.5 if i <= 10 else 29.4) for i in range(1, 21)]       # 기동 안은 모두 같고 기동 #1→#2에서만 0.9 차이
     assert E.m2(s2, BASES4)["m2c"]["pass"]                                       # snap10(#1)-snap11(#2) 쌍은 제외되어 통과
-    s2[3]["detect"]["side_px"] = 29.2                                            # 같은 기동 안 쌍 0.7 ≥ 0.5
+    s2[3]["detect"]["side_px"] = 29.4                                            # 같은 기동 안 쌍 0.9 ≥ 0.7
     assert not E.m2(s2, BASES4)["m2c"]["pass"]
 
 
@@ -145,7 +145,7 @@ def test_evaluate_full_with_synthetic_files_and_frozen_constants():
         r = E.evaluate("S", d)
         assert r["M1"]["pass"] and r["M1'"]["pass"] and r["M1''"]["pass"] and r["m2a"]["pass"] and r["m2b"]["pass"] and r["m2c"]["pass"] and r["M4"]["pass"]
         assert r["overall"] in ("성립", "판정 불가 포함")                         # 이미지 파일이 없으면 M3만 판정 불가
-    assert (E.M1_MAX_S, E.BIAS_CENTER_PX, E.BIAS_SIDE_PX, E.BIAS_YAW_DEG, E.GATE_CENTER_PX, E.GATE_SIDE_PX, E.GATE_YAW_DEG, E.E1_SIDE_PX, E.M3_BRIGHT, E.M3_VALID, E.M4_MIN_HZ) == (3.0, 0.32, 0.25, 1.0, 0.75, 0.75, 3.0, 0.5, 2.0, 0.02, 29.0)
+    assert (E.M1_MAX_S, E.BIAS_CENTER_PX, E.BIAS_SIDE_PX, E.BIAS_YAW_DEG, E.GATE_CENTER_PX, E.GATE_SIDE_PX, E.GATE_YAW_DEG, E.E1_SIDE_PX, E.M3_BRIGHT, E.M3_VALID, E.M4_MIN_HZ) == (3.0, 0.32, 0.25, 1.0, 0.75, 0.75, 3.0, 0.7, 2.0, 0.02, 29.0)
     assert E.BASES == ("a1", "a2", "b1", "b2") and E.N_STARTS_LOGS == 3
 
 

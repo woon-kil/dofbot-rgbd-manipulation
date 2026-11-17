@@ -10,7 +10,7 @@ M1_MAX_S = 3.0                        # 요청→검출 결과, 20회 모두
 FRESH_RECV_MINUS_STAMP = (0.0, 0.2)   # 0 < 수신−stamp < 0.2 s 가 아니면 M1' 판정 불가(stamp 가정 위반)
 BIAS_CENTER_PX, BIAS_SIDE_PX, BIAS_YAW_DEG = 0.32, 0.25, 1.0       # M2b 편향(잡음 수준)
 GATE_CENTER_PX, GATE_SIDE_PX, GATE_YAW_DEG = 0.75, 0.75, 3.0       # 판정 불가(관문 수준, 기준 앞·뒤 차)
-E1_SIDE_PX = 0.5                      # M2c: 연속 19쌍 변 길이 차 최대 < 0.5 (E1 (ii) 문턱 미접촉)
+E1_SIDE_PX = 0.7                      # M2c(개정 3): 같은 기동 안 18쌍 변 길이 차 최대 < 0.7 (= E1 (ii) 문턱 +0.7, E-2b §12)
 M3_BRIGHT, M3_VALID = 2.0, 0.02       # 같은 세션 기준 2장 범위 ± 
 M4_MIN_HZ = 29.0
 N_SNAPS = 20
