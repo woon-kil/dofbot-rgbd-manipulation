@@ -49,7 +49,10 @@ def hold_check(ref, vals):
 
 class PBFake(FastFakeBlock):
     """P-B 가짜 서보: 누름 읽기 구간(hold_on)에서만 이상을 모사한다. creep이면 회독이 천천히 오르고(상한 149), wobble이면 번갈아 wobble°씩 뛰며, none_after면 N번 읽은 뒤 None을 돌려준다."""
-    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0
+    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0; self.drop_open = 0
+    def Arm_serial_servo_write(self, id, angle, time_ms):
+        if self.drop_open > 0 and angle == 100 and time_ms == 3000 and not self.hold_on: self.drop_open -= 1; return      # 열기 쓰기 폐기 모사(읽기 직후 쓰기 폐기 실측 이력)
+        super().Arm_serial_servo_write(id, angle, time_ms)
     def Arm_serial_servo_read(self, id):
         v = super().Arm_serial_servo_read(id)
         if self.hold_on and self._held and v is not None:
@@ -60,15 +63,20 @@ class PBFake(FastFakeBlock):
         return v
 
 
+class OpenUnconfirmed(Exception):
+    pass
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--fake", action="store_true"); ap.add_argument("--real", action="store_true")
     ap.add_argument("--fake-dry", action="store_true"); ap.add_argument("--fake-speed", type=int, default=1); ap.add_argument("--fake-start", type=int, default=179)
     ap.add_argument("--fake-stall-at", type=int, default=None); ap.add_argument("--fake-creep", action="store_true"); ap.add_argument("--fake-wobble", type=int, default=0)
     ap.add_argument("--fake-none-after", type=int, default=None); ap.add_argument("--fake-no-hold-end", action="store_true", help="--fake에서만: 누름 읽기 종료 조건을 끈다(PressBudget 상한 시험)")
+    ap.add_argument("--fake-drop-open", type=int, default=0, help="--fake에서만: 처음 N번의 열기(100, 3000 ms) 쓰기를 버린다")
     ap.add_argument("--no-control", action="store_true", help="블록 없음 대조 1회를 생략한다(PB-2는 넣는 것이 기본)")
     ap.add_argument("--run-id", default="local"); ap.add_argument("--out", default="/tmp/g01_pb_result.json"); a = ap.parse_args()
     if a.fake and a.real: sys.exit("--fake와 --real은 함께 쓸 수 없다")
-    if (a.fake_dry or a.fake_speed != 1 or a.fake_stall_at or a.fake_creep or a.fake_wobble or a.fake_none_after is not None or a.fake_no_hold_end or a.fake_start != 179) and not a.fake: sys.exit("--fake-* 옵션은 --fake에서만 쓸 수 있다")
+    if (a.fake_dry or a.fake_speed != 1 or a.fake_stall_at or a.fake_creep or a.fake_wobble or a.fake_none_after is not None or a.fake_no_hold_end or a.fake_drop_open or a.fake_start != 179) and not a.fake: sys.exit("--fake-* 옵션은 --fake에서만 쓸 수 있다")
     mode = "dry_run" if (a.fake and a.fake_dry) else ("fake" if a.fake else ("real" if a.real else "dry_run"))
     dry = (mode == "dry_run"); sp = a.fake_speed if a.fake else 1
     result = {"run_id": a.run_id, "mode": mode, "started_at": datetime.datetime.now().isoformat(timespec="seconds"), "windows": {"open": list(WIN_OPEN), "press": list(WIN_PRESS), "finish": list(WIN_FINISH)}, "ladder_s": LADDER_S, "control_s": None if a.no_control else CONTROL_S, "rest_s": REST_S, "limits": {"crush_rise": CRUSH_RISE, "e3_max": E3_MAX, "budget_extra_s": BUDGET_EXTRA_S}, "phases": [], "trials": [], "interrupted": False, "ended": None, "ladder_stop": None}
@@ -89,11 +97,22 @@ def main():
             if last is None or abs(last - tgt) > 3: raise Abort("도착 실패(회독 %s, 목표 %d, 허용 3°). 추가 이동 없음." % (last, tgt))
         return steps
 
-    def go_home(adapter, s):
-        nonlocal cur
-        adapter.confirm_hands_clear(); time.sleep(QUIET_S); adapter.return_to_start(RETURN_MS); cur = s
+    def settle_to(adapter, s):
         stop = lambda sr, el, _s=s: el >= RETURN_MS / sp and len(tail5(sr)) == 5 and max(tail5(sr)) - min(tail5(sr)) <= 1 and abs(_s - tail5(sr)[-1]) <= 3
         series = poll(adapter, (2 * RETURN_MS + 1000) // sp, POLL_MS / sp, stop=stop); return next((v for _, v in reversed(series) if v is not None), None)
+
+    def go_home(adapter, s):
+        """열기 쓰기 1회 + 도착 확인. 확인 실패(쓰기 폐기 등)면 새 어댑터로 열기를 1회 더 보내고, 그래도 안 열리면 OpenUnconfirmed. repeat_last는 직전 '이동'(=150)을 다시 보내므로 쓰지 않는다."""
+        nonlocal cur, ad
+        adapter.confirm_hands_clear(); time.sleep(QUIET_S); adapter.return_to_start(RETURN_MS)
+        last = settle_to(adapter, s)
+        if last is not None and abs(last - s) <= 3: cur = s; return last
+        print("★ 열기가 확인되지 않았다(회독 %s, 목표 %d). 새 어댑터로 열기 쓰기를 1회 다시 보낸다." % (last, s)); result["open_retry"] = result.get("open_retry", 0) + 1
+        try:
+            rad = make_adapter(arm, WIN_PRESS, 2, dry); s2 = rad.read_start(); rad.set_targets([s2, s]); rad.confirm_hands_clear(); time.sleep(QUIET_S); rad.move(s, RETURN_MS); last2 = settle_to(rad, s)
+        except GripperTestError as e: raise OpenUnconfirmed("열기 재전송 준비 실패: %s" % e)
+        if last2 is not None and abs(last2 - s) <= 3: cur = s; ad = rad; return last2
+        raise OpenUnconfirmed("열기를 두 번 보냈지만 회독 %s(목표 %d)로 열리지 않았다" % (last2, s))
 
     def run_trial(label, T, block):
         """한 시도: 닫기 계단 → 150 도달·정착 → T초 읽기만 → 열기. 누름 중 이상(눌림·None·상한 초과)이면 즉시 열고 Abort. 반환 시도 기록(E3 초과는 기록만)."""
@@ -124,7 +143,7 @@ def main():
                 st["free_contact_suspect"] = True; tr["abort"] = "블록 없음 구간인데 명령 %d에서 회독 %s(잔차 %d°). 손가락 사이에 무언가 있거나 서보 이상이 의심된다" % (tgt, last, tgt - last); break
             if block and not last_step and not stalled and abs(tgt - last) > 3: st["arrival_failed"] = True; tr["abort"] = "도착 실패(회독 %s, 목표 %d)" % (last, tgt); break
             if last_step:
-                ref = last
+                ref = min(t5) if t5 else last      # 정체값 기준: 마지막 5회의 최솟값(146↔147 흔들림이면 146, 눌림 감지를 늦추지 않는다)
                 if tgt - last >= 3 and tr["stall_step"] is None: tr["stall_step"] = tgt   # 150에서는 읽기 흔들림(폭 > 1)이 있어도 잔차 3° 이상이면 블록에 물린 것으로 본다(흔들림은 E3가 판정)
                 if block and tgt - last < 3: tr["abort"] = "블록 미접촉: 명령 150에서 회독 %s(잔차 %d°)로 정체하지 않았다. 블록이 빠졌거나 홀더가 밀렸을 수 있어 누르지 않는다" % (last, tgt - last)
         if tr["abort"] is None:
@@ -137,7 +156,7 @@ def main():
                 vals = [v for _, v in hold]
                 status, why = hold_check(ref, vals) if block else (("read_none", "회독이 None이다(읽기 실패)") if vals[-1] is None else ("ok", None))
                 if status != "ok": tr["abort"] = why; tr["crush"] = why if status == "crush" else None; break
-                if not a.fake_no_hold_end and el >= (T - SETTLE_S) / sp: break
+                if not a.fake_no_hold_end and el >= (T - SETTLE_S - QUIET_S) / sp: break
                 try: budget.check()
                 except BudgetExceeded as e: tr["abort"] = str(e); break
                 time.sleep(POLL_MS / 1000.0 / sp)
@@ -156,7 +175,7 @@ def main():
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if a.real and input("실제 쓰기를 시작하려면 정확히 '%s'를 입력: " % PHRASE).strip() != PHRASE: raise Abort("승인 문구 불일치. 명령은 보내지 않았다.")
         if a.fake:
-            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after
+            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after; arm.drop_open = a.fake_drop_open
         else:
             from Arm_Lib import Arm_Device; arm = Arm_Device()
         ad = make_adapter(arm, WIN_OPEN, 6, dry, first_min=3000)
@@ -192,6 +211,8 @@ def main():
             ad = make_adapter(arm, WIN_FINISH, 6, dry); s = ad.read_start(); cur = s; start_of_ad = s
             fin_t = [s] + FINISH_STEPS; steps = move_steps("마무리", ad, fin_t, [1500] * len(FINISH_STEPS)); result["phases"].append({"phase": "finish", "targets": fin_t, "steps": steps})
             result["ended"] = "completed"
+    except OpenUnconfirmed as e:
+        result["ended"] = "open_unconfirmed"; result["open_unconfirmed"] = True; result["abort_reason"] = str(e); print("\n★★ 열기 미확인:", e); print("추가 명령을 보내지 않는다. 손을 넣지 마세요. 그리퍼가 블록을 계속 누르고 있을 수 있으므로 전원 차단 담당자가 판단하세요.")
     except Abort as e:
         result["ended"] = "aborted"; result["abort_reason"] = str(e); print("\n중단:", e)
     except Hangup as e:
@@ -205,7 +226,7 @@ def main():
     except Exception as e:
         result["ended"] = "error"; result["error"] = repr(e); print("\n오류:", repr(e))
     finally:
-        if ad is not None and writes_done and result["ended"] != "completed" and start_of_ad is not None:
+        if ad is not None and writes_done and result["ended"] not in ("completed", "open_unconfirmed") and start_of_ad is not None:
             try:
                 dist = abs((cur if cur is not None else start_of_ad) - start_of_ad); t_ret = return_time(dist)
                 opening = start_of_ad <= 101

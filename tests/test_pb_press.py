@@ -96,3 +96,16 @@ def test_total_press_not_over_T_plus_backstop_in_normal_run():
     p, r = run(FULL, "--fake-stall-at", "146")
     for t in r["trials"]:
         assert t["hold"]["used_s_scaled"] <= t["T_s"] + P.BUDGET_EXTRA_S + 1.0, (t["label"], t["hold"]["used_s_scaled"])   # 실제 시간 환산 오차 1 s 여유
+
+
+def test_open_write_dropped_once_recovers_by_resend():
+    p, r = run(FULL, "--fake-stall-at", "146", "--fake-drop-open", "1")
+    assert r["ended"] == "completed" and r["open_retry"] == 1, (r.get("abort_reason"), p.stdout[-500:])
+    assert all(t["return_final"] in (99, 100, 101) for t in r["trials"]) and r["trials"][0]["return_final"] in (99, 100, 101)
+
+
+def test_open_unconfirmed_stops_everything():
+    p, r = run("y\ny\ny\ny\ny\ny\ny\ny\n", "--fake-stall-at", "146", "--fake-drop-open", "2")
+    assert r["ended"] == "open_unconfirmed" and r["open_unconfirmed"] and "열기를 두 번" in r["abort_reason"], (r["ended"], r.get("abort_reason"))
+    assert len(r["trials"]) == 1 and "returned_to_start" not in r, "다음 시도·휴식·복귀 질문 없이 멈춰야 한다"
+    assert "손을 넣지 마세요" in p.stdout
