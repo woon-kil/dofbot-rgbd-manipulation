@@ -5,9 +5,9 @@
       python3 g01_pb_press_test.py                              (실제 SDK 읽기, 쓰기는 dry_run: 쓰기 0회, 입력 1번)
       python3 g01_pb_press_test.py --real                       (실제 쓰기. 확인 문구를 직접 입력해야 한다)
 구간: (열기, 시작이 오므림일 때만) 179→160→140→120→100 → (블록 없음 대조 1회, 10 s) → (블록 있음 사다리 10→20→30 s) → (마무리) 100→120→140→160→179 [블록 제거 뒤].
-한 시도: 100→120→130→135→140→145→150으로 닫고, 150 쓰기부터 총 T초(2 s 정착 + T−2 s 읽기만, 추가 쓰기 없음) 누른 뒤 100으로 열기(3000 ms).
+한 시도: 100→120→130→135→140→145→150으로 닫고, 블록 시도는 145 쓰기부터(블록 없음 대조는 150 쓰기부터) 총 T초 누른 뒤(150 정착 뒤 읽기만, 추가 쓰기 없음) 100으로 열기(3000 ms).
 블록 있음 시도는 145 미만(140 이하) 계단에서 정체하면(조기 접촉) 거기서 중단하고 열며(145 정체는 정상 접촉으로 기록하고 150까지 계속), 150에서 정체하지 않으면(블록 미접촉) 누르지 않고 열고 중단한다.
-누름 시간 코드 상한: PressBudget이 150 쓰기 시점부터 센다. 백스톱 = T + 1.0 s.
+누름 시간 코드 상한: PressBudget이 위 시작점부터 센다. 백스톱 = T + 1.0 s.
 """
 import argparse, datetime, json, signal, sys, time
 from pathlib import Path
@@ -95,7 +95,7 @@ def main():
         nonlocal cur, writes_done
         adapter.set_targets(targets); steps = []
         for i, (tgt, t_ms) in enumerate(zip(targets[1:], times), 1):
-            adapter.confirm_hands_clear(); time.sleep(QUIET_S); adapter.move(tgt, t_ms); writes_done = writes_done or not dry; cur = tgt
+            adapter.confirm_hands_clear(); time.sleep(QUIET_S / sp); adapter.move(tgt, t_ms); writes_done = writes_done or not dry; cur = tgt
             if dry: steps.append({"n": i, "angle": tgt, "time_ms": t_ms, "dry": True}); continue
             stop = lambda sr, el, _t=tgt, _m=t_ms: el >= _m / sp and len(tail5(sr)) == 5 and max(tail5(sr)) - min(tail5(sr)) <= 1 and abs(_t - tail5(sr)[-1]) <= 3
             series = poll(adapter, int(2 * t_ms + 1000) // sp, POLL_MS / sp, stop=stop)
@@ -116,13 +116,13 @@ def main():
         if s > 101: raise ClosingUnconfirmed("닫는 쪽 복귀가 확인되지 않았다(회독 %s, 목표 %d). 닫는 쓰기는 손 제거 답 없이 다시 보내지 않는다. 추가 명령 없음" % (last, s))
         print("★ 복귀가 확인되지 않았다(회독 %s, 목표 %d). 새 어댑터로 같은 쓰기를 1회 다시 보낸다." % (last, s)); result["open_retry"] = result.get("open_retry", 0) + 1
         try:
-            rad = make_adapter(arm, WIN_OPEN, 2, dry); s2 = rad.read_start(); rad.set_targets([s2, s]); rad.confirm_hands_clear(); time.sleep(QUIET_S); rad.move(s, t_ms); last2 = settle_to(rad, s, t_ms)
+            rad = make_adapter(arm, WIN_OPEN, 2, dry); s2 = rad.read_start(); rad.set_targets([s2, s]); rad.confirm_hands_clear(); time.sleep(QUIET_S / sp); rad.move(s, t_ms); last2 = settle_to(rad, s, t_ms)
         except GripperTestError as e: raise OpenUnconfirmed("복귀 재전송 준비 실패: %s" % e)
         if last2 is not None and abs(last2 - s) <= 3: cur = s; ad = rad; return last2
         raise OpenUnconfirmed("복귀 쓰기를 두 번 보냈지만 회독 %s(목표 %d)로 도착하지 않았다. 열기 미확인" % (last2, s))
 
     def go_home(adapter, s):
-        adapter.confirm_hands_clear(); time.sleep(QUIET_S); adapter.return_to_start(RETURN_MS)
+        adapter.confirm_hands_clear(); time.sleep(QUIET_S / sp); adapter.return_to_start(RETURN_MS)
         return verify_return(adapter, s, RETURN_MS)
 
     def run_trial(label, T, block):
@@ -137,9 +137,9 @@ def main():
         budget = PressBudget(limit_s=(T + BUDGET_EXTRA_S) / sp)
         ref = None
         for i, tgt in enumerate(CLOSE_STEPS, 1):
-            ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.move(tgt, 1500); writes_done = True; cur = tgt
+            ad.confirm_hands_clear(); time.sleep(QUIET_S / sp); ad.move(tgt, 1500); writes_done = True; cur = tgt
             last_step = (tgt == 150)
-            if last_step: budget.start()                  # 누름 시간 계산은 150 쓰기 시점부터(이전 단계의 가벼운 접촉은 시도마다 이미 P2i·Run 3·4 범위)
+            if tgt == (EARLY_BELOW if block else 150): budget.start()   # 총 누름 시간은 블록 시도에서 145 쓰기부터 센다(P2h는 145에서 이미 정체하므로 승인된 30 s를 넘지 않게 보수적으로). 블록 없음 대조는 150부터
             if last_step: stop = lambda sr, el, _h=int(1500 + HOLD_EXTRA_MS) / sp: el >= _h
             else: stop = lambda sr, el, _t=tgt: el >= 1500 / sp and len(tail5(sr)) == 5 and max(tail5(sr)) - min(tail5(sr)) <= 1 and (abs(_t - tail5(sr)[-1]) <= 3 or (block and _t - tail5(sr)[-1] >= 3))
             series = poll(ad, int(max(2 * 1500 + 1000, 0)) // sp, POLL_MS / sp, stop=stop)
@@ -167,7 +167,7 @@ def main():
                 vals = [v for _, v in hold]
                 status, why = hold_check(ref, vals) if block else (("read_none", "회독이 None이다(읽기 실패)") if vals[-1] is None else ("ok", None))
                 if status != "ok": tr["abort"] = why; tr["crush"] = why if status == "crush" else None; break
-                if not a.fake_no_hold_end and el >= (T - SETTLE_S - QUIET_S) / sp: break
+                if not a.fake_no_hold_end and budget.used_s() >= (T - QUIET_S) / sp: break   # 총 누름(145 쓰기부터, 블록 없음은 150부터)이 T − 열기 전 중지 0.3 s에 이르면 읽기를 끝낸다
                 try: budget.check()
                 except BudgetExceeded as e: tr["abort"] = str(e); break
                 time.sleep(POLL_MS / 1000.0 / sp)
@@ -244,7 +244,7 @@ def main():
                 if dist == 0 or getattr(ad, "_returned", False): result["returned_to_start"] = None
                 elif t_ret is None: print("복귀 폭 %d°가 승인된 시간으로 갈 수 없다. 복귀하지 않는다." % dist); result["returned_to_start"] = False
                 elif ask(("그리퍼가 블록을 누르고 있을 수 있습니다(마지막 명령 %s). 열린 쪽 S=%d로 복귀 쓰기를 1회 보낼까요? 이 복귀는 블록을 놓는 **여는 동작**이며 시간 %d ms입니다. 이상(소리·발열·도착 실패·눌림)이 있으면 y를 권장합니다" % (cur, start_of_ad, t_ret)) if opening else ("그리퍼가 이 구간의 시작값 S=%d가 아닐 수 있습니다(마지막 명령 %s). S로 복귀 쓰기를 1회 보낼까요? 이 복귀는 **닫는 동작**이며 시간 %d ms입니다. 끼임·소리·발열이면 N (손·도구가 멀 때만 y)" % (start_of_ad, cur, t_ret))):
-                    ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.return_to_start(t_ret); result["return_sent"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송. 도착을 확인합니다.")
+                    ad.confirm_hands_clear(); time.sleep(QUIET_S / sp); ad.return_to_start(t_ret); result["return_sent"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송. 도착을 확인합니다.")
                     result["return_final"] = verify_return(ad, start_of_ad, t_ret); result["returned_to_start"] = True; print("복귀 확인: 회독 %s" % result["return_final"])
                 else: result["returned_to_start"] = False
             except OpenUnconfirmed as e:

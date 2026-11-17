@@ -79,7 +79,7 @@ def test_dry_run_writes_nothing():
     assert r["ended"] == "completed" and r["writes_total"] == 0 and r["phases"][0]["phase"] == "dry_run_plan"
 
 
-def test_early_contact_below_150_opens_and_aborts():
+def test_early_contact_below_145_opens_and_aborts():
     p, r = run("y\ny\ny\ny\ny\n", "--fake-stall-at", "135", "--no-control")   # 135에서 막힘: 150 미만 정체 → 누르지 않고 열기
     assert r["ended"] == "aborted" and "조기 접촉" in r["abort_reason"], r.get("abort_reason")
     t = r["trials"][-1]; assert t["hold"] is None and t["return_final"] in (99, 100, 101), t
@@ -153,3 +153,9 @@ def test_stall_at_145_is_normal_contact_and_continues():
 
 def test_early_below_constant_is_145():
     assert P.EARLY_BELOW == 145
+
+
+def test_total_press_with_145_stall_not_over_T():
+    p, r = run("y\ny\ny\ny\ny\ny\ny\ny\n", "--fake-stall-at", "142", "--no-control")
+    for t in r["trials"]:
+        assert t["hold"]["used_s_scaled"] <= t["T_s"] + 1.0 + 1.0, (t["label"], t["hold"]["used_s_scaled"])   # 백스톱 T+1.0 + 실제 시간 환산 오차 1 s
