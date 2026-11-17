@@ -31,6 +31,7 @@ def test_limits_obey_frozen_values():
     assert max(P.CLOSE_STEPS) == P.WIN_PRESS[1] == 150 and P.WIN_PRESS[0] == 95
     assert P.LADDER_S == [10, 20, 30] and P.CONTROL_S == 10 and P.REST_S == 90 and P.CRUSH_RISE == 2 and P.E3_MAX == 1
     assert 60 * (150 - 100) <= P.RETURN_MS == 3000
+    assert P.SETTLE_S == 2.0 and P.BUDGET_EXTRA_S == 1.0
 
 
 def test_normal_ladder_completes():
@@ -76,3 +77,22 @@ def test_user_reports_problem_stops_ladder():
 def test_dry_run_writes_nothing():
     p, r = run("y\n", "--fake-dry")
     assert r["ended"] == "completed" and r["writes_total"] == 0 and r["phases"][0]["phase"] == "dry_run_plan"
+
+
+def test_early_contact_below_150_opens_and_aborts():
+    p, r = run("y\ny\ny\ny\ny\n", "--fake-stall-at", "135", "--no-control")   # 135에서 막힘: 150 미만 정체 → 누르지 않고 열기
+    assert r["ended"] == "aborted" and "조기 접촉" in r["abort_reason"], r.get("abort_reason")
+    t = r["trials"][-1]; assert t["hold"] is None and t["return_final"] in (99, 100, 101), t
+    assert all(s["angle"] <= 140 for s in t["steps"]), [s["angle"] for s in t["steps"]]
+
+
+def test_block_not_touching_does_not_press():
+    p, r = run("y\ny\ny\ny\ny\n", "--no-control")                                # 블록 있음인데 막히지 않음(블록 미접촉)
+    assert r["ended"] == "aborted" and "블록 미접촉" in r["abort_reason"], r.get("abort_reason")
+    t = r["trials"][-1]; assert t["hold"] is None and t["return_final"] in (99, 100, 101), t
+
+
+def test_total_press_not_over_T_plus_backstop_in_normal_run():
+    p, r = run(FULL, "--fake-stall-at", "146")
+    for t in r["trials"]:
+        assert t["hold"]["used_s_scaled"] <= t["T_s"] + P.BUDGET_EXTRA_S + 1.0, (t["label"], t["hold"]["used_s_scaled"])   # 실제 시간 환산 오차 1 s 여유

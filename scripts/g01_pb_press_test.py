@@ -5,8 +5,9 @@
       python3 g01_pb_press_test.py                              (실제 SDK 읽기, 쓰기는 dry_run: 쓰기 0회, 입력 1번)
       python3 g01_pb_press_test.py --real                       (실제 쓰기. 확인 문구를 직접 입력해야 한다)
 구간: (열기, 시작이 오므림일 때만) 179→160→140→120→100 → (블록 없음 대조 1회, 10 s) → (블록 있음 사다리 10→20→30 s) → (마무리) 100→120→140→160→179 [블록 제거 뒤].
-한 시도: 100→120→130→135→140→145→150으로 닫고, 명령 150에서 150 도달 뒤 2 s 정착한 다음 T초 읽기만 한다(추가 쓰기 없음). 그 뒤 100으로 열기(3000 ms).
-누름 시간 코드 상한: PressBudget이 150 쓰기 시점부터 센다. 한 시도 총 누름 ≤ T + 2.5 s (30 s 단계는 32.5 s).
+한 시도: 100→120→130→135→140→145→150으로 닫고, 150 쓰기부터 총 T초(2 s 정착 + T−2 s 읽기만, 추가 쓰기 없음) 누른 뒤 100으로 열기(3000 ms).
+블록 있음 시도는 150 미만 계단에서 정체하면(조기 접촉) 거기서 중단하고 열며, 150에서 정체하지 않으면(블록 미접촉) 누르지 않고 열고 중단한다.
+누름 시간 코드 상한: PressBudget이 150 쓰기 시점부터 센다. 백스톱 = T + 1.0 s.
 """
 import argparse, datetime, json, signal, sys, time
 from pathlib import Path
@@ -27,7 +28,8 @@ REST_S = 90                                      # PB-1 시도 사이 휴식
 CRUSH_RISE = 2                                   # PB-1: 누름 중 마지막 5회 읽기가 단조 증가하고 정체값보다 이만큼 오르면 눌림(문서 '2° 넘게'를 보수적으로 ≥2로 구현)
 E3_MAX = 1                                       # PB-1: 누름 중 회독 최대−최소가 이를 넘으면 기록하고 사다리를 멈춘다(즉시 열기는 아님)
 RETURN_MS = 3000                                 # 150→100 = 50° × 60 ms/° = 3000 ms
-BUDGET_EXTRA_S = 2.5                             # 150 쓰기 뒤 정착 2.0 s + 여유 0.5 s
+SETTLE_S = 2.0                                   # 150 쓰기 뒤 정착 읽기 시간(이동 1.5 s + 0.5 s). 총 누름(150 쓰기부터)이 T가 되도록 이 뒤 읽기 시간은 T − SETTLE_S
+BUDGET_EXTRA_S = 1.0                             # PressBudget 백스톱 = T + 1.0 s(정상 시도는 T 안에 끝난다. 읽기 지연이 큰 이상 상황에서만 작동)
 PHRASE = "APPROVE PB REAL"
 
 
@@ -46,14 +48,15 @@ def hold_check(ref, vals):
 
 
 class PBFake(FastFakeBlock):
-    """P-B 가짜 서보: wobble이면 누르는 동안 회독이 번갈아 wobble°씩 뛴다(E3 시험), none_after면 N번 읽은 뒤 None을 돌려준다."""
-    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self._n = 0
+    """P-B 가짜 서보: 누름 읽기 구간(hold_on)에서만 이상을 모사한다. creep이면 회독이 천천히 오르고(상한 149), wobble이면 번갈아 wobble°씩 뛰며, none_after면 N번 읽은 뒤 None을 돌려준다."""
+    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0
     def Arm_serial_servo_read(self, id):
         v = super().Arm_serial_servo_read(id)
-        if self._held and v is not None:
+        if self.hold_on and self._held and v is not None:
             self._n += 1
             if self.none_after is not None and self._n > self.none_after: return None
-            if self.wobble and self._n % 2: return v + self.wobble
+            if self.creep_hold: v = min(149, v + self._n // 2)
+            if self.wobble and self._n % 2: v += self.wobble
         return v
 
 
@@ -116,12 +119,17 @@ def main():
             if last is None: st["arrival_failed"] = True; tr["abort"] = "회독 None"; break
             stalled = len(t5) == 5 and max(t5) - min(t5) <= 1 and tgt - last >= 3
             if stalled and tr["stall_step"] is None: tr["stall_step"] = tgt
+            if block and stalled and tgt < 150: st["early_contact"] = True; tr["abort"] = "조기 접촉: 명령 %d에서 회독 %s(잔차 %d°)로 정체(150이 아님). 홀더 위치가 Run 3·4와 다를 수 있다" % (tgt, last, tgt - last); break
             if not block and (abs(tgt - last) > 3):
                 st["free_contact_suspect"] = True; tr["abort"] = "블록 없음 구간인데 명령 %d에서 회독 %s(잔차 %d°). 손가락 사이에 무언가 있거나 서보 이상이 의심된다" % (tgt, last, tgt - last); break
-            if block and not stalled and abs(tgt - last) > 3: st["arrival_failed"] = True; tr["abort"] = "도착 실패(회독 %s, 목표 %d)" % (last, tgt); break
-            if last_step: ref = last
+            if block and not last_step and not stalled and abs(tgt - last) > 3: st["arrival_failed"] = True; tr["abort"] = "도착 실패(회독 %s, 목표 %d)" % (last, tgt); break
+            if last_step:
+                ref = last
+                if tgt - last >= 3 and tr["stall_step"] is None: tr["stall_step"] = tgt   # 150에서는 읽기 흔들림(폭 > 1)이 있어도 잔차 3° 이상이면 블록에 물린 것으로 본다(흔들림은 E3가 판정)
+                if block and tgt - last < 3: tr["abort"] = "블록 미접촉: 명령 150에서 회독 %s(잔차 %d°)로 정체하지 않았다. 블록이 빠졌거나 홀더가 밀렸을 수 있어 누르지 않는다" % (last, tgt - last)
         if tr["abort"] is None:
             # 150 도달 뒤 T초 읽기만(추가 쓰기 없음). 블록 없음 대조는 눌림 규칙을 적용하지 않고 기록만 한다
+            if a.fake: arm.hold_on = True
             hold = []; t0 = time.monotonic(); tr["hold"] = {"ref": ref, "series": hold}
             while True:
                 el = time.monotonic() - t0
@@ -129,13 +137,14 @@ def main():
                 vals = [v for _, v in hold]
                 status, why = hold_check(ref, vals) if block else (("read_none", "회독이 None이다(읽기 실패)") if vals[-1] is None else ("ok", None))
                 if status != "ok": tr["abort"] = why; tr["crush"] = why if status == "crush" else None; break
+                if not a.fake_no_hold_end and el >= (T - SETTLE_S) / sp: break
                 try: budget.check()
                 except BudgetExceeded as e: tr["abort"] = str(e); break
-                if not a.fake_no_hold_end and el >= T / sp: break
                 time.sleep(POLL_MS / 1000.0 / sp)
+            if a.fake: arm.hold_on = False
             e3 = e3_range([v for _, v in hold]); tr["e3"] = e3; tr["e3_exceeded"] = bool(e3 is not None and e3 > E3_MAX)
             tr["hold"]["used_s_scaled"] = round(budget.used_s() * sp, 2); tr["hold"]["n_reads"] = len(hold)
-            print("  누름 %.1f s(표시는 실제 시간) 읽기 %d회, 회독 최대−최소(E3) %s%s" % (el * sp, len(hold), e3, "  ★ E3 초과" if tr["e3_exceeded"] else ""))
+            print("  누름 읽기 %.1f s(150 쓰기 뒤 정착 %.1f s 별도, 표시는 실제 시간 환산) 읽기 %d회, 회독 최대−최소(E3) %s%s" % (el * sp, SETTLE_S, len(hold), e3, "  ★ E3 초과" if tr["e3_exceeded"] else ""))
         tr["return_final"] = go_home(ad, s); writes_done = True; budget.stop()
         if tr["abort"]: print("★ %s. 열기를 마쳤다." % tr["abort"]); raise Abort("시도 %s: %s" % (label, tr["abort"]))
         return tr
@@ -147,7 +156,7 @@ def main():
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if a.real and input("실제 쓰기를 시작하려면 정확히 '%s'를 입력: " % PHRASE).strip() != PHRASE: raise Abort("승인 문구 불일치. 명령은 보내지 않았다.")
         if a.fake:
-            arm = PBFake(a.fake_start, sp); arm.creep = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after
+            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after
         else:
             from Arm_Lib import Arm_Device; arm = Arm_Device()
         ad = make_adapter(arm, WIN_OPEN, 6, dry, first_min=3000)
@@ -177,7 +186,7 @@ def main():
                     if a.fake and a.fake_stall_at is not None: arm.stall_at = a.fake_stall_at
                 tr = run_trial(label, T, block)
                 if tr.get("e3_exceeded"): result["ladder_stop"] = "E3 초과(%s°) %s에서 사다리를 멈춘다" % (tr["e3"], label); print("★", result["ladder_stop"]); break
-                if not ask("시도 %s 직후: J6 서보가 뜨겁거나 소음·냄새·떨림이 있었습니까? (**이상 없으면 y**, 이상이면 N로 사다리를 멈춘다)" % label): result["ladder_stop"] = "사용자 이상 보고(%s)" % label; print("★", result["ladder_stop"]); break
+                if not ask("시도 %s 직후: J6 서보가 이상 없이 정상이었습니까? (뜨겁지 않고 소음·냄새·떨림이 없었으면 y, 하나라도 있었으면 N으로 사다리를 멈춘다)" % label): result["ladder_stop"] = "사용자 이상 보고(%s)" % label; print("★", result["ladder_stop"]); break
             if a.fake: arm.stall_at = None
             if not ask("블록과 홀더를 손가락 사이에서 치웠습니까? (마무리 닫기를 시작합니다)"): raise Abort("블록 제거 미확인. 추가 명령 없음.")
             ad = make_adapter(arm, WIN_FINISH, 6, dry); s = ad.read_start(); cur = s; start_of_ad = s
