@@ -15,11 +15,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gripper_adapter import GripperTestError
 from g01_5a_gripper_test import Abort, Hangup, _on_signal, ask, POLL_MS
 import g01_p2h_gripper_test as H
-from g01_p2h_gripper_test import poll, make_adapter, START_CLOSED, START_OPEN, ADAPTERS
+from g01_p2h_gripper_test import poll, make_adapter, START_OPEN, ADAPTERS
 from g01_p2g_gripper_test import return_time, QUIET_S
 from g01_p2i_gripper_test import FastFakeBlock, tail5, OPEN_STEPS, FINISH_STEPS, WIN_OPEN, WIN_FINISH, HOLD_EXTRA_MS
 from press_budget import PressBudget, BudgetExceeded
 
+START_CLOSED = (176, 177, 178, 179)               # 오므림 시작 허용 범위. Run 3·4 러너(g01_p2k_test.py)의 승인된 176~179와 같다(dry run 2026-11-17에서 실제 S=176이어서 177~179는 거부됐다)
 CLOSE_STEPS = [120, 130, 135, 140, 145, 150]     # Run 3·4와 같은 닫기 계단(시작 S=100)
 WIN_PRESS = (95, 150)                            # 누르는 구간 각도 창(PB-1: P2i의 155는 쓰지 않는다)
 LADDER_S = [10, 20, 30]                          # PB-1 승인. 40 s는 결과를 본 뒤 별도 승인

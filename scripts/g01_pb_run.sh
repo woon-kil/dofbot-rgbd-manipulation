@@ -17,7 +17,7 @@ TS="$(date +%y%m%d-%H%M%S)"; OUT="${ROOT}/evidence/G01/raw/g01_pb_result-${MODE}
 for f in scripts/g01_pb_press_test.py scripts/g01_p2i_gripper_test.py scripts/g01_p2h_gripper_test.py scripts/g01_p2g_gripper_test.py scripts/g01_5a_gripper_test.py scripts/gripper_adapter.py scripts/press_budget.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
 cmp -s "${ROOT}/src/control/gripper_adapter.py" "${ROOT}/scripts/gripper_adapter.py" || { echo "scripts/gripper_adapter.py가 src/control/gripper_adapter.py와 다르다. 복사 후 재실행"; exit 2; }
 cmp -s "${ROOT}/src/planning/press_budget.py" "${ROOT}/scripts/press_budget.py" || { echo "scripts/press_budget.py가 src/planning/press_budget.py와 다르다. 복사 후 재실행"; exit 2; }
-SNAP="${ROOT}/evidence/scripts_snapshot/261117-pb3"
+SNAP="${ROOT}/evidence/scripts_snapshot/261117-pb4"
 if [ -f "${SNAP}/MANIFEST.sha256" ]; then   # 스냅샷에 적힌 실행 파일의 sha가 지금 scripts/와 같은지 확인한다
   while read -r h n; do [ "$(shasum -a 256 "${ROOT}/scripts/${n}" | cut -d' ' -f1)" = "${h}" ] || { echo "스냅샷과 다른 파일: ${n}. 중단(승인 뒤 파일이 바뀌었는지 확인)"; exit 7; }; done < "${SNAP}/MANIFEST.sha256"
 else echo "스냅샷 MANIFEST가 없다. 중단"; exit 7; fi

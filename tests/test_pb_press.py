@@ -167,3 +167,11 @@ def test_isolated_none_reads_are_skipped_and_counted():
     blk = [t for t in r["trials"] if t["block"]]
     assert len(blk) == 3 and all(t["n_none"] > 0 and t["max_consecutive_none"] == 1 for t in blk), [(t["label"], t.get("n_none"), t.get("max_consecutive_none")) for t in r["trials"]]
     assert P.NONE_CONSEC_MAX == 3
+
+
+def test_start_176_is_accepted_like_run3_run4_range():
+    assert P.START_CLOSED == (176, 177, 178, 179)
+    p, r = run("y\ny\n", "--fake-dry", "--fake-start", "176")
+    assert r["ended"] == "completed" and r["writes_total"] == 0 and r["phases"][0]["open"][0] == 176, (r.get("abort_reason"), p.stdout[-300:])
+    p, r = run("y\n", "--fake-dry", "--fake-start", "175")
+    assert r["ended"] == "aborted" and "오므림 범위" in r["abort_reason"]
