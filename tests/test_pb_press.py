@@ -175,3 +175,28 @@ def test_start_176_is_accepted_like_run3_run4_range():
     assert r["ended"] == "completed" and r["writes_total"] == 0 and r["phases"][0]["open"][0] == 176, (r.get("abort_reason"), p.stdout[-300:])
     p, r = run("y\n", "--fake-dry", "--fake-start", "175")
     assert r["ended"] == "aborted" and "오므림 범위" in r["abort_reason"]
+
+
+def test_countdown_with_bell_before_each_trial_and_finish():
+    p, r = run(FULL, "--fake-stall-at", "146")
+    out = p.stdout
+    assert r["ended"] == "completed", out[-300:]
+    assert out.count("닫기 시작 3...") == 5 and out.count("닫기 시작 1...") == 5 and out.count("\a") == 15     # 시도 4회(대조+블록 3) + 마무리 1회, 각 3줄
+    assert out.count("마무리 닫기 시작 3...") == 1
+    assert r["writes_total"] == 4 + 4 * 7 + 4                       # 쓰기 수는 카운트다운 추가 전과 같다
+
+
+def test_countdown_comes_before_first_close_write_of_each_trial():
+    p, r = run(FULL, "--fake-stall-at", "146")
+    out = p.stdout
+    assert out.index("닫기 시작 1...") < out.index("이동 1/6")                # 첫 시도: 카운트다운이 닫기 첫 이동 출력보다 앞
+
+
+def test_countdown_not_printed_in_dry_run():
+    p, r = run("y\n", "--fake-dry", "--fake-start", "176")
+    assert "닫기 시작" not in p.stdout and r["writes_total"] == 0
+
+
+def test_pre_check_text_names_hanging_clamp_not_stand():
+    p, r = run("n\n", "--fake-start", "176")
+    assert "매다는 클램프" in p.stdout and "스탠드·집게" not in p.stdout and "고무밴드는 걷어" in p.stdout

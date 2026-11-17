@@ -108,6 +108,9 @@ def main():
             if last is None or abs(last - tgt) > 3: raise Abort("도착 실패(회독 %s, 목표 %d, 허용 3°). 추가 이동 없음." % (last, tgt))
         return steps
 
+    def countdown(label):
+        for k in (3, 2, 1): print("\a  %s %d...(손가락 근처에서 손·도구를 떼세요)" % (label, k)); time.sleep(1.0 / sp)
+
     def settle_to(adapter, s, t_ms):
         stop = lambda sr, el, _s=s, _m=t_ms: el >= _m / sp and len(tail5(sr)) == 5 and max(tail5(sr)) - min(tail5(sr)) <= 1 and abs(_s - tail5(sr)[-1]) <= 3
         series = poll(adapter, int(max(2 * t_ms + 1000, 2.7 * t_ms + 600)) // sp, POLL_MS / sp, stop=stop); return next((v for _, v in reversed(series) if v is not None), None)
@@ -138,6 +141,7 @@ def main():
         tr = {"label": label, "T_s": T, "block": block, "steps": [], "hold": None, "e3": None, "e3_exceeded": False, "stall_step": None, "crush": None, "abort": None}
         result["trials"].append(tr)
         if dry: tr["dry"] = True; return tr
+        countdown("닫기 시작")      # 첫 닫기 쓰기 앞 3초 카운트다운+벨(PB-W (가), 사용자 승인 2026-11-17). 쓰기 수는 변하지 않는다
         budget = PressBudget(limit_s=(T + BUDGET_EXTRA_S) / sp)
         ref = None
         for i, tgt in enumerate(CLOSE_STEPS, 1):
@@ -191,7 +195,7 @@ def main():
     try:
         print("G07 P-B J6 연속 누름 시험(%s): 그리퍼 서보 6만 움직인다. 팔 관절은 명령하지 않는다." % mode)
         print("사전 확인:")
-        for k, q in enumerate(("전원 차단 담당자가 현재 자리에 있다", "팔이 K1 기립(대기) 자세이고 낙하 받침이 준비돼 있다(전원 차단 시 직립 팔이 낙하할 수 있음)", "블록 없음 대조 구간 동안 손가락 사이에 아무것도 없다", "블록 홀더(스탠드·집게)와 **여분(다른 색) 블록**이 준비돼 있다(블록은 대조가 끝난 뒤에 둔다. **등록 블록(마커 id 7)은 종이 위에 그대로 둔다**, PB-4)", "누름이 최대 약 30 s까지 간다(서보 발열 미측정). 눌림·소리·냄새·떨림이 보이면 즉시 Ctrl-C, 시도 사이 휴식 %d s를 지킨다" % REST_S), 1): print("  %d. %s" % (k, q))
+        for k, q in enumerate(("전원 차단 담당자가 현재 자리에 있다", "팔이 K1 기립(대기) 자세이고 낙하 받침이 준비돼 있다(전원 차단 시 직립 팔이 낙하할 수 있음)", "블록 없음 대조 구간 동안 손가락 사이에 아무것도 없다", "블록 홀더(위에서 매다는 클램프+고무밴드)와 **여분(다른 색) 블록**이 준비돼 있다(대조 동안은 클램프만 두고 고무밴드는 걷어 둔다. 블록은 대조가 끝난 뒤에 건다. **등록 블록(마커 id 7)은 종이 위에 그대로 둔다**, PB-4)", "누름이 최대 약 30 s까지 간다(서보 발열 미측정). 눌림·소리·냄새·떨림이 보이면 즉시 Ctrl-C, 시도 사이 휴식 %d s를 지킨다" % REST_S), 1): print("  %d. %s" % (k, q))
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if a.real and input("실제 쓰기를 시작하려면 정확히 '%s'를 입력: " % PHRASE).strip() != PHRASE: raise Abort("승인 문구 불일치. 명령은 보내지 않았다.")
         if a.fake:
@@ -219,7 +223,7 @@ def main():
                 if not first: print("시도 사이 휴식 %d초... (열린 상태입니다)" % REST_S); time.sleep(REST_S / sp)
                 first = False
                 if block and not block_placed:
-                    print("\n=== **지금 블록을 홀더에 고정해 손가락 패드 사이(30 mm 폭 방향)에 두세요.** 다음 질문에서 확인합니다. ===")
+                    print("\n=== **지금 블록을 홀더에 고정해 손가락 패드 사이(30 mm 폭 방향)에 두세요.** 긴 면(60×30)을 손가락 면과 나란하게, 높이는 배치 사진 정도로 겁니다(눈대중). 다음 질문에서 확인합니다. ===")
                     if not ask("블록이 홀더에 고정돼 손가락 패드 사이에 있고, 손·도구가 손가락에서 멀리 있습니까?"): raise Abort("블록·손 확인 미충족. 추가 명령 없음.")
                     block_placed = True
                     if a.fake and a.fake_stall_at is not None: arm.stall_at = a.fake_stall_at
@@ -229,6 +233,7 @@ def main():
             if a.fake: arm.stall_at = None
             if not ask("블록과 홀더를 손가락 사이에서 치웠습니까? (마무리 닫기를 시작합니다)"): raise Abort("블록 제거 미확인. 추가 명령 없음.")
             ad = make_adapter(arm, WIN_FINISH, 6, dry); s = ad.read_start(); cur = s; start_of_ad = s
+            countdown("마무리 닫기 시작")      # 마무리 첫 쓰기 앞 3초 카운트다운+벨(PB-W (가))
             fin_t = [s] + FINISH_STEPS; steps = move_steps("마무리", ad, fin_t, [1500] * len(FINISH_STEPS)); result["phases"].append({"phase": "finish", "targets": fin_t, "steps": steps})
             result["ended"] = "completed"
     except OpenUnconfirmed as e:
