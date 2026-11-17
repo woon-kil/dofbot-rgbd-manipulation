@@ -14,6 +14,7 @@ E1_SIDE_PX = 0.5                      # M2c: 연속 19쌍 변 길이 차 최대 
 M3_BRIGHT, M3_VALID = 2.0, 0.02       # 같은 세션 기준 2장 범위 ± 
 M4_MIN_HZ = 29.0
 N_SNAPS = 20
+# 사전 등록(advisor 반영, 측정 전): 시작 직후 확인용 snap 1회(<S>_warmcheck)는 **평가에서 제외**한다. 이 snap이나 기준 사진 A가 실패하면 세션을 즉시 중단한다(검증 안 된 부분을 30분 세션에서 처음 돌리는 위험 차단).
 
 
 def ang_diff(a, b): return (a - b + 180.0) % 360.0 - 180.0
@@ -85,7 +86,7 @@ def m2(snaps, base_a, base_b):
     else:
         bc, bs, by = base_a["center"], base_a["side_px"], base_a["yaw_deg"]
         gate = (dist(base_a["center"], base_b["center"]), abs(base_a["side_px"] - base_b["side_px"]), abs(ang_diff(base_a["yaw_deg"], base_b["yaw_deg"])))
-        moved = gate[0] >= GATE_CENTER_PX or gate[1] >= GATE_SIDE_PX or gate[2] >= GATE_YAW_DEG
+        moved = gate[0] > GATE_CENTER_PX or gate[1] > GATE_SIDE_PX or gate[2] > GATE_YAW_DEG   # G2 원문: 0.75 px 이하이면 정상 → 넘으면 판정 불가
         pts = [d for d in det if d and d.get("found")]
         pa_c = [sum(p["center"][i] for p in pts) / len(pts) for i in (0, 1)]; pa_s = sum(p["side_px"] for p in pts) / len(pts)
         pa_y = mean_angle_near([p["yaw_deg"] for p in pts], base_a["yaw_deg"])

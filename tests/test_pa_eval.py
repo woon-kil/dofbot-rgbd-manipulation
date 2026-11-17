@@ -71,7 +71,9 @@ def test_m2_bias_fail_and_baseline_moved_undecidable():
     s = [_snap(i, center=(676.5, 266.5)) for i in range(1, 21)]                 # 중심 편향 0.5 > 0.32
     r = E.m2(s, BASE, BASE)
     assert r["m2b"]["pass"] is False
-    moved = dict(BASE, center=[677.0, 266.5])                                   # 기준 앞·뒤 차 1.0 ≥ 0.75 → 장면이 움직임
+    moved = dict(BASE, center=[677.0, 266.5])                                   # 기준 앞·뒤 차 1.0 > 0.75 → 장면이 움직임
+    exact = dict(BASE, center=[676.75, 266.5])                                  # 정확히 0.75 → G2 원문 '이하이면 정상'이라 판정 불가가 아니다
+    assert E.m2(s, BASE, exact)["m2b"]["undecidable"] is False
     r2 = E.m2(s, BASE, moved)
     assert r2["m2b"]["pass"] is None and r2["m2b"]["undecidable"]
 

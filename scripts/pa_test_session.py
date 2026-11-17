@@ -2,6 +2,7 @@
 """P-A 시험 오케스트레이터(Mac에서 실행, 사람 입회, 로봇 명령 없음, p620 전용 컨테이너·Gemini만). 플랜 §3 순서:
  ① 기존 36 s 도구로 기준 사진 A → ② pa_driver start → ③ 15 s probe(M4 시작) → ④ snap 20회(간격 ≥ 5 s) → ⑤ 구동 20분까지 대기 → ⑥ 15 s probe(M4 끝) → ⑦ stop(컨테이너 0개 확인) → ⑧ 기준 사진 B
  → ⑨ stop 뒤 snap 실패 확인 → ⑩ start/stop 2회 더(두 번째는 MAXSEC=45 자동 종료 시험: 드라이버가 꺼진 뒤 snap 실패, 컨테이너 종료 확인) → 평가(scripts/pa_eval.py).
+확인용 snap(<S>_warmcheck, 평가 제외, 사전 등록)이나 기준 사진 A가 실패하면 즉시 중단한다. 자동 종료 시험은 status를 폴링해 드라이버가 꺼진 것을 확인한 뒤 snap한다.
 사용: python3 scripts/pa_test_session.py [--dry]      (--dry: 계획만 출력, p620 접속·쓰기 없음)
 모든 질문 직전 입력 버퍼를 비운다(P-B 입력 버퍼 이슈의 교훈). 문턱은 pa_eval.py의 사전 등록 상수이며 여기서 바꾸지 않는다."""
 import json, os, shutil, subprocess, sys, time
@@ -71,30 +72,44 @@ def main():
     if r.returncode: print("pa_snap.py를 p620로 보내지 못했다(전원·접속 확인):", r.stderr); return 2
     cycles = {"session": S}
     try:
-        print("① 기준 사진 A(약 40 s)"); base_photo(S, "a")
+        print("① 기준 사진 A(약 40 s)")
+        if not base_photo(S, "a"): print("기준 사진 A 실패 → 중단(드라이버 시작 전)"); cycles["aborted"] = "base_a"; return 4
         print("② start"); r = pa_driver("start", WARMUP=WARMUP); print(r.stdout[-200:]);
-        if r.returncode: print("start 실패:", r.stdout, r.stderr); return 3
+        if r.returncode: print("start 실패:", r.stdout, r.stderr); cycles["aborted"] = "start"; return 3
         start = time.time()
+        print("   확인용 snap 1회(평가 제외)"); r = snap("%s_warmcheck" % S)
+        if r.returncode != 0 or not r.stdout.startswith("OK"): print("확인용 snap 실패 → 즉시 중단:", r.stdout[-200:], r.stderr[-200:]); cycles["aborted"] = "warmcheck"; return 5
         print("③ probe(15 s)"); probe(S, "start")
+        fails = 0
         for i in range(1, 21):
-            n = "%s_snap%02d" % (S, i); t0 = time.time(); r = snap(n); print(" ", r.stdout.strip()[:110] or ("실패 " + r.stderr[-100:]))
+            n = "%s_snap%02d" % (S, i); t0 = time.time(); r = snap(n); ok = r.returncode == 0; fails = 0 if ok else fails + 1
+            print(" ", r.stdout.strip()[:110] or ("실패 " + r.stderr[-100:]))
+            if fails >= 3: print("snap 3회 연속 실패 → 중단"); cycles["aborted"] = "snap_fail"; return 6
             time.sleep(max(0.0, SNAP_GAP_S - (time.time() - t0)))
         while time.time() - start < HOLD_S: print("  구동 %.0f / %d s ..." % (time.time() - start, HOLD_S), end="\r"); time.sleep(10)
         print("\n⑥ probe(15 s)"); probe(S, "end")
-        cycles["usb_disconnect_lines"] = int((run(SSH + ["grep -ci 'disconnect\\|device lost\\|lost connection' dofbot-g01-work/pa/driver.log || true"]).stdout.strip().splitlines() or ["-1"])[-1])
+        pat = "disconnect\\|device lost\\|lost connection"
+        cycles["usb_disconnect_lines"] = int((run(SSH + ["grep -ci '%s' dofbot-g01-work/pa/driver.log || true" % pat]).stdout.strip().splitlines() or ["-1"])[-1])
+        cycles["usb_disconnect_text"] = run(SSH + ["grep -i '%s' dofbot-g01-work/pa/driver.log | head -5 | cut -c1-200 || true" % pat]).stdout
         left = []
         print("⑦ stop"); pa_driver("stop"); left.append(containers_left())
         print("⑧ 기준 사진 B(약 40 s)"); base_photo(S, "b")
         print("⑨ stop 뒤 snap(실패해야 한다)"); r = snap("%s_after_stop" % S); cycles["snap_after_stop_failed"] = bool(r.returncode != 0 and not (D / ("%s_after_stop.color.png" % S)).exists())
         print("⑩ start/stop 2회째(정상)"); r = pa_driver("start", WARMUP=WARMUP); pa_driver("stop"); left.append(containers_left())
-        print("   3회째: MAXSEC=45 자동 종료 시험"); r = pa_driver("start", WARMUP=WARMUP, MAXSEC=45); t3 = time.time()
-        while time.time() - t3 < 40: time.sleep(5)
-        r = snap("%s_after_autoexit" % S); cycles["auto_exit_snap_failed"] = bool(r.returncode != 0 and not (D / ("%s_after_autoexit.color.png" % S)).exists())
+        print("   3회째: MAXSEC=45 자동 종료 시험(status 폴링으로 드라이버가 꺼진 것을 확인한 뒤 snap)"); r = pa_driver("start", WARMUP=WARMUP, MAXSEC=45); t3 = time.time()
+        exited, last = False, ""
+        while time.time() - t3 < 55:       # launch 기준 45+15+10 s 안에 꺼져야 한다(start 반환 시각은 launch보다 약 15 s 늦다)
+            last = pa_driver("status").stdout
+            if "드라이버 프로세스 없음" in last or "컨테이너 종료됨" in last: exited = True; break
+            time.sleep(3)
+        cycles["auto_exit_polled_s"] = round(time.time() - t3, 1); cycles["auto_exit_status"] = last[-300:]; cycles["auto_exit_driver_gone"] = exited
+        r = snap("%s_after_autoexit" % S); cycles["auto_exit_snap_failed"] = bool(exited and r.returncode != 0 and not (D / ("%s_after_autoexit.color.png" % S)).exists())
         pa_driver("stop"); left.append(containers_left()); cycles["containers_left_after_stop"] = left
     except KeyboardInterrupt:
         print("\n중단(Ctrl-C): 드라이버를 정리합니다."); 
     finally:
         pa_driver("stop"); (D / ("%s_cycles.json" % S)).write_text(json.dumps(cycles, ensure_ascii=False, indent=2) + "\n")
+        run(["ssh", "-o", "ControlPath=/tmp/pa-ssh-%C", "-O", "exit", "p620"])      # 재사용 연결 정리
     print(run([PY, "-I", str(ROOT / "scripts" / "pa_eval.py"), S]).stdout); print("세션:", S); return 0
 
 
