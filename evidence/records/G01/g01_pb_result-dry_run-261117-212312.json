@@ -1,0 +1,94 @@
+{
+  "run_id": "261117-212312",
+  "mode": "dry_run",
+  "started_at": "2026-11-17T20:23:15",
+  "windows": {
+    "open": [
+      95,
+      179
+    ],
+    "press": [
+      95,
+      150
+    ],
+    "finish": [
+      95,
+      179
+    ]
+  },
+  "ladder_s": [
+    10,
+    20,
+    30
+  ],
+  "control_s": 10,
+  "rest_s": 90,
+  "limits": {
+    "crush_rise": 2,
+    "e3_max": 1,
+    "budget_extra_s": 1.0
+  },
+  "phases": [
+    {
+      "phase": "dry_run_plan",
+      "open": [
+        176,
+        160,
+        140,
+        120,
+        100
+      ],
+      "close_steps": [
+        120,
+        130,
+        135,
+        140,
+        145,
+        150
+      ],
+      "plan": [
+        [
+          "블록 없음 대조",
+          10,
+          false
+        ],
+        [
+          "블록 10 s",
+          10,
+          true
+        ],
+        [
+          "블록 20 s",
+          20,
+          true
+        ],
+        [
+          "블록 30 s",
+          30,
+          true
+        ]
+      ],
+      "finish": [
+        100,
+        120,
+        140,
+        160,
+        179
+      ]
+    }
+  ],
+  "trials": [],
+  "interrupted": false,
+  "ended": "completed",
+  "ladder_stop": null,
+  "adapter_logs": [
+    [
+      [
+        "read",
+        176
+      ]
+    ]
+  ],
+  "writes_total": 0,
+  "finished_at": "2026-11-17T20:23:18"
+}
