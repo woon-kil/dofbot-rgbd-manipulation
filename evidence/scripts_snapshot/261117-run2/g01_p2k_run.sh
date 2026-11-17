@@ -48,6 +48,9 @@ if [ "${SET}" = 29 ]; then
   PLAN30="${ROOT}/evidence/G01/s4_2_plan_30_${TS}.json"
   python3 "${ROOT}/scripts/g01_s42_plan_p2k.py" --set 30 --start "${START}" --return-nominal --out "${PLAN30}" || { echo "이동 구간 계획 게이트 실패. 중단(팔은 움직이지 않았다)"; exit 8; }
   P1_GATE_MM=10 P1_DZ_EXTRA_MM=35.8 "${VPY}" -I "${ROOT}/src/planning/p1_plan_check.py" "${PLAN30}" "${PLAN30%.json}_check.json" || { echo "이동 구간(K1→50 mm, 기본 캡) 여유 검증 실패. 중단(팔은 움직이지 않았다)."; exit 8; }
+  for BX in 4.3 10.3; do   # 팔 전체(모든 링크 껍질 + 손가락 캡슐, 열린 손가락 중심 간격 30.9 mm, 비관 변형 포함) vs 블록: 블록 월드 x = 7.3 + d_x(프로젝트 x와 부호 반대), 최악 d_x −3·+3
+    P1_CAP_OPEN_ONLY_MM=30.9 P1_BLOCK_X_MM=${BX} P1_GATE_MM=2 "${VPY}" -I "${ROOT}/src/planning/p1_plan_check.py" "${PLAN}" "${PLAN%.json}_contact_bx${BX}.json" || { echo "접촉 구간 팔 전체 검증 실패(블록 월드 x +${BX} mm, 게이트-접촉 2 mm). 중단(팔은 움직이지 않았다)."; exit 8; }
+  done
   RUN2_GATE_MM=2.0 "${VPY}" -I "${ROOT}/evidence/G06/run2_contact_clearance_261117.py" "${PLAN}" | tee "${PLAN%.json}_contact.txt" || { echo "접촉 구간(열린 손가락+블록, 게이트-접촉 2 mm) 검증 실패. 중단(팔은 움직이지 않았다)."; exit 8; }
 fi
 scp -q -o BatchMode=yes "${PLAN}" "${H}:${RD}/plan.json"

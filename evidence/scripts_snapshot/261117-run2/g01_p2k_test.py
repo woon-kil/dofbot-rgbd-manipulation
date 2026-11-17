@@ -158,7 +158,7 @@ def hold_for_measure(plan, pid, a, rec, arm=None):
     say("  측정 대기 종료(%s, %.0f초)." % (ended, rec["hold_s"]))
 
 
-P2K = {"ad6": None, "start6": None, "cur6": None, "low": False}   # P2k: 자세 정지 중 J6 이동 상태(중단 시 J6 복귀에 사용)
+P2K = {"ad6": None, "start6": None, "cur6": None, "low": False, "contact": False, "logs": {}}   # logs: 어댑터별 쓰기 로그(open·contact·final)를 결과에 따로 남긴다   # P2k: 자세 정지 중 J6 이동 상태(중단 시 J6 복귀에 사용)
 
 
 def p2k_hold(plan, label, arm, rec, a):
@@ -213,13 +213,15 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         return GripperTestAdapter(arm, sub_cfg, today=today, dry_run=dry)
     if pid == cfg["align_pose"]:
         ad6 = mk({"approved": True, "expires": today.isoformat(), "allowed_times_ms": [3000, 4800], "first_move_min_ms": 3000, "max_writes": 6, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(plan["p2k"]["window"]), "pattern": "list"})
-        s6 = ad6.read_start(); P2K["ad6"] = ad6; P2K["start6"] = s6; P2K["cur6"] = s6
+        s6 = ad6.read_start(); P2K["ad6"] = ad6; P2K["start6"] = s6; P2K["cur6"] = s6; P2K["logs"]["open"] = ad6.log
         if s6 not in (176, 177, 178, 179): raise Abort("J6 시작 회독 %s가 176~179가 아니다. J6 이동 없음." % s6)
-        ad6.set_targets([s6, cfg["open_j6"]])
-        ad6.confirm_hands_clear(); time.sleep(QUIET_S); ad6.move(cfg["open_j6"], cfg["open_ms"]); P2K["cur6"] = cfg["open_j6"]; P2K["start_all"][6] = cfg["open_j6"]
-        if dry: say("  dry_run: J6 열기 %d (time %d ms) — 쓰기 0회" % (cfg["open_j6"], cfg["open_ms"])); P2K["ad6c_dry"] = True; return
-        series = poll(ad6, 2 * cfg["open_ms"] + 1000); last = next((v for _, v in reversed(series) if v is not None), None)
-        if last is None or abs(last - cfg["open_j6"]) > 3: raise Abort("J6 열기 도착 실패(회독 %s, 목표 %d). 하강 없음, 복귀로 이어집니다." % (last, cfg["open_j6"]))
+        mid = cfg.get("open_mid", 140); ad6.set_targets([s6, mid, cfg["open_j6"]])   # P2k에서 검증된 3000 ms 두 단계(176 → 140 → 100)
+        for tgt_ in (mid, cfg["open_j6"]):
+            ad6.confirm_hands_clear(); time.sleep(QUIET_S); ad6.move(tgt_, cfg["open_ms"]); P2K["cur6"] = tgt_; P2K["start_all"][6] = tgt_
+            if dry: say("  dry_run: J6 열기 단계 %d (time %d ms) — 쓰기 0회" % (tgt_, cfg["open_ms"])); continue
+            series = poll(ad6, 2 * cfg["open_ms"] + 1000); last = next((v for _, v in reversed(series) if v is not None), None)
+            if last is None or abs(last - tgt_) > 3: raise Abort("J6 열기 도착 실패(회독 %s, 목표 %d). 하강 없음, 복귀로 이어집니다." % (last, tgt_))
+        if dry: P2K["ad6c_dry"] = True; return
         pose_rec.setdefault("run2", {})["open_readback"] = last
         h = p2k_hold(plan, "0", arm, {"pose_id": pid}, a); pose_rec["run2"]["hold_open50"] = h
         say("\n[정렬 확인] Mac 화면의 정렬 보고(d_x, 캡별 옆 여유)를 읽으세요. **|d_x| ≤ 3 mm 이고 두 캡 옆 여유가 모두 6 mm 이상이며 블록 마커가 기준 사진과 1 px 이내**일 때만 y. 아니거나 보고가 없으면 N(하강 없이 복귀합니다).")
@@ -235,7 +237,7 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         adc = GripperTestAdapter(_DryJ6(arm, cfg["open_j6"]) if dry else arm, {"approved": True, "expires": today.isoformat(), "allowed_times_ms": [1500, 3000], "first_move_min_ms": None, "max_writes": 9, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(cfg["window_close"]), "pattern": "list"}, today=today, dry_run=dry)
         s = adc.read_start()
         if not dry and abs(s - cfg["open_j6"]) > 2: raise Abort("접촉 전 J6 회독 %s가 열림 %d와 2° 넘게 다르다. 닫기 없음." % (s, cfg["open_j6"]))   # dry run은 팔이 움직이지 않아 J6가 아직 오므림이므로 검사만 생략(어댑터 목록·속도 검사는 한다)
-        seq = [s] + list(cfg["close_seq"]); adc.set_targets(seq); P2K["ad6c"] = adc
+        seq = [s] + list(cfg["close_seq"]); adc.set_targets(seq); P2K["ad6c"] = adc; P2K["logs"]["contact"] = adc.log
         if dry:
             for t_ in seq[1:]: adc.confirm_hands_clear(); adc.move(t_, cfg["close_ms"]); say("  dry_run: P4a 닫기 목표 %d (time %d ms) — 쓰기 0회" % (t_, cfg["close_ms"]))
             adc.confirm_hands_clear(); adc.return_to_start(cfg["release_ms"]); say("  dry_run: 정체 뒤 열기 검사(시작 %d, %d ms) — 쓰기 0회" % (s, cfg["release_ms"])); return
@@ -244,13 +246,14 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         steps = []; stalled = None
         for t_ in seq[1:]:
             adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.move(t_, cfg["close_ms"]); P2K["cur6"] = t_
-            series = poll(adc, 2 * cfg["close_ms"] + 1000); vals = [v for _, v in series if v is not None]
+            P2K["contact"] = True; series = poll(adc, cfg["close_ms"] + 800); vals = [v for _, v in series if v is not None]   # 정착 판정에 필요한 최소 시간(누름 시간 최소화)
+            if FAKE.get("abort_close") == len(steps) + 1: raise KeyboardInterrupt()   # 가짜 시험: 닫기 계단 중 중단 주입
             st = {"target": t_, "series_tail": series[-4:], "final": vals[-1] if vals else None}
             if len(vals) >= 2 and vals[-1] == vals[-2] and t_ - vals[-1] >= 3: stalled = vals[-1]; st["stall"] = True
             steps.append(st); say("  닫기 목표 %d → 회독 %s%s" % (t_, st["final"], " ← 정체" if st.get("stall") else ""))
             if stalled is not None: break
         r2["close_steps"] = steps; r2["stall_readback"] = stalled; r2["stall_command"] = steps[-1]["target"] if stalled is not None else None
-        adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s
+        adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
         sr = poll(adc, 2 * cfg["release_ms"] + 1000); lastr = next((v for _, v in reversed(sr) if v is not None), None); r2["release_readback"] = lastr
         say("  열기 완료(회독 %s). 정체 %s." % (lastr, ("회독 %s" % stalled) if stalled is not None else "없음(150까지 닫혔다 = 블록 없음 곡선 또는 접촉 안 됨)"))
         if lastr is None or abs(lastr - s) > 3: raise Abort("열기 도착 실패(회독 %s, 목표 %d). 이후 이동 없음, 복귀로 이어집니다." % (lastr, s))
@@ -258,11 +261,13 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
     if pid == cfg["ascent_pose"]:
         if dry: return
         ad6 = P2K["ad6"]; adc = P2K.get("ad6c")
-        fin = mk({"approved": True, "expires": today.isoformat(), "allowed_times_ms": [3000, 4800], "first_move_min_ms": None, "max_writes": 3, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(plan["p2k"]["window"]), "pattern": "list"})
+        fin = mk({"approved": True, "expires": today.isoformat(), "allowed_times_ms": [3000, 4800], "first_move_min_ms": None, "max_writes": 4, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(plan["p2k"]["window"]), "pattern": "list"})
         s = fin.read_start()
         if abs(s - cfg["open_j6"]) > 2: raise Abort("50 mm 복귀 뒤 J6 회독 %s가 열림 %d와 다르다. J6 닫기 없음." % (s, cfg["open_j6"]))
-        fin.set_targets([s, cfg["close_to"]]); P2K["ad6"] = fin; fin.confirm_hands_clear(); time.sleep(QUIET_S); fin.move(cfg["close_to"], cfg["close_to_ms"]); P2K["cur6"] = cfg["close_to"]; P2K["low"] = False; P2K["start_all"][6] = cfg["close_to"]
-        series = poll(fin, 2 * cfg["close_to_ms"] + 1000); lastf = next((v for _, v in reversed(series) if v is not None), None)
+        fin.set_targets([s, cfg.get("open_mid", 140), cfg["close_to"]]); P2K["logs"]["final"] = fin.log; P2K["ad6"] = fin; P2K["low"] = False
+        for tgt_ in (cfg.get("open_mid", 140), cfg["close_to"]):   # 100 → 140 → 178 (3000 ms 두 단계)
+            fin.confirm_hands_clear(); time.sleep(QUIET_S); fin.move(tgt_, cfg["close_to_ms"]); P2K["cur6"] = tgt_; P2K["start_all"][6] = tgt_
+            series = poll(fin, 2 * cfg["close_to_ms"] + 1000); lastf = next((v for _, v in reversed(series) if v is not None), None)
         pose_rec.setdefault("run2", {})["close_readback"] = lastf; say("  J6 닫기 완료(회독 %s)." % lastf)
         P2K["start6"] = cfg["close_to"]   # 이후 복귀는 닫힌 상태가 기준
         return
@@ -336,13 +341,14 @@ def make_adapters(arm, lists, times, mode, first_min):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--plan", required=True); ap.add_argument("--fake", action="store_true"); ap.add_argument("--real", action="store_true")
-    ap.add_argument("--fake-ignore", type=int, nargs="*", default=[]); ap.add_argument("--fake-floor", type=str, default="", help="예: 2:95 (서보:바닥값)"); ap.add_argument("--fake-ceil", type=str, default="", help="예: 6:142 (서보:천장값, 블록 정체 모사)")
+    ap.add_argument("--fake-ignore", type=int, nargs="*", default=[]); ap.add_argument("--fake-floor", type=str, default="", help="예: 2:95 (서보:바닥값)"); ap.add_argument("--fake-abort-close", type=int, default=0, help="Run 2 가짜: N번째 닫기 단계에서 중단 주입"); ap.add_argument("--fake-ceil", type=str, default="", help="예: 6:142 (서보:천장값, 블록 정체 모사)")
     ap.add_argument("--fake-entry", type=str, default="", help="D0 가짜 시험: 단계별 입력값을 쉼표로(예: 52,45,30,x)"); ap.add_argument("--fake-drop-nth", type=int, default=None); ap.add_argument("--fake-hyst", type=str, default="", help="예: 1.5,0.3 (증가 방향 모자람°, 감소 방향 넘어감°)"); ap.add_argument("--fake-countdown-int", type=int, default=None); ap.add_argument("--fake-return-int", type=int, default=None); ap.add_argument("--fake-capture-fail", action="store_true"); ap.add_argument("--fake-read-quiet", type=float, default=0.0, help="가짜: 마지막 읽기 뒤 이 초 안의 쓰기를 버린다(실측 기제 모사)"); ap.add_argument("--run-id", default="local"); ap.add_argument("--out", default="/tmp/g01_5b4_s42_result.json"); ap.add_argument("--stop-after", type=int, default=None, help="가짜 시험: 이동 N번 뒤 사용자 중단을 흉내")
     a = ap.parse_args()
     if a.fake and a.real: sys.exit("--fake와 --real은 함께 쓸 수 없다")
     FAKE_ENTRIES[:] = [x.strip() for x in a.fake_entry.split(",") if x.strip()] if a.fake_entry else []
     FAKE.update({"countdown_int": a.fake_countdown_int, "return_int": a.fake_return_int, "capture_fail": a.fake_capture_fail})
     plan = json.load(open(a.plan, encoding="utf-8"))
+    FAKE["abort_close"] = int(a.fake_abort_close) if a.fake_abort_close else None
     FAKE["ceils"] = {int(t_.split(":")[0]): int(t_.split(":")[1]) for t_ in a.fake_ceil.split(",") if ":" in t_}
     if plan["set"] == "23": WINDOWS[2] = [55, 110]; WINDOWS[1] = [70, 122]
     if plan["set"] == "24": WINDOWS[2] = [52, 110]; WINDOWS[1] = [70, 122]   # D3: J2 창 하한 55 → 52(이 세트에 한정). 2404 도착 J2가 54.9° 부근(정수 회독 54)일 수 있어 하한 55이면 복귀 쓰기가 거부된다(가짜 시험 C에서 발견, 승인 D3-5b 대기)   # D2: J2 창 하한 55(세트 22 승인값), J1 창 상한 110 → 122(이 세트에 한정, 선택 자세 J1 120, 승인 D2-1·D2-2 2026-11-16)
@@ -398,7 +404,7 @@ def main():
         if plan["set"] == "29":   # Run 2(첫 접촉): 블록 옆으로 내려가 닫는다. 들어올림 없음
             qs = ["전원 차단 담당자가 현재 자리에 있습니까?", "노란 블록(마커 id 7)은 **Run 1 이후 만지지 않았고** 지정 자리 그대로이며, 눈금자·클램프·폰 거치대는 없고, 보드 위에 그 밖의 물체·손·사람·케이블이 없습니까?",
                   "낙하 받침 없이 진행합니다(사용자 결정 2026-11-16). 전원이 끊기면 팔이 넘어지거나 내려앉을 수 있습니다. 팔 앞쪽·옆쪽과 팔 주변에 손·사람·케이블·물체가 없습니까?",
-                  "이번 실행은 **처음으로 손가락이 블록에 닿는 시험**입니다: J1 87, 50 mm에서 J6를 100으로 열고 정렬을 확인한 뒤(Mac 화면의 보고를 읽고 y/N 1회), 열린 채 블록 양옆으로 약 20 mm까지 내려가 J6를 닫아 블록을 물어 정체를 읽고 3초 안에 열고 올라옵니다. 들어올림은 없습니다. 하강·닫는 동안 손을 팔 범위에 넣지 마세요.",
+                  "이번 실행은 **처음으로 손가락이 블록에 닿는 시험**입니다: J1 87, 50 mm에서 J6를 100으로 열고 정렬을 확인한 뒤(Mac 화면의 보고를 읽고 y/N 1회), 열린 채 블록 양옆으로 약 20 mm까지 내려가 J6를 닫아 블록을 물어 정체를 읽고 3초 안에 열고 올라옵니다. 들어올림은 없습니다. 하강·닫는 동안 손을 팔 범위에 넣지 마세요. **J6를 연 뒤에도 블록이 손가락에 붙어 함께 올라오면 즉시 Ctrl-C(전원 스위치는 담당자)**.",
                   "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 176~179)?", "DaBai·그리퍼 케이블이 당겨지지 않고 여유가 있어 보입니까?", "J2·J3·J4와 그리퍼 서보 J6를 만져서 **뜨겁지 않습니까?**", "위 회독값과 이동 계획이 맞다."]
         for k, q in enumerate(qs, 1): say("  %d. %s" % (k, q))
         if not ask("위 %d개를 모두 확인했습니까? (y면 이동 시작, 이동마다 소리 뒤 대기 후 움직입니다. 자세 도착마다 촬영 중 가만히 계세요)" % len(qs)): raise Abort("사전 확인 미충족. 쓰기 없음.")
@@ -461,6 +467,16 @@ def main():
     finally:
         if ads and wrote and result["ended"] != "completed" and not PROG["return_started"]:
             try:
+                if P2K.get("contact") and P2K.get("ad6c") is not None and mode != "dry_run":   # 닫는 중(블록을 누르는 중) 중단: 팔 복귀 전에 먼저 J6를 연다(들어올림·끌기 방지). 질문 없이 열기만 보낸다(누름 해제, 승인된 열기 3000 ms)
+                    say("\n[접촉 중 중단] 팔을 움직이기 전에 J6를 %d로 열어 누름을 풉니다." % plan["run2"]["open_j6"])
+                    try:
+                        adc_ = P2K["ad6c"]
+                        try: adc_.confirm_hands_clear(); time.sleep(QUIET_S); adc_.return_to_start(plan["run2"]["release_ms"])
+                        except GripperTestError:   # 이미 열기를 한 번 보낸 어댑터면 새 어댑터로(읽은 값 → 열림, 승인 창·시간 3000 ms)
+                            nad = GripperTestAdapter(arm, {"approved": True, "expires": datetime.date.today().isoformat(), "allowed_times_ms": [1500, 3000], "first_move_min_ms": None, "max_writes": 3, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(plan["run2"]["window_close"]), "pattern": "list"}, today=datetime.date.today(), dry_run=False)
+                            s_ = nad.read_start(); nad.set_targets([s_, plan["run2"]["open_j6"]]); P2K["logs"]["emergency_open"] = nad.log; nad.confirm_hands_clear(); time.sleep(QUIET_S); nad.move(plan["run2"]["open_j6"], plan["run2"]["release_ms"])
+                        P2K["cur6"] = plan["run2"]["open_j6"]; P2K["contact"] = False; time.sleep(plan["run2"]["release_ms"] / 1000.0 + 1); result["emergency_open"] = True
+                    except BaseException as e_: result["emergency_open_error"] = repr(e_); say("접촉 중 열기 실패:", repr(e_))
                 j6_after = bool(P2K.get("low")) and P2K["ad6"] is not None and P2K["cur6"] != P2K["start6"]   # Run 2: 하강 중(블록 옆)에는 J6를 닫지 않는다(닫으면 블록을 물 수 있음) — 팔 복귀(상승) 뒤 K1에서 J6를 시작값으로 되돌린다
                 if P2K["ad6"] is not None and P2K["cur6"] != P2K["start6"] and mode != "dry_run" and not j6_after:   # P2k: 팔 복귀 전에 J6를 시작값(오므림)으로 되돌린다(승인 시간 4800 ms 1회)
                     if ask("J6가 시작값 %s가 아닐 수 있습니다(마지막 명령 %s). 팔 자세는 그대로 두고 J6만 시작값으로 복귀 쓰기를 1회 보낼까요? 시간 %d ms (손을 뗀 뒤에만 y)" % (P2K["start6"], P2K["cur6"], plan["p2k"]["return_ms"])):
@@ -473,6 +489,7 @@ def main():
             except BaseException as e: result["return_error"] = repr(e); say("복귀 처리 중단:", repr(e))
         result["adapter_log"] = {str(j): [(["write", *l[1:3], "fake" if (a.fake and l[0] == "write") else l[3], *l[4:]] if l[0] == "write" else list(l)) for l in ads[j].log] for j in ads if hasattr(ads[j], "log")}
         if P2K["ad6"] is not None: result["j6_adapter_log"] = [list(l) for l in P2K["ad6"].log]
+        if P2K["logs"]: result["j6_adapter_logs"] = {k: [list(l) for l in v] for k, v in P2K["logs"].items()}   # Run 2: 열기·접촉·최종 닫기 어댑터 로그를 따로 저장
         result["finished_at"] = datetime.datetime.now().isoformat(timespec="seconds")
         Path(a.out).write_text(json.dumps(result, ensure_ascii=False, indent=2, default=lambda o: float(o)) + "\n", encoding="utf-8"); say("기록 저장:", a.out)
 
