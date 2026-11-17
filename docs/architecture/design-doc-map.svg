@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 690" width="1120" height="690" role="img" aria-label="설계 문서 지도">
+<title>설계 문서 지도</title>
+<style>:root{--bg:#fbfaf7;--fg:#1c1b19;--mut:#6b675f;--line:#8a857b;--f1:#e3edf8;--s1:#2f6db3;--f2:#fbeadb;--s2:#b5601a}@media (prefers-color-scheme:dark){:root{--bg:#1b1a18;--fg:#efece5;--mut:#a29d92;--line:#8d887e;--f1:#1e2f44;--s1:#6aa6e6;--f2:#3b2a1b;--s2:#e0904a}}text{font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;fill:var(--fg);font-size:12px}.m{fill:var(--mut)}.e{fill:none;stroke:var(--line);stroke-width:1.4}</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--line)"/></marker></defs>
+<rect width="1120" height="690" fill="var(--bg)"/>
+<text x="40" y="30" style="font-size:18px;font-weight:600">설계 문서 지도 — 화살표는 "본문에서 인용한다" 방향</text>
+<text x="40" y="52" class="m">docs/gates 설계 문서 10개의 백틱 .md 인용을 읽어 그렸다. 범위 안 문서·ADR·roadmap 사이 선만 그리고 승인 문서·결과 보고서 인용은 표의 수로만 센다(그림 7선 = 추출 7선).</text>
+<path class="e" d="M340,217.0 C430,217.0 430,487.0 342,487.0" marker-end="url(#a)"/>
+<path class="e" d="M340,217.0 C440,217.0 440,541.0 342,541.0" marker-end="url(#a)"/>
+<path class="e" d="M340,595.0 C450,595.0 450,217.0 342,217.0" marker-end="url(#a)"/>
+<path class="e" d="M340,595.0 C410,595.0 410,433.0 342,433.0" marker-end="url(#a)"/>
+<path class="e" d="M340,595.0 L778,109.0" marker-end="url(#a)"/>
+<path class="e" d="M340,487.0 C420,487.0 420,271.0 342,271.0" marker-end="url(#a)"/>
+<path class="e" d="M340,541.0 C390,541.0 390,487.0 342,487.0" marker-end="url(#a)"/>
+<rect x="40" y="90" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="106" style="font-weight:600">G04-폐루프-파일럿b</text>
+<text x="50" y="121" class="m">칸 0/0/1 · 그 밖의 인용 3</text>
+<rect x="40" y="144" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="160" style="font-weight:600">D1-높이보정-시험과-접촉기반-하강</text>
+<text x="50" y="175" class="m">칸 8/0/0 · 그 밖의 인용 2</text>
+<rect x="40" y="198" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="214" style="font-weight:600">E-2-파지-들어올림-판정</text>
+<text x="50" y="229" class="m">칸 6/0/0 · 그 밖의 인용 5</text>
+<rect x="40" y="252" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="268" style="font-weight:600">관측-마지막이동-blind</text>
+<text x="50" y="283" class="m">칸 0/0/4 · 그 밖의 인용 9</text>
+<rect x="40" y="306" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="322" style="font-weight:600">서보-최소유효단계-표와-D3-설계원칙-초안</text>
+<text x="50" y="337" class="m">칸 3/0/0 · 그 밖의 인용 1</text>
+<rect x="40" y="360" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="376" style="font-weight:600">큰이동-M3</text>
+<text x="50" y="391" class="m">결정 칸 없음</text>
+<rect x="40" y="414" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="430" style="font-weight:600">파지-접근-팁모델-정정</text>
+<text x="50" y="445" class="m">칸 4/0/0 · 그 밖의 인용 4</text>
+<rect x="40" y="468" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="484" style="font-weight:600">파지-접촉</text>
+<text x="50" y="499" class="m">칸 3/0/1 · 그 밖의 인용 10</text>
+<rect x="40" y="522" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="538" style="font-weight:600">파지-판정과-들어올림</text>
+<text x="50" y="553" class="m">칸 5/0/3 · 그 밖의 인용 4</text>
+<rect x="40" y="576" width="300" height="38" rx="7" fill="var(--f1)" stroke="var(--s1)" stroke-width="1.4"/>
+<text x="50" y="592" style="font-weight:600">첫접촉시험-선행조건과-최소시험안</text>
+<text x="50" y="607" class="m">칸 6/0/0 · 그 밖의 인용 4</text>
+<rect x="780" y="90" width="300" height="38" rx="7" fill="var(--f2)" stroke="var(--s2)" stroke-width="1.4"/>
+<text x="790" y="114" style="font-weight:600">roadmap</text>
+</svg>
