@@ -107,7 +107,7 @@ def test_open_write_dropped_once_recovers_by_resend():
 def test_open_unconfirmed_stops_everything():
     p, r = run("y\ny\ny\ny\ny\ny\ny\ny\n", "--fake-stall-at", "146", "--fake-drop-open", "2")
     assert r["ended"] == "open_unconfirmed" and r["open_unconfirmed"] and "열기 미확인" in r["abort_reason"], (r["ended"], r.get("abort_reason"))
-    assert len(r["trials"]) == 1 and "returned_to_start" not in r, "다음 시도·휴식·복귀 질문 없이 멈춰야 한다"
+    assert len(r["trials"]) == 1 and r.get("returned_to_start") is not True, "다음 시도·휴식·복귀 질문 없이 멈춰야 한다"
     assert "손을 넣지 마세요" in p.stdout
 
 
@@ -126,3 +126,20 @@ def test_sigterm_during_press_with_dropped_open_prints_emergency():
         r = json.loads(out.read_text(encoding="utf-8"))
         assert sent and r["ended"] == "hangup", (r["ended"], txt[-600:])
         assert r.get("open_unconfirmed") is True and "손을 넣지 마세요" in txt and "복귀 미확인" in txt, txt[-800:]
+
+
+def test_closing_return_unconfirmed_is_not_resent():
+    import signal, time as _t
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "r.json"
+        pr = subprocess.Popen([sys.executable, "-I", "-u", str(SCR / "g01_pb_press_test.py"), "--fake", "--fake-speed", "5", "--fake-drop-close", "2", "--out", str(out)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, cwd=str(ROOT))
+        pr.stdin.write("y\ny\ny\ny\n"); pr.stdin.flush()
+        seen = []; t0 = _t.time(); sent = False
+        for line in pr.stdout:
+            seen.append(line)
+            if not sent and "[열기] 이동 2/4" in line: pr.send_signal(signal.SIGTERM); sent = True
+            if _t.time() - t0 > 120: pr.kill(); break
+        pr.wait(timeout=60); txt = "".join(seen); r = json.loads(out.read_text(encoding="utf-8"))
+        assert sent and r.get("closing_unconfirmed") is True and "닫는 쪽 복귀 미확인" in txt, txt[-800:]
+        assert sum(1 for x in r["adapter_logs"] for l in x if l[0] == "write" and l[1] == 179) == 1, "닫는 쓰기는 한 번만 보내야 한다"
+        assert r.get("returned_to_start") is not True

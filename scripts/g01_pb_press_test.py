@@ -49,9 +49,10 @@ def hold_check(ref, vals):
 
 class PBFake(FastFakeBlock):
     """P-B 가짜 서보: 누름 읽기 구간(hold_on)에서만 이상을 모사한다. creep이면 회독이 천천히 오르고(상한 149), wobble이면 번갈아 wobble°씩 뛰며, none_after면 N번 읽은 뒤 None을 돌려준다."""
-    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0; self.drop_open = 0
+    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0; self.drop_open = 0; self.drop_close = 0
     def Arm_serial_servo_write(self, id, angle, time_ms):
         if self.drop_open > 0 and angle == 100 and time_ms == 3000: self.drop_open -= 1; return      # 열기 쓰기 폐기 모사(읽기 직후 쓰기 폐기 실측 이력)
+        if self.drop_close > 0 and angle == 179 and time_ms == 3000: self.drop_close -= 1; return      # 닫는 쪽 복귀 쓰기 폐기 모사
         super().Arm_serial_servo_write(id, angle, time_ms)
     def Arm_serial_servo_read(self, id):
         v = super().Arm_serial_servo_read(id)
@@ -67,16 +68,21 @@ class OpenUnconfirmed(Exception):
     pass
 
 
+class ClosingUnconfirmed(Exception):
+    pass
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--fake", action="store_true"); ap.add_argument("--real", action="store_true")
     ap.add_argument("--fake-dry", action="store_true"); ap.add_argument("--fake-speed", type=int, default=1); ap.add_argument("--fake-start", type=int, default=179)
     ap.add_argument("--fake-stall-at", type=int, default=None); ap.add_argument("--fake-creep", action="store_true"); ap.add_argument("--fake-wobble", type=int, default=0)
     ap.add_argument("--fake-none-after", type=int, default=None); ap.add_argument("--fake-no-hold-end", action="store_true", help="--fake에서만: 누름 읽기 종료 조건을 끈다(PressBudget 상한 시험)")
     ap.add_argument("--fake-drop-open", type=int, default=0, help="--fake에서만: 처음 N번의 열기(100, 3000 ms) 쓰기를 버린다")
+    ap.add_argument("--fake-drop-close", type=int, default=0, help="--fake에서만: 처음 N번의 닫는 쪽 복귀(179, 3000 ms) 쓰기를 버린다")
     ap.add_argument("--no-control", action="store_true", help="블록 없음 대조 1회를 생략한다(PB-2는 넣는 것이 기본)")
     ap.add_argument("--run-id", default="local"); ap.add_argument("--out", default="/tmp/g01_pb_result.json"); a = ap.parse_args()
     if a.fake and a.real: sys.exit("--fake와 --real은 함께 쓸 수 없다")
-    if (a.fake_dry or a.fake_speed != 1 or a.fake_stall_at or a.fake_creep or a.fake_wobble or a.fake_none_after is not None or a.fake_no_hold_end or a.fake_drop_open or a.fake_start != 179) and not a.fake: sys.exit("--fake-* 옵션은 --fake에서만 쓸 수 있다")
+    if (a.fake_dry or a.fake_speed != 1 or a.fake_stall_at or a.fake_creep or a.fake_wobble or a.fake_none_after is not None or a.fake_no_hold_end or a.fake_drop_open or a.fake_drop_close or a.fake_start != 179) and not a.fake: sys.exit("--fake-* 옵션은 --fake에서만 쓸 수 있다")
     mode = "dry_run" if (a.fake and a.fake_dry) else ("fake" if a.fake else ("real" if a.real else "dry_run"))
     dry = (mode == "dry_run"); sp = a.fake_speed if a.fake else 1
     result = {"run_id": a.run_id, "mode": mode, "started_at": datetime.datetime.now().isoformat(timespec="seconds"), "windows": {"open": list(WIN_OPEN), "press": list(WIN_PRESS), "finish": list(WIN_FINISH)}, "ladder_s": LADDER_S, "control_s": None if a.no_control else CONTROL_S, "rest_s": REST_S, "limits": {"crush_rise": CRUSH_RISE, "e3_max": E3_MAX, "budget_extra_s": BUDGET_EXTRA_S}, "phases": [], "trials": [], "interrupted": False, "ended": None, "ladder_stop": None}
@@ -106,6 +112,7 @@ def main():
         nonlocal cur, ad
         last = settle_to(adapter, s, t_ms)
         if last is not None and abs(last - s) <= 3: cur = s; return last
+        if s > 101: raise ClosingUnconfirmed("닫는 쪽 복귀가 확인되지 않았다(회독 %s, 목표 %d). 닫는 쓰기는 손 제거 답 없이 다시 보내지 않는다. 추가 명령 없음" % (last, s))
         print("★ 복귀가 확인되지 않았다(회독 %s, 목표 %d). 새 어댑터로 같은 쓰기를 1회 다시 보낸다." % (last, s)); result["open_retry"] = result.get("open_retry", 0) + 1
         try:
             rad = make_adapter(arm, WIN_OPEN, 2, dry); s2 = rad.read_start(); rad.set_targets([s2, s]); rad.confirm_hands_clear(); time.sleep(QUIET_S); rad.move(s, t_ms); last2 = settle_to(rad, s, t_ms)
@@ -178,7 +185,7 @@ def main():
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if a.real and input("실제 쓰기를 시작하려면 정확히 '%s'를 입력: " % PHRASE).strip() != PHRASE: raise Abort("승인 문구 불일치. 명령은 보내지 않았다.")
         if a.fake:
-            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after; arm.drop_open = a.fake_drop_open
+            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after; arm.drop_open = a.fake_drop_open; arm.drop_close = a.fake_drop_close
         else:
             from Arm_Lib import Arm_Device; arm = Arm_Device()
         ad = make_adapter(arm, WIN_OPEN, 6, dry, first_min=3000)
@@ -236,12 +243,16 @@ def main():
                 if dist == 0 or getattr(ad, "_returned", False): result["returned_to_start"] = None
                 elif t_ret is None: print("복귀 폭 %d°가 승인된 시간으로 갈 수 없다. 복귀하지 않는다." % dist); result["returned_to_start"] = False
                 elif ask(("그리퍼가 블록을 누르고 있을 수 있습니다(마지막 명령 %s). 열린 쪽 S=%d로 복귀 쓰기를 1회 보낼까요? 이 복귀는 블록을 놓는 **여는 동작**이며 시간 %d ms입니다. 이상(소리·발열·도착 실패·눌림)이 있으면 y를 권장합니다" % (cur, start_of_ad, t_ret)) if opening else ("그리퍼가 이 구간의 시작값 S=%d가 아닐 수 있습니다(마지막 명령 %s). S로 복귀 쓰기를 1회 보낼까요? 이 복귀는 **닫는 동작**이며 시간 %d ms입니다. 끼임·소리·발열이면 N (손·도구가 멀 때만 y)" % (start_of_ad, cur, t_ret))):
-                    ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.return_to_start(t_ret); result["returned_to_start"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송. 도착을 확인합니다.")
-                    result["return_final"] = verify_return(ad, start_of_ad, t_ret); print("복귀 확인: 회독 %s" % result["return_final"])
+                    ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.return_to_start(t_ret); result["return_sent"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송. 도착을 확인합니다.")
+                    result["return_final"] = verify_return(ad, start_of_ad, t_ret); result["returned_to_start"] = True; print("복귀 확인: 회독 %s" % result["return_final"])
                 else: result["returned_to_start"] = False
             except OpenUnconfirmed as e:
                 result["open_unconfirmed"] = True; result["return_error"] = str(e); print("\n★★ 복귀 미확인:", e); print("추가 명령을 보내지 않는다. 손을 넣지 마세요. 그리퍼가 블록을 계속 누르고 있을 수 있으므로 전원 차단 담당자가 판단하세요.")
-            except BaseException as e: result["return_error"] = repr(e); print("복귀 처리 중단:", repr(e))
+            except ClosingUnconfirmed as e:
+                result["closing_unconfirmed"] = True; result["return_error"] = str(e); print("\n★ 닫는 쪽 복귀 미확인:", e)
+            except BaseException as e:
+                result["return_error"] = repr(e); print("복귀 처리 중단:", repr(e))
+                if result.get("return_sent") and not result.get("returned_to_start"): result["return_unconfirmed"] = True; print("★★ 복귀 쓰기를 보냈지만 확인 전에 끊겼다. 열렸다고 믿지 마세요. 손을 넣지 마세요. 전원 차단 담당자가 판단하세요.")
         result["adapter_logs"] = [[(["write", *l[1:3], "fake" if (a.fake and not a.fake_dry and l[0] == "write") else l[3], *l[4:]] if l[0] == "write" else list(l)) for l in x.log] for x in ADAPTERS]
         result["writes_total"] = sum(1 for x in ADAPTERS for l in x.log if l[0] == "write")
         result["finished_at"] = datetime.datetime.now().isoformat(timespec="seconds")
