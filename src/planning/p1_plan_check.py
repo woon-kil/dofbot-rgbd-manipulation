@@ -16,7 +16,7 @@ from planning.collision_3a import Box, clearances, finger_capsules, load_link_hu
 from planning.dry_run import TRUTH, TABLE_Z, HULL_KEYS                  # noqa: E402
 from planning import p1_poses as P                                      # noqa: E402
 
-CENTER = (0.0014, 0.189)
+CENTER = (float(os.environ.get("P1_BLOCK_X_MM", "1.4")) / 1000.0, 0.189)   # 블록 중심(프로젝트 x, mm): Run 2는 카메라로 잰 상대 오프셋(d_x)에 맞춰 환경변수로 이동(기본 1.4 = 기존 동작)
 GATE_MM = float(os.environ.get("P1_GATE_MM", "20"))
 _DZX = float(os.environ.get("P1_DZ_EXTRA_MM", "0"))   # D1-A: 실제 손끝이 FK보다 최대 이만큼(mm) 낮은 변형을 모든 모델에 추가(D0 실측 26~36 mm, 사용자 승인 D1-2). 0이면 기존 동작
 if _DZX > 0:
@@ -24,6 +24,7 @@ if _DZX > 0:
     for _k, _t in list(TRUTH.items()): TRUTH[_k + "_dzx"] = _dc.replace(_t, dz=-_DZX / 1000)   # P1: 20 mm, P1-b2(더 가까운 자세): 10 mm(승인 문서 제안)
 # 캡 중심 x·쌍 중심 옵셋 조합: 열림, 오므림 가정 4.85 mm, 사진 대조값 7.1 mm(옵셋 −3 mm, UNVERIFIED) 등
 CAP_GEOMS = [(0.0292, 0.0), (0.00485, 0.0), (0.0071, -0.003), (0.0071, 0.0), (0.012, -0.003)]
+if os.environ.get("P1_CAP_OPEN_ONLY_MM"): CAP_GEOMS = [(float(os.environ["P1_CAP_OPEN_ONLY_MM"]) / 1000.0, 0.0)]   # Run 2: 열린 손가락(J6 100)만 평가한다(블록 옆 하강 구간은 오므린 캡 가정을 쓸 수 없음). 값 = 캡 중심 간격의 절반(mm), P2k 관측 약 30.9
 STEP = 0.5
 
 
