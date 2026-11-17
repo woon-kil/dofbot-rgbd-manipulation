@@ -28,3 +28,6 @@
 ## 인용한 실기기 기록은 추적 복사본으로 (2026-11-16, 사용자 승인)
 `evidence/**/raw/`는 추적하지 않는다. 문서가 근거로 인용하는 raw JSON은 `python3 tools/verify_records.py --add <raw 경로>`로 `evidence/records/`에 복사하고 sha256을 `MANIFEST.tsv`에 남긴 뒤 커밋한다. 검증은 `python3 tools/verify_records.py`. 사진·영상·G00 원문 로그는 복사하지 않는다. 상세: `evidence/records/README.md`.
 
+
+## 실행 코드(`scripts/`) 추적과 스냅샷 (2026-11-17, 사용자 승인)
+`scripts/`는 2026-11-17부터 추적한다(`079a2ca`, 임시 실험 `scripts/s413_*`만 제외). **실기기 `--real` 실행 기록에는 그 실행 시점의 커밋 해시를 적는다.** 코드 변경 없는 시점에 커밋한 뒤 실행하고, `--real` 직전에 `evidence/scripts_snapshot/<날짜>-<이름>/`에 스냅샷을 한 번 뜨고 `MANIFEST.sha256`로 커밋 코드와 일치를 확인한다. 기존 스냅샷은 지우지 않는다. 점검 항목은 `docs/direction-checks/CHECKLIST.md` 4번(이 절을 참조).
