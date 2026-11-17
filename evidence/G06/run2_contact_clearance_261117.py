@@ -70,7 +70,7 @@ import os
 GATE = float(os.environ.get('RUN2_GATE_MM', '2.0')); overall = 1e9
 print('※ 최저 점 높이 열은 FK 월드 z다(종이 위 높이 = FK z + 11 mm). 2026-11-17 정정: 이전 출력은 이 열을 "종이 위"로 잘못 표기했다.')
 print('d_x 후보 / dz | 정상 경로(하강·상승) 최소 간격 (부위) | 중단 복귀 경로 최소 간격 | 최저 점 높이 FK z, 명령 각도 기준(종이 위 = +11, 원시 각도라면 약 −5)')
-for dx in (-3.0, 1.3, 3.0):
+for dx in tuple(float(v) for v in _os.environ.get('RUN2_DX_LIST', '-3.0,1.3,3.0').split(',')):   # RUN2_DX_LIST: d_x 후보(mm), 기본 −3, +1.3, +3(2026-11-17 환경변수 추가)
     xb = xa - dx; c = np.array([-xb, 189.0, -11.0 + 15.0])   # 블록 중심 FK z = TABLE_Z(−11) + 15 (종이 = FK z + 11). 2026-11-17 정정: 이전 15.0은 블록을 11 mm 높게 둠     # FK 월드 x = −프로젝트 x
     for dz in (0.0, -3.0, -6.0):   # dz −6: Run 2 경향(원시가 명령보다 약 5 mm 낮음)을 덮는 변형(2026-11-17 추가)
         best = (1e9, None, None, None); minz = 1e9
