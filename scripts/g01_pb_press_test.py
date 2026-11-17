@@ -26,6 +26,7 @@ LADDER_S = [10, 20, 30]                          # PB-1 승인. 40 s는 결과�
 CONTROL_S = 10                                   # PB-2 블록 없음 대조(발열 비교)
 REST_S = 90                                      # PB-1 시도 사이 휴식
 EARLY_BELOW = 145                                # 사용자 승인 2026-11-17(권장안 A): 조기 접촉 중단은 명령 145 미만(140 이하) 정체에만 적용한다. 145 정체(P2h 3/3: 145→142)는 정상 접촉으로 기록하고 150까지 계속한다
+NONE_CONSEC_MAX = 3                              # 사용자 승인 2026-11-17(권장안 A): 누름 중 읽기 None이 이 횟수만큼 연속이면(100 ms 읽기에서 약 0.3 s) 중단하고 연다. 단발 None은 건너뛰고 개수만 기록한다
 CRUSH_RISE = 2                                   # PB-1: 누름 중 마지막 5회 읽기가 단조 증가하고 정체값보다 이만큼 오르면 눌림(문서 '2° 넘게'를 보수적으로 ≥2로 구현)
 E3_MAX = 1                                       # PB-1: 누름 중 회독 최대−최소가 이를 넘으면 기록하고 사다리를 멈춘다(즉시 열기는 아님)
 RETURN_MS = 3000                                 # 150→100 = 50° × 60 ms/° = 3000 ms
@@ -50,7 +51,7 @@ def hold_check(ref, vals):
 
 class PBFake(FastFakeBlock):
     """P-B 가짜 서보: 누름 읽기 구간(hold_on)에서만 이상을 모사한다. creep이면 회독이 천천히 오르고(상한 149), wobble이면 번갈아 wobble°씩 뛰며, none_after면 N번 읽은 뒤 None을 돌려준다."""
-    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0; self.drop_open = 0; self.drop_close = 0
+    def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0; self.drop_open = 0; self.drop_close = 0; self.none_every = 0
     def Arm_serial_servo_write(self, id, angle, time_ms):
         if self.drop_open > 0 and angle == 100 and time_ms == 3000: self.drop_open -= 1; return      # 열기 쓰기 폐기 모사(읽기 직후 쓰기 폐기 실측 이력)
         if self.drop_close > 0 and angle == 179 and time_ms == 3000: self.drop_close -= 1; return      # 닫는 쪽 복귀 쓰기 폐기 모사
@@ -60,6 +61,7 @@ class PBFake(FastFakeBlock):
         if self.hold_on and self._held and v is not None:
             self._n += 1
             if self.none_after is not None and self._n > self.none_after: return None
+            if self.none_every and self._n % self.none_every == 0: return None
             if self.creep_hold: v = min(149, v + self._n // 2)
             if self.wobble and self._n % 2: v += self.wobble
         return v
@@ -80,10 +82,11 @@ def main():
     ap.add_argument("--fake-none-after", type=int, default=None); ap.add_argument("--fake-no-hold-end", action="store_true", help="--fake에서만: 누름 읽기 종료 조건을 끈다(PressBudget 상한 시험)")
     ap.add_argument("--fake-drop-open", type=int, default=0, help="--fake에서만: 처음 N번의 열기(100, 3000 ms) 쓰기를 버린다")
     ap.add_argument("--fake-drop-close", type=int, default=0, help="--fake에서만: 처음 N번의 닫는 쪽 복귀(179, 3000 ms) 쓰기를 버린다")
+    ap.add_argument("--fake-none-every", type=int, default=0, help="--fake에서만: 누름 읽기 N번마다 1번 None(단발 None 시험)")
     ap.add_argument("--no-control", action="store_true", help="블록 없음 대조 1회를 생략한다(PB-2는 넣는 것이 기본)")
     ap.add_argument("--run-id", default="local"); ap.add_argument("--out", default="/tmp/g01_pb_result.json"); a = ap.parse_args()
     if a.fake and a.real: sys.exit("--fake와 --real은 함께 쓸 수 없다")
-    if (a.fake_dry or a.fake_speed != 1 or a.fake_stall_at or a.fake_creep or a.fake_wobble or a.fake_none_after is not None or a.fake_no_hold_end or a.fake_drop_open or a.fake_drop_close or a.fake_start != 179) and not a.fake: sys.exit("--fake-* 옵션은 --fake에서만 쓸 수 있다")
+    if (a.fake_dry or a.fake_speed != 1 or a.fake_stall_at or a.fake_creep or a.fake_wobble or a.fake_none_after is not None or a.fake_no_hold_end or a.fake_none_every or a.fake_drop_open or a.fake_drop_close or a.fake_start != 179) and not a.fake: sys.exit("--fake-* 옵션은 --fake에서만 쓸 수 있다")
     mode = "dry_run" if (a.fake and a.fake_dry) else ("fake" if a.fake else ("real" if a.real else "dry_run"))
     dry = (mode == "dry_run"); sp = a.fake_speed if a.fake else 1
     result = {"run_id": a.run_id, "mode": mode, "started_at": datetime.datetime.now().isoformat(timespec="seconds"), "windows": {"open": list(WIN_OPEN), "press": list(WIN_PRESS), "finish": list(WIN_FINISH)}, "ladder_s": LADDER_S, "control_s": None if a.no_control else CONTROL_S, "rest_s": REST_S, "limits": {"crush_rise": CRUSH_RISE, "e3_max": E3_MAX, "budget_extra_s": BUDGET_EXTRA_S}, "phases": [], "trials": [], "interrupted": False, "ended": None, "ladder_stop": None}
@@ -160,17 +163,22 @@ def main():
         if tr["abort"] is None:
             # 150 도달 뒤 T초 읽기만(추가 쓰기 없음). 블록 없음 대조는 눌림 규칙을 적용하지 않고 기록만 한다
             if a.fake: arm.hold_on = True
-            hold = []; t0 = time.monotonic(); tr["hold"] = {"ref": ref, "series": hold}
+            hold = []; consec = 0; n_none = 0; max_consec = 0; t0 = time.monotonic(); tr["hold"] = {"ref": ref, "series": hold}
             while True:
                 el = time.monotonic() - t0
-                hold.append((round(el * 1000), ad.read_position()))
-                vals = [v for _, v in hold]
-                status, why = hold_check(ref, vals) if block else (("read_none", "회독이 None이다(읽기 실패)") if vals[-1] is None else ("ok", None))
+                v = ad.read_position(); hold.append((round(el * 1000), v))
+                if v is None: consec += 1; n_none += 1; max_consec = max(max_consec, consec)
+                else: consec = 0
+                vals = [x for _, x in hold if x is not None]
+                if consec >= NONE_CONSEC_MAX: status, why = "read_none", "누름 중 회독이 연속 %d회 None이다(읽기 실패)" % consec
+                elif block and vals: status, why = hold_check(ref, vals)
+                else: status, why = "ok", None
                 if status != "ok": tr["abort"] = why; tr["crush"] = why if status == "crush" else None; break
                 if not a.fake_no_hold_end and budget.used_s() >= (T - QUIET_S) / sp: break   # 총 누름(145 쓰기부터, 블록 없음은 150부터)이 T − 열기 전 중지 0.3 s에 이르면 읽기를 끝낸다
                 try: budget.check()
                 except BudgetExceeded as e: tr["abort"] = str(e); break
                 time.sleep(POLL_MS / 1000.0 / sp)
+            tr["n_none"] = n_none; tr["max_consecutive_none"] = max_consec
             if a.fake: arm.hold_on = False
             e3 = e3_range([v for _, v in hold]); tr["e3"] = e3; tr["e3_exceeded"] = bool(e3 is not None and e3 > E3_MAX)
             tr["hold"]["used_s_scaled"] = round(budget.used_s() * sp, 2); tr["hold"]["n_reads"] = len(hold)
@@ -186,7 +194,7 @@ def main():
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if a.real and input("실제 쓰기를 시작하려면 정확히 '%s'를 입력: " % PHRASE).strip() != PHRASE: raise Abort("승인 문구 불일치. 명령은 보내지 않았다.")
         if a.fake:
-            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after; arm.drop_open = a.fake_drop_open; arm.drop_close = a.fake_drop_close
+            arm = PBFake(a.fake_start, sp); arm.creep_hold = a.fake_creep; arm.wobble = a.fake_wobble; arm.none_after = a.fake_none_after; arm.none_every = a.fake_none_every; arm.drop_open = a.fake_drop_open; arm.drop_close = a.fake_drop_close
         else:
             from Arm_Lib import Arm_Device; arm = Arm_Device()
         ad = make_adapter(arm, WIN_OPEN, 6, dry, first_min=3000)

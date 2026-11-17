@@ -58,7 +58,7 @@ def test_e3_exceeded_stops_ladder_after_opening():
 
 def test_read_none_opens_and_aborts():
     p, r = run("y\ny\ny\ny\ny\n", "--fake-stall-at", "146", "--fake-none-after", "5")
-    assert r["ended"] == "aborted" and "None" in r["abort_reason"], r.get("abort_reason")
+    assert r["ended"] == "aborted" and "연속 3회 None" in r["abort_reason"], r.get("abort_reason")
     assert r["trials"][-1]["return_final"] in (99, 100, 101)
 
 
@@ -159,3 +159,11 @@ def test_total_press_with_145_stall_not_over_T():
     p, r = run("y\ny\ny\ny\ny\ny\ny\ny\n", "--fake-stall-at", "142", "--no-control")
     for t in r["trials"]:
         assert t["hold"]["used_s_scaled"] <= t["T_s"] + 1.0 + 1.0, (t["label"], t["hold"]["used_s_scaled"])   # 백스톱 T+1.0 + 실제 시간 환산 오차 1 s
+
+
+def test_isolated_none_reads_are_skipped_and_counted():
+    p, r = run(FULL, "--fake-stall-at", "146", "--fake-none-every", "7")
+    assert r["ended"] == "completed" and r["ladder_stop"] is None, (r.get("abort_reason"), r["ladder_stop"])
+    blk = [t for t in r["trials"] if t["block"]]
+    assert len(blk) == 3 and all(t["n_none"] > 0 and t["max_consecutive_none"] == 1 for t in blk), [(t["label"], t.get("n_none"), t.get("max_consecutive_none")) for t in r["trials"]]
+    assert P.NONE_CONSEC_MAX == 3
