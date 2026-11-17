@@ -1,0 +1,28 @@
+P-A 0단계 시간 분해 (측정 기록일 뿐, 판정·한도 없음)
+[Mac 시계 구간]
+  m_start              → m_p620_check_start      0.03 s
+  m_p620_check_start   → m_p620_check_done       0.59 s
+  m_p620_check_done    → m_capture_start         0.03 s
+  m_capture_start      → m_capture_done         35.76 s
+  m_capture_done       → m_scp_done              0.19 s
+  m_scp_done           → m_verify_done           0.66 s
+  Mac 전체(m_start→m_verify_done): 37.25 s
+[p620 시계 구간(호스트+컨테이너 같은 기계)]
+  h_script_start           → h_checks_done               0.11 s
+  h_checks_done            → h_old_container_removed     0.01 s
+  h_old_container_removed  → h_container_up              0.27 s
+  h_container_up           → h_exec_start                0.00 s
+  h_exec_start             → c_cfg_start                 0.34 s
+  c_cfg_start              → c_driver_launched           0.00 s
+  c_driver_launched        → c_serial_reported           3.02 s
+  c_serial_reported        → c_sleep12_done             12.00 s  (코드 상수 12 s)
+  c_sleep12_done           → c_probe_done               15.42 s  (코드 상수 15 s)
+  c_probe_done             → c_kill_sleep4_done          4.01 s  (코드 상수 4 s)
+  c_kill_sleep4_done       → c_pgrep_stage_done          0.01 s
+  c_pgrep_stage_done       → c_end                       0.00 s
+  c_end                    → h_exec_done                 0.01 s
+  h_exec_done              → h_cleanup_start             0.00 s
+  h_cleanup_start          → h_cleanup_end               0.37 s
+  p620 스크립트 전체(h_script_start→h_cleanup_end): 35.58 s
+[구간 길이 비교(같은 기계 안에서만 뺌)]  Mac 촬영 구간 35.76 s − p620 스크립트 35.58 s = ssh·전송 오버헤드 0.18 s
+[참고] Mac–p620 시계 오프셋 +2.094 s (불확실도 ±0.130 s, 구간 계산에 쓰지 않음)
