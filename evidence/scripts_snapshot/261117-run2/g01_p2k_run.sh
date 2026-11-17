@@ -78,6 +78,7 @@ if [ "${MODE}" = real ]; then
   cp "${PLAN}" "${SOUT}/plan.json"
   echo "촬영 저장: ${SOUT}"
 fi
+if [ "${MODE}" = real ] && [ "${SET}" = 29 ]; then echo "[복귀 뒤 사진] 팔이 K1로 돌아왔습니다. 화면 밖에 계세요. 블록 위치 확인용 Gemini 사진 1장을 찍습니다(약 40초, S4 주 판정)."; bash "${ROOT}/scripts/p1_m3_gemini_photo.sh" "p2kpost_${TS}" || echo "(복귀 뒤 사진 실패: S4는 판정 불가=실패로 셉니다)"; fi
 scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
 python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'자세=',len(j.get('poses',[])),'returned_to_start=',j.get('returned_to_start'))" "${OUT}" "${TS}" "${MODE}"
 echo "저장: ${OUT}"

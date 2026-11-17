@@ -198,6 +198,17 @@ def p2k_j6_sequence(plan, arm, pose_rec, a, mode):
         if pose_rec.get("drift") and pose_rec["drift"][-1]["point"] == str(i): raise Abort("정지 중 J2~J4 처짐 의심(점 %d). 이후 J6 이동 없음, 복귀로 이어집니다." % i)
 
 
+def poll_stall(ad, tgt, cmd_ms, max_ms, poll_ms=None):
+    """접촉 닫기 한 단계의 읽기: 최대 max_ms까지 읽되, **명령 시간(cmd_ms)이 지난 뒤 같은 값이 3회 연속**이면 바로 끝낸다(서보가 아직 움직이는 중의 우연한 두 번 같은 값을 정체로 오인하지 않기 위해, 누름 시간도 최소화). 반환: (시계열, settled)"""
+    series = []; t0 = time.monotonic(); settled = False
+    while (time.monotonic() - t0) * 1000.0 < max_ms:
+        series.append((round((time.monotonic() - t0) * 1000.0), ad.read_position())); time.sleep((poll_ms or 100) / 1000.0)
+        if series[-1][0] >= cmd_ms + 200:
+            vv = [v for _, v in series if v is not None]
+            if len(vv) >= 3 and vv[-1] == vv[-2] == vv[-3]: settled = True; break
+    return series, settled
+
+
 class _DryJ6(object):
     """dry run 전용: J6 읽기를 '열린 상태(100)'로 대신해 접촉 구간 어댑터 목록·창·속도 검사를 실제 승인 값으로 확인한다(쓰기는 dry_run이라 어댑터가 보내지 않는다)."""
     def __init__(self, arm, v): self._a = arm; self._v = v
@@ -246,10 +257,11 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         steps = []; stalled = None
         for t_ in seq[1:]:
             adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.move(t_, cfg["close_ms"]); P2K["cur6"] = t_
-            P2K["contact"] = True; series = poll(adc, cfg["close_ms"] + 800); vals = [v for _, v in series if v is not None]   # 정착 판정에 필요한 최소 시간(누름 시간 최소화)
+            P2K["contact"] = True; series, settled = poll_stall(adc, t_, cfg["close_ms"], 2 * cfg["close_ms"] + 1000); vals = [v for _, v in series if v is not None]   # 명령 시간 뒤 같은 값 3회 연속이면 바로 끝(누름 시간 최소화, 가짜 정체 방지)
             if FAKE.get("abort_close") == len(steps) + 1: raise KeyboardInterrupt()   # 가짜 시험: 닫기 계단 중 중단 주입
             st = {"target": t_, "series_tail": series[-4:], "final": vals[-1] if vals else None}
-            if len(vals) >= 2 and vals[-1] == vals[-2] and t_ - vals[-1] >= 3: stalled = vals[-1]; st["stall"] = True
+            st["settled"] = settled
+            if settled and t_ - vals[-1] >= 3: stalled = vals[-1]; st["stall"] = True   # P2h 규칙(명령 − 회독 ≥ 3°)을 정착(명령 시간 뒤 같은 값 3회 연속)한 뒤에만 정체로 센다
             steps.append(st); say("  닫기 목표 %d → 회독 %s%s" % (t_, st["final"], " ← 정체" if st.get("stall") else ""))
             if stalled is not None: break
         r2["close_steps"] = steps; r2["stall_readback"] = stalled; r2["stall_command"] = steps[-1]["target"] if stalled is not None else None
@@ -475,16 +487,16 @@ def main():
                         except GripperTestError:   # 이미 열기를 한 번 보낸 어댑터면 새 어댑터로(읽은 값 → 열림, 승인 창·시간 3000 ms)
                             nad = GripperTestAdapter(arm, {"approved": True, "expires": datetime.date.today().isoformat(), "allowed_times_ms": [1500, 3000], "first_move_min_ms": None, "max_writes": 3, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(plan["run2"]["window_close"]), "pattern": "list"}, today=datetime.date.today(), dry_run=False)
                             s_ = nad.read_start(); nad.set_targets([s_, plan["run2"]["open_j6"]]); P2K["logs"]["emergency_open"] = nad.log; nad.confirm_hands_clear(); time.sleep(QUIET_S); nad.move(plan["run2"]["open_j6"], plan["run2"]["release_ms"])
-                        P2K["cur6"] = plan["run2"]["open_j6"]; P2K["contact"] = False; time.sleep(plan["run2"]["release_ms"] / 1000.0 + 1); result["emergency_open"] = True
+                        P2K["cur6"] = plan["run2"]["open_j6"]; P2K["start_all"][6] = plan["run2"]["open_j6"]; P2K["contact"] = False; time.sleep(plan["run2"]["release_ms"] / 1000.0 + 1); result["emergency_open"] = True
                     except BaseException as e_: result["emergency_open_error"] = repr(e_); say("접촉 중 열기 실패:", repr(e_))
                 j6_after = bool(P2K.get("low")) and P2K["ad6"] is not None and P2K["cur6"] != P2K["start6"]   # Run 2: 하강 중(블록 옆)에는 J6를 닫지 않는다(닫으면 블록을 물 수 있음) — 팔 복귀(상승) 뒤 K1에서 J6를 시작값으로 되돌린다
                 if P2K["ad6"] is not None and P2K["cur6"] != P2K["start6"] and mode != "dry_run" and not j6_after:   # P2k: 팔 복귀 전에 J6를 시작값(오므림)으로 되돌린다(승인 시간 4800 ms 1회)
                     if ask("J6가 시작값 %s가 아닐 수 있습니다(마지막 명령 %s). 팔 자세는 그대로 두고 J6만 시작값으로 복귀 쓰기를 1회 보낼까요? 시간 %d ms (손을 뗀 뒤에만 y)" % (P2K["start6"], P2K["cur6"], plan["p2k"]["return_ms"])):
-                        P2K["ad6"].confirm_hands_clear(); time.sleep(QUIET_S); P2K["ad6"].return_to_start(plan["p2k"]["return_ms"]); P2K["cur6"] = P2K["start6"]; result["j6_returned"] = True; time.sleep(plan["p2k"]["return_ms"] / 1000.0 + 1)
+                        P2K["ad6"].confirm_hands_clear(); time.sleep(QUIET_S); P2K["ad6"].return_to_start(plan["p2k"]["return_ms"]); P2K["cur6"] = P2K["start6"]; P2K["start_all"][6] = P2K["start6"]; result["j6_returned"] = True; time.sleep(plan["p2k"]["return_ms"] / 1000.0 + 1)   # 이후 팔 복귀의 "명령하지 않은 관절" 감시값을 J6 시작값으로 되돌린다
                 if ask("팔이 시작 자세가 아닐 수 있습니다. 계획된 상태별 복귀 경로(J1·J2 → 펴기 계단, 한 번에 한 관절, 각 3000 ms 이하)로 직립까지 복귀할까요? (손·도구를 뗀 뒤에만 y)"):
                     do_return(plan, {"ads": ads}, arm, cmd, start_all, state, result, PROG["sent"], a, mode, normal=False)
                     if j6_after and mode != "dry_run" and result.get("returned_to_start") and ask("팔이 K1로 돌아왔습니다. J6를 시작값 %s(오므림)으로 되돌릴까요? 시간 %d ms (손을 뗀 뒤에만 y)" % (P2K["start6"], plan["p2k"]["return_ms"])):
-                        P2K["ad6"].confirm_hands_clear(); time.sleep(QUIET_S); P2K["ad6"].return_to_start(plan["p2k"]["return_ms"]); P2K["cur6"] = P2K["start6"]; result["j6_returned"] = True; time.sleep(plan["p2k"]["return_ms"] / 1000.0 + 1)
+                        P2K["ad6"].confirm_hands_clear(); time.sleep(QUIET_S); P2K["ad6"].return_to_start(plan["p2k"]["return_ms"]); P2K["cur6"] = P2K["start6"]; P2K["start_all"][6] = P2K["start6"]; result["j6_returned"] = True; time.sleep(plan["p2k"]["return_ms"] / 1000.0 + 1)   # 이후 팔 복귀의 "명령하지 않은 관절" 감시값을 J6 시작값으로 되돌린다
                 else: result["returned_to_start"] = False
             except BaseException as e: result["return_error"] = repr(e); say("복귀 처리 중단:", repr(e))
         result["adapter_log"] = {str(j): [(["write", *l[1:3], "fake" if (a.fake and l[0] == "write") else l[3], *l[4:]] if l[0] == "write" else list(l)) for l in ads[j].log] for j in ads if hasattr(ads[j], "log")}
