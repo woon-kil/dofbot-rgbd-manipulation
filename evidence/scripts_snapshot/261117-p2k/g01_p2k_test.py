@@ -176,7 +176,7 @@ def p2k_j6_sequence(plan, arm, pose_rec, a, mode):
     cfg = plan["p2k"]; today = datetime.date.today()
     ad6 = GripperTestAdapter(arm, {"approved": True, "expires": today.isoformat(), "allowed_times_ms": [3000, 4800], "first_move_min_ms": 3000, "max_writes": 6, "delta_deg": 5, "joint_id": 6, "direction": -1, "angle_window": list(cfg["window"]), "pattern": "list"}, today=today, dry_run=(mode == "dry_run"))
     s6 = ad6.read_start(); P2K["ad6"] = ad6; P2K["start6"] = s6; P2K["cur6"] = s6
-    if s6 not in (177, 178, 179): raise Abort("J6 시작 회독 %s가 177~179가 아니다. J6 이동 없음." % s6)
+    if s6 not in (176, 177, 178, 179): raise Abort("J6 시작 회독 %s가 176~179가 아니다. J6 이동 없음." % s6)   # R-P2k2: 첫 실행이 J6 176(잔차 2°)으로 끝나 하한을 177 → 176으로 넓힘(오므림 상태 유지, 사용자 확인 필요)
     targets = [s6] + list(cfg["j6_targets"]); ad6.set_targets(targets); times = cfg["j6_times_ms"]
     if mode == "dry_run":   # dry run: 팔이 움직이지 않으므로 정지·도착 검사는 건너뛰고 읽기·목록·속도 검사·dry_run 쓰기 기록만 한다(실제 Arm_Lib에서 새 경로 확인)
         for i, (tgt, t_ms) in enumerate(zip(targets[1:], times), 1):
@@ -294,7 +294,7 @@ def main():
         if any(state[i] is None for i in range(1, 7)): raise Abort("회독 None이 있다. 쓰기 없음.")
         for k in range(1, 7):
             if abs(state[k] - ps[str(k)]) > START_TOL: raise Abort("J%d 현재 회독 %s가 계획 시작값 %s와 %d° 넘게 다르다. 계획을 다시 만든 뒤 실행하세요. 쓰기 없음." % (k, state[k], ps[str(k)], START_TOL))
-        if plan.get("p2k") and not (177 <= state[6] <= 179): raise Abort("J6 회독 %s가 177~179(오므림)가 아니다. P2k는 오므린 그리퍼에서만 시작한다. 쓰기 없음." % state[6])
+        if plan.get("p2k") and not (176 <= state[6] <= 179): raise Abort("J6 회독 %s가 176~179(오므림)가 아니다. P2k는 오므린 그리퍼에서만 시작한다. 쓰기 없음." % state[6])
         # 이동 목록 → 관절별 목표 목록(첫 항목은 실제 시작값)
         lists = {j: [state[j]] + [m["target"] for m in moves if m["joint"] == j] for j in (1, 2, 3, 4)}
         times = [m["time_ms"] for m in moves] + [3000, 1500, 8000]
@@ -321,7 +321,7 @@ def main():
         if plan["set"] in ("25", "26", "27"):   # P2k: 블록·눈금자·클램프 없음, 자세 정지 중 J6만 움직임
             qs = ["전원 차단 담당자가 현재 자리에 있습니까?", "노란 블록·눈금자·클램프·폰 거치대를 모두 치웠고, 보드 위에 종이 외 물체·손·사람·케이블이 없으며, 손가락이 벌어지는 범위(손가락 중심에서 좌우 ±47 mm, 자세 위치 기준)에도 아무것도 없습니까?",
                   "낙하 받침 없이 진행합니다(사용자 결정 2026-11-16). 전원이 끊기면 팔이 넘어지거나 내려앉을 수 있습니다. 팔 앞쪽·옆쪽과 팔 주변에 손·사람·케이블·물체가 없습니까?",
-                  "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 177~179)? 이번 실행은 블록 중심 위 자세에서 정지한 채 J6만 178 → 140 → 100 → 140 → 178로 움직입니다(열리면 손가락이 좌우 약 ±47 mm까지 벌어지고 손끝은 올라갑니다). 점마다 55초 정지하는 동안 입력하지 마세요.",
+                  "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 176~179, 지난 실행이 176으로 끝나 하한을 176으로 넓혔습니다)? 이번 실행은 블록 중심 위 자세에서 정지한 채 J6만 178 → 140 → 100 → 140 → 178로 움직입니다(열리면 손가락이 좌우 약 ±47 mm까지 벌어지고 손끝은 올라갑니다). 점마다 55초 정지하는 동안 입력하지 마세요.",
                   "DaBai·그리퍼 케이블이 당겨지지 않고 여유가 있어 보입니까?", "J2·J3·J4와 그리퍼 서보 J6를 만져서 **뜨겁지 않습니까?**", "위 회독값과 이동 계획이 맞다."]
         for k, q in enumerate(qs, 1): say("  %d. %s" % (k, q))
         if not ask("위 %d개를 모두 확인했습니까? (y면 이동 시작, 이동마다 소리 뒤 대기 후 움직입니다. 자세 도착마다 촬영 중 가만히 계세요)" % len(qs)): raise Abort("사전 확인 미충족. 쓰기 없음.")

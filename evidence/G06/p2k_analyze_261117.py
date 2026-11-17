@@ -3,7 +3,7 @@
 규칙(결과를 보기 전 고정, 사후 조정 금지):
  - 사진 이름: <접두사>2501N.png, N = j6_points 라벨(0=시작 178, 1=140, 2=100, 3=140 닫는 쪽, 4=178 끝).
  - 예측: 그 점의 원시 각도(raw_pre_arm J1~J4)와 J6 목표(178/140/100)로 메시 투영(gemini_j6_visibility_check_261117.py와 같은 모델, UNVERIFIED)한 두 캡 끝 화소의 중점.
- - 검출: gemini_fingertip_detect_v2.py의 detect_v2(차분 > 45, 노출 방어 0.40, 2-means 군집 간격 ≥ 8 px), ROI = 예측 중점 ±60 px. 규칙 수정 없음.
+ - 검출(**R-P2k2에서 사전 등록 변경 2026-11-17, 첫 실행 자료는 사용하지 않고 새 촬영만 판정**): detect_v2와 같은 규칙(차분 > 45, 3x3 열기 1회, 노출 방어 0.40, 맨 아래 14행 2-means 군집, 군집 간격 ≥ 8 px, 군집당 ≥ 15 화소)에서 **성분 면적 문턱만 800 → 300 px**, **ROI 반폭 ±60 → ±80 px**(세로 ±60 유지). 근거: 첫 실행 사진 5장의 ROI 성분 면적(캡 457~871 px, 비캡 303~354 px는 맨 아래 14행 규칙으로 제외), 문턱 200/300/400 사후 결과 불변, ROI 반폭 60/80 성분 목록 동일. 첫 실행 사진은 문턱·ROI 점검에만 사용(참고용).
  - **측정 가능성 판정:** 점 0(오므림 178)에서 두 캡이 검출되지 않으면(미검출·병합·노출) 이 실행 전체를 '판정 불가'로 둔다(규칙을 고치지 않는다).
  - 점이 '정지 중 J2~J4 처짐'(drift)으로 표시됐거나 J6 도착 실패면 그 점은 '판정 불가'.
  - **사진 유효성(D 시리즈 규칙):** 래퍼가 남기는 evidence/G06/d1_photo_<TS>_2501N.log의 photo_end_epoch − photo_start_epoch(촬영 길이, Mac 시계)가 그 점의 hold_s − 2(Jetson 정지 길이)를 넘으면 '판정 불가: 사진 시간'. Mac·Jetson 절대 시각은 비교하지 않고 길이만 비교한다.
@@ -23,6 +23,7 @@ def _stl(p):
     n = struct.unpack('<I', b[80:84])[0]; a = np.frombuffer(b[84:84+n*50], dtype=np.dtype([('n', '<3f4'), ('v', '<9f4'), ('a', '<u2')])); return a['v'].reshape(-1, 3).astype(float)
 M = {k: _stl('data/refs/dofbot_meshes/%s.STL' % k) * 1e3 for k in ('rlink1', 'rlink2', 'rlink3', 'llink1', 'llink2', 'llink3')}
 TOL = 3.1   # px (위 허용치 규칙)
+INNER_GAP = {0: 5.0, 1: 24.3, 2: 44.3, 3: 30.7, 4: 6.7}   # 예측 가로 간격(보고용, 판정과 분리): P2g 안쪽 간격(mm) + 캡 폭 10 mm(추정)를 옆 스케일 1.37 px/mm로. 점 2는 대체값 48.5(G01.5a 캘리퍼·사용자)와 함께 보고
 GRIP = {178: -1.5, 140: -1.1, 100: -0.79}   # J6 → grip_joint(rad), P2g 안쪽 간격 대응(UNVERIFIED)
 def _Rz(a): c, s = np.cos(a), np.sin(a); R = np.eye(4); R[:2, :2] = [[c, -s], [s, c]]; return R
 def _Tm(xyz, yaw, ang): m = _Rz(yaw) @ _Rz(ang); m[:3, 3] = np.array(xyz) * 1e3; return m
@@ -37,15 +38,15 @@ def caps_px(q, j6):
         w = t + R @ np.array([p[0], p[1] - 90, 0]); out.append(np.array(D.P(-w[0], w[1], (w[2] + 11) / 1000)))
     return out
 import cv2
-def detect_caps(img_path, ref_path, pred):
+def detect_caps(img_path, ref_path, pred, area=300, half=80):
     """detect_v2와 같은 규칙으로 두 캡 아래끝 점을 돌려준다(도구 확장: 가로 간격 기록용). 실패하면 None."""
     g = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.int16); r = cv2.cvtColor(cv2.imread(ref_path), cv2.COLOR_BGR2GRAY).astype(np.int16)
-    H, W = g.shape; x0 = int(max(0, pred[0]-60)); x1 = int(min(W, pred[0]+60)); y0 = int(max(0, pred[1]-60)); y1 = int(min(H, pred[1]+60))
+    H, W = g.shape; x0 = int(max(0, pred[0]-half)); x1 = int(min(W, pred[0]+half)); y0 = int(max(0, pred[1]-60)); y1 = int(min(H, pred[1]+60))
     m = (np.abs(g[y0:y1, x0:x1]-r[y0:y1, x0:x1]) > 45).astype(np.uint8)
     if m.mean() > 0.40: return None
     m = cv2.morphologyEx(m, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8)); nc, lab, st, _ = cv2.connectedComponentsWithStats(m, 8); keep = np.zeros_like(m)
     for i in range(1, nc):
-        if st[i, cv2.CC_STAT_AREA] >= 800: keep[lab == i] = 1
+        if st[i, cv2.CC_STAT_AREA] >= area: keep[lab == i] = 1
     ys, xs = np.nonzero(keep)
     if len(ys) == 0: return None
     ymax = ys.max(); sel = ys >= ymax-14; yy = ys[sel]; xx = xs[sel].astype(float); c = np.array([xx.min(), xx.max()])
@@ -76,9 +77,8 @@ if __name__ == '__main__':
         else:
             ts = pre[len('data/g04/d1_'):].rstrip('_') if pre.startswith('data/g04/d1_') else None; ln = photo_len('evidence/G06/d1_photo_%s_2501%d.log' % (ts, idx)) if ts else None; row['photo_len_s'] = ln; row['hold_s'] = pt.get('hold_s')
             if ln is None or pt.get('hold_s') is None or ln > pt['hold_s'] - 2: rows.append({**row, 'status': '판정 불가: 사진 시간(촬영 %s s > 정지 %s s − 2 또는 기록 없음)' % (ln, pt.get('hold_s'))}); print(rows[-1]); continue
-            mid, why = D2.detect_v2(img, ref, mid_pred); row['status'] = why
-            cp = detect_caps(img, ref, mid_pred) if mid is not None else None
-            if cp: row['caps_px'] = [[round(x, 1) for x in q_] for q_ in sorted(cp)]; row['cap_gap_px'] = round(abs(cp[0][0] - cp[1][0]), 1); row['pred_cap_gap_px'] = round(abs(c[0][0] - c[1][0]), 1)
+            cp = detect_caps(img, ref, mid_pred); mid = ((cp[0][0]+cp[1][0])/2, (cp[0][1]+cp[1][1])/2) if cp else None; row['status'] = 'ok' if cp else '미검출 또는 병합: 제외'
+            if cp: row['caps_px'] = [[round(x, 1) for x in q_] for q_ in sorted(cp)]; row['cap_gap_px'] = round(abs(cp[0][0] - cp[1][0]), 1); row['pred_cap_gap_px'] = round(INNER_GAP[idx] * 1.37 + 10 * 1.37, 1); row['pred_cap_gap_mesh_tip_px'] = round(abs(c[0][0] - c[1][0]), 1)
             if mid is not None: row['mid_px'] = [round(mid[0], 1), round(mid[1], 1)]; row['diff_px'] = [round(mid[0] - mid_pred[0], 1), round(mid[1] - mid_pred[1], 1)]
         rows.append(row); print(row)
     r0 = rows[0] if rows else None
