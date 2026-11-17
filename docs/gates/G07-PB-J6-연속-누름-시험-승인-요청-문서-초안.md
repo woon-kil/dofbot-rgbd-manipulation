@@ -194,3 +194,9 @@
 - 래퍼 `scripts/g01_pb_run.sh`(`SNAP=261117-pb5`): 비상 주석 177~179→176~179, 끝 안내 문구를 '정상 완료는 179 쪽 마무리로 끝(시작값 복귀 아님), dry run 기록에는 targets 없음, 시작 S는 출력의 S 줄·phases에서'로 정정. 스냅샷 `evidence/scripts_snapshot/261117-pb5/`(MANIFEST 7개 sha 일치, pb4는 불변).
 - 시험(실행기별): `python3 -m pytest -q tests/test_pb_press.py` **25 passed**(벨 4건 추가: 시도 4+마무리 1 = 카운트다운 5회·벨 15, 첫 이동 앞, dry run 미출력, 사전 확인 문구), `.venv/bin/python -I -m unittest discover -s tests` **163 OK**.
 - 다음: 사용자 `bash scripts/g01_pb_run.sh --check`·dry run 3회차(쓰기 0) → 출력 확인 → 실기기 직전 advisor 검토 → `--real` 1회(PB-R). 위 §9-4의 `8e54c7a`·pb4는 **`0295394`·pb5로 읽는다**.
+
+### 9-8. dry run 3회차 결과 (2026-11-17 22:37, 사용자 실행, 코드 `0295394`·스냅샷 `261117-pb5`, 쓰기 0회)
+- `--check` "사전 검증 통과". dry run 출력(사용자 붙임): 시작 **S=177**(176~179 안), 계획 `열기 [177,160,140,120,100] → [대조 10, 블록 10/20/30 s] → 마무리 [100,120,140,160,179]`, 사전 확인 4항에 '위에서 매다는 클램프+고무밴드'·'대조 동안은 클램프만, 고무밴드는 걷어 둔다' 표시, 래퍼 끝 문구 '정상 완료는 179 쪽 마무리(시작값 복귀 아님)' 표시.
+- 기록 `evidence/records/G01/g01_pb_result-dry_run-261117-223742.json`: `ended=completed`, `writes_total=0`, `trials=0`, `open_unconfirmed=None`. 기대와 일치.
+- dry run은 `run_trial`·마무리를 거치지 않아 카운트다운·벨·'블록을 두세요' 새 문구는 `--real`에서 처음 나온다(가짜 시험으로만 확인).
+- 사용자 답 대기: ① `printf '\a'` 소리 확인 ② 마무리 전에 클램프를 손가락 위에서 치우거나 돌릴 수 있는지.
