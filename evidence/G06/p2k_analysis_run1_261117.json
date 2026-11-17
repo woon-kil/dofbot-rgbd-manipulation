@@ -1,0 +1,319 @@
+{
+ "rows": [
+  {
+   "label": "start",
+   "j6": 178,
+   "pred_mid_px": [
+    697.7,
+    240.7
+   ],
+   "pred_caps_px": [
+    [
+     691.2,
+     240.5
+    ],
+    [
+     704.1,
+     240.8
+    ]
+   ],
+   "photo_len_s": 36,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     676.9,
+     238.0
+    ],
+    [
+     702.0,
+     240.0
+    ]
+   ],
+   "cap_gap_px": 25.1,
+   "pred_cap_gap_px": 20.6,
+   "pred_cap_gap_mesh_tip_px": 12.9,
+   "dx": {
+    "marker_point_photo_px": [
+     678.0,
+     265.8
+    ],
+    "marker_px": [
+     678.2,
+     265.8
+    ],
+    "x_block": -13.11,
+    "y_block": 186.97,
+    "x_cap": -6.64,
+    "y_cap": 181.65,
+    "d_x_mm": 6.46
+   },
+   "dJ1_suggest_deg": -2.02,
+   "dJ1_primary": false,
+   "mid_px": [
+    689.4,
+    239.0
+   ],
+   "diff_px": [
+    -8.2,
+    -1.7
+   ]
+  },
+  {
+   "label": "1",
+   "j6": 140,
+   "pred_mid_px": [
+    698.3,
+    236.4
+   ],
+   "pred_caps_px": [
+    [
+     676.0,
+     236.1
+    ],
+    [
+     720.6,
+     236.7
+    ]
+   ],
+   "photo_len_s": 37,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     662.3,
+     232.0
+    ],
+    [
+     718.7,
+     237.0
+    ]
+   ],
+   "cap_gap_px": 56.5,
+   "pred_cap_gap_px": 47.0,
+   "pred_cap_gap_mesh_tip_px": 44.6,
+   "dx": {
+    "marker_point_photo_px": [
+     678.0,
+     265.8
+    ],
+    "marker_px": [
+     678.2,
+     265.8
+    ],
+    "x_block": -13.11,
+    "y_block": 186.97,
+    "x_cap": -6.07,
+    "y_cap": 179.94,
+    "d_x_mm": 7.04
+   },
+   "dJ1_suggest_deg": -2.22,
+   "dJ1_primary": false,
+   "mid_px": [
+    690.5,
+    234.5
+   ],
+   "diff_px": [
+    -7.9,
+    -1.9
+   ],
+   "dv_obs_px": -4.5,
+   "dv_pred_px": -4.3
+  },
+  {
+   "label": "2",
+   "j6": 100,
+   "pred_mid_px": [
+    698.9,
+    229.2
+   ],
+   "pred_caps_px": [
+    [
+     666.0,
+     228.8
+    ],
+    [
+     731.7,
+     229.7
+    ]
+   ],
+   "photo_len_s": 37,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     649.8,
+     219.0
+    ],
+    [
+     734.9,
+     226.0
+    ]
+   ],
+   "cap_gap_px": 85.0,
+   "pred_cap_gap_px": 74.4,
+   "pred_cap_gap_mesh_tip_px": 65.7,
+   "dx": {
+    "marker_point_photo_px": [
+     678.2,
+     265.8
+    ],
+    "marker_px": [
+     678.2,
+     265.8
+    ],
+    "x_block": -13.11,
+    "y_block": 186.97,
+    "x_cap": -4.83,
+    "y_cap": 173.02,
+    "d_x_mm": 8.27
+   },
+   "dJ1_suggest_deg": -2.64,
+   "dJ1_primary": true,
+   "mid_px": [
+    692.4,
+    222.5
+   ],
+   "diff_px": [
+    -6.5,
+    -6.7
+   ],
+   "cap_side_margin_mm": [
+    2.37,
+    18.82
+   ],
+   "dv_obs_px": -16.5,
+   "dv_pred_px": -11.5
+  },
+  {
+   "label": "3",
+   "j6": 140,
+   "pred_mid_px": [
+    698.3,
+    236.4
+   ],
+   "pred_caps_px": [
+    [
+     676.0,
+     236.1
+    ],
+    [
+     720.6,
+     236.7
+    ]
+   ],
+   "photo_len_s": 37,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     661.0,
+     231.0
+    ],
+    [
+     720.8,
+     236.0
+    ]
+   ],
+   "cap_gap_px": 59.8,
+   "pred_cap_gap_px": 55.8,
+   "pred_cap_gap_mesh_tip_px": 44.6,
+   "dx": {
+    "marker_point_photo_px": [
+     678.2,
+     265.8
+    ],
+    "marker_px": [
+     678.2,
+     265.8
+    ],
+    "x_block": -13.11,
+    "y_block": 186.97,
+    "x_cap": -5.75,
+    "y_cap": 179.02,
+    "d_x_mm": 7.35
+   },
+   "dJ1_suggest_deg": -2.32,
+   "dJ1_primary": false,
+   "mid_px": [
+    690.9,
+    233.5
+   ],
+   "diff_px": [
+    -7.5,
+    -2.9
+   ],
+   "dv_obs_px": -5.5,
+   "dv_pred_px": -4.3
+  },
+  {
+   "label": "4",
+   "j6": 178,
+   "pred_mid_px": [
+    698.0,
+    240.7
+   ],
+   "pred_caps_px": [
+    [
+     691.6,
+     240.5
+    ],
+    [
+     704.5,
+     240.8
+    ]
+   ],
+   "photo_len_s": 36,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     676.7,
+     238.0
+    ],
+    [
+     702.0,
+     240.0
+    ]
+   ],
+   "cap_gap_px": 25.3,
+   "pred_cap_gap_px": 22.9,
+   "pred_cap_gap_mesh_tip_px": 12.9,
+   "dx": {
+    "marker_point_photo_px": [
+     678.2,
+     265.8
+    ],
+    "marker_px": [
+     678.2,
+     265.8
+    ],
+    "x_block": -13.11,
+    "y_block": 186.97,
+    "x_cap": -6.7,
+    "y_cap": 181.65,
+    "d_x_mm": 6.41
+   },
+   "dJ1_suggest_deg": -2.01,
+   "dJ1_primary": false,
+   "mid_px": [
+    689.4,
+    239.0
+   ],
+   "diff_px": [
+    -8.7,
+    -1.7
+   ],
+   "dv_obs_px": 0.0,
+   "dv_pred_px": 0.0
+  }
+ ],
+ "verdict": {
+  "run": "ok",
+  "repeatability_px": [
+   0.0,
+   0.0
+  ],
+  "point2": "다른 값"
+ }
+}
