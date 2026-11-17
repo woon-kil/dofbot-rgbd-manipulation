@@ -1,0 +1,48 @@
+{
+  "run_id": "261117-214938",
+  "mode": "dry_run",
+  "started_at": "2026-11-17T20:49:41",
+  "windows": {
+    "open": [
+      95,
+      179
+    ],
+    "finish": [
+      95,
+      179
+    ]
+  },
+  "phases": [
+    {
+      "phase": "dry_run_plan",
+      "open": [
+        176,
+        160,
+        140,
+        120,
+        100
+      ],
+      "skip_open": false,
+      "finish": [
+        100,
+        120,
+        140,
+        160,
+        179
+      ]
+    }
+  ],
+  "gate_close": null,
+  "ended": "completed",
+  "writes_done": false,
+  "adapter_logs": [
+    [
+      [
+        "read",
+        176
+      ]
+    ]
+  ],
+  "writes_total": 0,
+  "finished_at": "2026-11-17T20:49:44"
+}
