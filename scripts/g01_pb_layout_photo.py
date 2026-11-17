@@ -31,7 +31,12 @@ def main():
     dry = (mode == "dry_run"); sp = a.fake_speed if a.fake else 1
     result = {"run_id": a.run_id, "mode": mode, "started_at": datetime.datetime.now().isoformat(timespec="seconds"), "windows": {"open": list(WIN_OPEN), "finish": list(WIN_FINISH)}, "phases": [], "gate_close": None, "ended": None}
     for sg in (signal.SIGHUP, signal.SIGTERM): signal.signal(sg, _on_signal)
-    writes_done = False
+    writes_done = False; phase = {"p": "start"}   # start → open → wait → close. 중단 안내 문구가 단계에 맞게 나오도록 기록한다
+
+    def stop_note():
+        if phase["p"] == "close": return "★ 닫기 이동 중이었다. 이미 보낸 닫기 이동은 서보가 끝까지 수행한다. **손을 넣지 마세요.** 새 명령은 보내지 않는다."
+        if phase["p"] == "open": return "열기 이동 중이었다. 이미 보낸 열기 이동은 끝까지 수행된다(열리는 쪽). 새 명령은 보내지 않는다."
+        return "이후 명령 없음(닫지 않는다)"
 
     def move_steps(label, adapter, targets, times):
         """승인된 목록을 순서대로 이동하고 단계마다 정착 확인(도착 실패면 중단, 재전송·복귀 없음)."""
@@ -66,10 +71,12 @@ def main():
             result["phases"].append({"phase": "dry_run_plan", "open": open_t, "skip_open": skip_open, "finish": [100] + FINISH_STEPS}); result["ended"] = "completed"
         else:
             if not ask("이 목록을 확인했고 이대로 진행합니까?"): raise Abort("목표 목록 미확인. 쓰기 없음.")
+            phase["p"] = "open"
             if not skip_open:
                 steps, cur = move_steps("열기", ad, open_t, open_ms); result["phases"].append({"phase": "open", "targets": open_t, "steps": steps})
                 if cur != 100: raise Abort("열기가 100에 도착하지 않았다(%s)." % cur)
             else: result["phases"].append({"phase": "open_skipped", "start": s0})
+            phase["p"] = "wait"
             print("\n=== 손가락이 100(열림)입니다. **지금 사진 2장(정면·옆)을 찍으세요.** 천천히 하셔도 됩니다. 이 동안 부하·명령은 없습니다. ===")
             go = ask("사진을 마쳤고 홀더·자·손을 손가락 근처에서 **모두 치웠습니까?** y면 닫기를 시작하고, N(기본)·Ctrl-C면 열린 채로 끝납니다")
             result["gate_close"] = bool(go)
@@ -77,12 +84,14 @@ def main():
             else:
                 ad2 = make_adapter(arm, WIN_FINISH, 6, dry); s = ad2.read_start()
                 if s not in START_OPEN: raise Abort("닫기 시작 회독 S=%d가 100(±1)이 아니다. 추가 명령 없음." % s)
+                phase["p"] = "close"
+                for k in (3, 2, 1): print("\a  닫기 시작 %d...(손가락 근처에서 손·도구를 떼세요)" % k); time.sleep(1.0 / sp)
                 fin_t = [s] + FINISH_STEPS; steps, cur = move_steps("닫기", ad2, fin_t, [1500] * len(FINISH_STEPS)); result["phases"].append({"phase": "finish", "targets": fin_t, "steps": steps})
                 result["ended"] = "completed"
     except Abort as e: result["ended"] = "aborted"; result["abort_reason"] = str(e); print("\n중단:", e)
-    except Hangup as e: result["ended"] = "hangup"; result["abort_reason"] = str(e); print("\n중단:", e, "이후 명령 없음(닫지 않는다)")
-    except KeyboardInterrupt: result["interrupted"] = True; result["ended"] = "interrupted"; print("\n중단(Ctrl-C): 이후 명령 없음(닫지 않는다)")
-    except EOFError: result["ended"] = "input_closed"; print("\n중단: 입력이 끊겼다. 이후 명령 없음(닫지 않는다)")
+    except Hangup as e: result["ended"] = "hangup"; result["abort_reason"] = str(e); print("\n중단:", e, stop_note())
+    except KeyboardInterrupt: result["interrupted"] = True; result["ended"] = "interrupted"; print("\n중단(Ctrl-C):", stop_note())
+    except EOFError: result["ended"] = "input_closed"; print("\n중단: 입력이 끊겼다.", stop_note())
     except GripperTestError as e: result["ended"] = "adapter_refused"; result["error"] = str(e); print("\n어댑터 거부:", e)
     except Exception as e: result["ended"] = "error"; result["error"] = repr(e); print("\n오류:", repr(e))
     finally:

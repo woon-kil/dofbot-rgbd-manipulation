@@ -104,6 +104,24 @@ def test_ctrl_c_during_open_does_not_close(monkeypatch, tmp_path):
     assert r["ended"] == "interrupted" and r["writes_total"] <= 2 and "finish" not in [ph["phase"] for ph in r["phases"]] and not any(a == 179 for a, _ in writes(r))
 
 
+def test_ctrl_c_during_close_says_do_not_reach_in(monkeypatch, tmp_path, capsys):
+    n = {"c": 0}; real_poll = L.poll
+    def bad_poll(*a, **k):
+        n["c"] += 1
+        if n["c"] == 5: raise KeyboardInterrupt()      # 열기 poll 4번 뒤 닫기 첫 이동의 poll
+        return real_poll(*a, **k)
+    monkeypatch.setattr(L, "poll", bad_poll)
+    r = _inproc(monkeypatch, tmp_path, [True, True, True], KeyboardInterrupt())
+    out = capsys.readouterr().out
+    assert r["ended"] == "interrupted" and "손을 넣지 마세요" in out and "닫지 않는다" not in out.split("중단(Ctrl-C)")[1]
+
+
+def test_countdown_before_first_close_write():
+    p, r = run("y\ny\ny\n", "--fake-start", "176")
+    assert p.stdout.index("닫기 시작 3") < p.stdout.index("[닫기] 이동 1/4") and "닫기 시작 1" in p.stdout and "\a" in p.stdout
+    assert "닫기 시작" not in run("y\ny\nn\n", "--fake-start", "176")[0].stdout
+
+
 if __name__ == "__main__":
     import traceback
     ok = fail = 0
