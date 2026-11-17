@@ -51,7 +51,7 @@ class PBFake(FastFakeBlock):
     """P-B 가짜 서보: 누름 읽기 구간(hold_on)에서만 이상을 모사한다. creep이면 회독이 천천히 오르고(상한 149), wobble이면 번갈아 wobble°씩 뛰며, none_after면 N번 읽은 뒤 None을 돌려준다."""
     def __init__(self, v, speed): super().__init__(v, speed); self.wobble = 0; self.none_after = None; self.creep_hold = False; self.hold_on = False; self._n = 0; self.drop_open = 0
     def Arm_serial_servo_write(self, id, angle, time_ms):
-        if self.drop_open > 0 and angle == 100 and time_ms == 3000 and not self.hold_on: self.drop_open -= 1; return      # 열기 쓰기 폐기 모사(읽기 직후 쓰기 폐기 실측 이력)
+        if self.drop_open > 0 and angle == 100 and time_ms == 3000: self.drop_open -= 1; return      # 열기 쓰기 폐기 모사(읽기 직후 쓰기 폐기 실측 이력)
         super().Arm_serial_servo_write(id, angle, time_ms)
     def Arm_serial_servo_read(self, id):
         v = super().Arm_serial_servo_read(id)
@@ -97,22 +97,25 @@ def main():
             if last is None or abs(last - tgt) > 3: raise Abort("도착 실패(회독 %s, 목표 %d, 허용 3°). 추가 이동 없음." % (last, tgt))
         return steps
 
-    def settle_to(adapter, s):
-        stop = lambda sr, el, _s=s: el >= RETURN_MS / sp and len(tail5(sr)) == 5 and max(tail5(sr)) - min(tail5(sr)) <= 1 and abs(_s - tail5(sr)[-1]) <= 3
-        series = poll(adapter, (2 * RETURN_MS + 1000) // sp, POLL_MS / sp, stop=stop); return next((v for _, v in reversed(series) if v is not None), None)
+    def settle_to(adapter, s, t_ms):
+        stop = lambda sr, el, _s=s, _m=t_ms: el >= _m / sp and len(tail5(sr)) == 5 and max(tail5(sr)) - min(tail5(sr)) <= 1 and abs(_s - tail5(sr)[-1]) <= 3
+        series = poll(adapter, int(max(2 * t_ms + 1000, 2.7 * t_ms + 600)) // sp, POLL_MS / sp, stop=stop); return next((v for _, v in reversed(series) if v is not None), None)
+
+    def verify_return(adapter, s, t_ms):
+        """복귀(열기) 쓰기 뒤 도착 확인. 확인 실패(쓰기 폐기 등)면 새 어댑터로 같은 쓰기를 1회 더 보내고, 그래도 안 되면 OpenUnconfirmed. repeat_last는 직전 '이동'(=150)을 다시 보내므로 쓰지 않는다. 정상 경로(go_home)와 중단 경로(finally)가 함께 쓴다."""
+        nonlocal cur, ad
+        last = settle_to(adapter, s, t_ms)
+        if last is not None and abs(last - s) <= 3: cur = s; return last
+        print("★ 복귀가 확인되지 않았다(회독 %s, 목표 %d). 새 어댑터로 같은 쓰기를 1회 다시 보낸다." % (last, s)); result["open_retry"] = result.get("open_retry", 0) + 1
+        try:
+            rad = make_adapter(arm, WIN_OPEN, 2, dry); s2 = rad.read_start(); rad.set_targets([s2, s]); rad.confirm_hands_clear(); time.sleep(QUIET_S); rad.move(s, t_ms); last2 = settle_to(rad, s, t_ms)
+        except GripperTestError as e: raise OpenUnconfirmed("복귀 재전송 준비 실패: %s" % e)
+        if last2 is not None and abs(last2 - s) <= 3: cur = s; ad = rad; return last2
+        raise OpenUnconfirmed("복귀 쓰기를 두 번 보냈지만 회독 %s(목표 %d)로 도착하지 않았다. 열기 미확인" % (last2, s))
 
     def go_home(adapter, s):
-        """열기 쓰기 1회 + 도착 확인. 확인 실패(쓰기 폐기 등)면 새 어댑터로 열기를 1회 더 보내고, 그래도 안 열리면 OpenUnconfirmed. repeat_last는 직전 '이동'(=150)을 다시 보내므로 쓰지 않는다."""
-        nonlocal cur, ad
         adapter.confirm_hands_clear(); time.sleep(QUIET_S); adapter.return_to_start(RETURN_MS)
-        last = settle_to(adapter, s)
-        if last is not None and abs(last - s) <= 3: cur = s; return last
-        print("★ 열기가 확인되지 않았다(회독 %s, 목표 %d). 새 어댑터로 열기 쓰기를 1회 다시 보낸다." % (last, s)); result["open_retry"] = result.get("open_retry", 0) + 1
-        try:
-            rad = make_adapter(arm, WIN_PRESS, 2, dry); s2 = rad.read_start(); rad.set_targets([s2, s]); rad.confirm_hands_clear(); time.sleep(QUIET_S); rad.move(s, RETURN_MS); last2 = settle_to(rad, s)
-        except GripperTestError as e: raise OpenUnconfirmed("열기 재전송 준비 실패: %s" % e)
-        if last2 is not None and abs(last2 - s) <= 3: cur = s; ad = rad; return last2
-        raise OpenUnconfirmed("열기를 두 번 보냈지만 회독 %s(목표 %d)로 열리지 않았다" % (last2, s))
+        return verify_return(adapter, s, RETURN_MS)
 
     def run_trial(label, T, block):
         """한 시도: 닫기 계단 → 150 도달·정착 → T초 읽기만 → 열기. 누름 중 이상(눌림·None·상한 초과)이면 즉시 열고 Abort. 반환 시도 기록(E3 초과는 기록만)."""
@@ -233,8 +236,11 @@ def main():
                 if dist == 0 or getattr(ad, "_returned", False): result["returned_to_start"] = None
                 elif t_ret is None: print("복귀 폭 %d°가 승인된 시간으로 갈 수 없다. 복귀하지 않는다." % dist); result["returned_to_start"] = False
                 elif ask(("그리퍼가 블록을 누르고 있을 수 있습니다(마지막 명령 %s). 열린 쪽 S=%d로 복귀 쓰기를 1회 보낼까요? 이 복귀는 블록을 놓는 **여는 동작**이며 시간 %d ms입니다. 이상(소리·발열·도착 실패·눌림)이 있으면 y를 권장합니다" % (cur, start_of_ad, t_ret)) if opening else ("그리퍼가 이 구간의 시작값 S=%d가 아닐 수 있습니다(마지막 명령 %s). S로 복귀 쓰기를 1회 보낼까요? 이 복귀는 **닫는 동작**이며 시간 %d ms입니다. 끼임·소리·발열이면 N (손·도구가 멀 때만 y)" % (start_of_ad, cur, t_ret))):
-                    ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.return_to_start(t_ret); result["returned_to_start"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송")
+                    ad.confirm_hands_clear(); time.sleep(QUIET_S); ad.return_to_start(t_ret); result["returned_to_start"] = True; result["return_time_ms"] = t_ret; print("복귀 명령 1회 전송. 도착을 확인합니다.")
+                    result["return_final"] = verify_return(ad, start_of_ad, t_ret); print("복귀 확인: 회독 %s" % result["return_final"])
                 else: result["returned_to_start"] = False
+            except OpenUnconfirmed as e:
+                result["open_unconfirmed"] = True; result["return_error"] = str(e); print("\n★★ 복귀 미확인:", e); print("추가 명령을 보내지 않는다. 손을 넣지 마세요. 그리퍼가 블록을 계속 누르고 있을 수 있으므로 전원 차단 담당자가 판단하세요.")
             except BaseException as e: result["return_error"] = repr(e); print("복귀 처리 중단:", repr(e))
         result["adapter_logs"] = [[(["write", *l[1:3], "fake" if (a.fake and not a.fake_dry and l[0] == "write") else l[3], *l[4:]] if l[0] == "write" else list(l)) for l in x.log] for x in ADAPTERS]
         result["writes_total"] = sum(1 for x in ADAPTERS for l in x.log if l[0] == "write")
