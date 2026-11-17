@@ -6,7 +6,7 @@
 #       bash scripts/g01_pb_run.sh --real        (실제 쓰기. 확인 문구를 직접 입력해야 한다)
 # 사전 검증: 로컬 파일 존재, 스냅샷 sha 일치, ssh 도달, Arm_Lib 있음, 팔 제어 프로세스 없음.
 # 결과: evidence/G01/raw/g01_pb_result-<모드>-<시각>.json (원본 파일명이 매번 달라 멱등, 덮어쓰기 없음)
-# 비상: 이상 징후 시 손부터 빼고 Ctrl-C(이후 명령 없음). 전원 차단은 담당자가 판단. 이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽는다(S가 177~179 오므림도 99~101 열림도 아니면 시작하지 않는다).
+# 비상: 이상 징후 시 손부터 빼고 Ctrl-C(이후 명령 없음). 전원 차단은 담당자가 판단. 이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽는다(S가 176~179 오므림도 99~101 열림도 아니면 시작하지 않는다).
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 H="${JETSON_HOST:-$(grep '^LG_JETSON_HOST=' "${HOME}/projects/learned-grasp-poc/.env" | cut -d= -f2- | tr -d '"')}"
@@ -17,7 +17,7 @@ TS="$(date +%y%m%d-%H%M%S)"; OUT="${ROOT}/evidence/G01/raw/g01_pb_result-${MODE}
 for f in scripts/g01_pb_press_test.py scripts/g01_p2i_gripper_test.py scripts/g01_p2h_gripper_test.py scripts/g01_p2g_gripper_test.py scripts/g01_5a_gripper_test.py scripts/gripper_adapter.py scripts/press_budget.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
 cmp -s "${ROOT}/src/control/gripper_adapter.py" "${ROOT}/scripts/gripper_adapter.py" || { echo "scripts/gripper_adapter.py가 src/control/gripper_adapter.py와 다르다. 복사 후 재실행"; exit 2; }
 cmp -s "${ROOT}/src/planning/press_budget.py" "${ROOT}/scripts/press_budget.py" || { echo "scripts/press_budget.py가 src/planning/press_budget.py와 다르다. 복사 후 재실행"; exit 2; }
-SNAP="${ROOT}/evidence/scripts_snapshot/261117-pb4"
+SNAP="${ROOT}/evidence/scripts_snapshot/261117-pb5"
 if [ -f "${SNAP}/MANIFEST.sha256" ]; then   # 스냅샷에 적힌 실행 파일의 sha가 지금 scripts/와 같은지 확인한다
   while read -r h n; do [ "$(shasum -a 256 "${ROOT}/scripts/${n}" | cut -d' ' -f1)" = "${h}" ] || { echo "스냅샷과 다른 파일: ${n}. 중단(승인 뒤 파일이 바뀌었는지 확인)"; exit 7; }; done < "${SNAP}/MANIFEST.sha256"
 else echo "스냅샷 MANIFEST가 없다. 중단"; exit 7; fi
@@ -34,5 +34,5 @@ ssh -t -o ConnectTimeout=8 "${H}" "cd ~/${RD} && python3 g01_pb_press_test.py ${
 scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
 python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'trials=',len(j.get('trials',[])),'writes_total=',j.get('writes_total'),'returned_to_start=',j.get('returned_to_start'),'open_unconfirmed=',j.get('open_unconfirmed'),'ladder_stop=',j.get('ladder_stop'));[print(' ',t['label'],'T',t['T_s'],'E3',t.get('e3'),'stall',t.get('stall_step'),'abort',t.get('abort')) for t in j.get('trials',[])]" "${OUT}" "${TS}" "${MODE}"
 echo "저장: ${OUT}"
-echo "비상 절차: 시험은 마지막에 시작값 S로 복귀한다. 복귀 없이 끝났거나 그리퍼에서 소리·발열이 있으면 손부터 빼고, 낙하 받침 위치를 확인한 뒤 담당자가 전원을 차단한다."
-echo "이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽으므로 원래 위치로 돌아가지 않는다. 원래 S는 기록(JSON)의 targets[0]이다."
+echo "비상 절차: 시험은 이상 시 열린 쪽(100)으로 복귀(질문 y 권장)한다. 정상 완료는 마무리로 179 쪽까지 닫고 끝난다(시작값 S로의 복귀가 아니다). 복귀 없이 끝났거나 그리퍼에서 소리·발열이 있으면 손부터 빼고, 낙하 받침 위치를 확인한 뒤 담당자가 전원을 차단한다."
+echo "이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽으므로 원래 위치로 돌아가지 않는다. 시작 S는 위의 '시작 회독값 S' 줄과 기록(JSON)의 phases에서 본다(dry run 기록에는 targets 키가 없다)."
