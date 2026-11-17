@@ -255,7 +255,10 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         r2 = pose_rec.setdefault("run2", {}); r2["hold_%d_open" % pid] = p2k_hold(plan, "0", arm, {"pose_id": pid}, a)
         hg = cfg.get("height_gate")   # 닫기 직전 높이 관문(사용자 승인 문턱): 원시 각도로 예측한 닫힘 모델 캡 끝 높이가 문턱 미만이면 닫지 않고 복귀한다
         if hg:
-            rw = raw_set(arm); dg = [(rw.get(str(k)) or {}).get("deg") for k in (2, 3, 4)]
+            for _try in range(3):   # 읽기 실패(None) 한 번으로 시험이 판정 불가가 되지 않게 최대 3회 읽는다(읽기 전용, 이어지는 쓰기 앞의 0.3초 조용한 시간은 그대로)
+                rw = raw_set(arm); dg = [(rw.get(str(k)) or {}).get("deg") for k in (2, 3, 4)]
+                if all(v is not None for v in dg): break
+                time.sleep(0.05)
             if any(v is None for v in dg): raise Abort("높이 관문: J2~J4 원시 각도 읽기 실패(None). 닫지 않고 복귀합니다.")
             m_ = hg["model"]; hp = m_["h_ref"] + sum(c_ * (d_ - q_) for c_, d_, q_ in zip(m_["a"], dg, m_["q_ref"]))
             r2["height_pred_mm"] = round(hp, 2); r2["raw_at_contact"] = dg; say("  [높이 관문] 원시 J2~J4 %s → 예측 닫힘 모델 캡 끝 %.1f mm (문턱 %.1f mm 이상이어야 닫습니다)" % ([round(v, 2) for v in dg], hp, hg["h_min"]))
