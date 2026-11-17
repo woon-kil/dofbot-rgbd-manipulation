@@ -11,7 +11,7 @@
  - 화소 Δv = v(점) − v(점 0). 예측 Δv는 같은 투영의 예측 중점 차(점 2: 약 −11.5 px).
  - **허용치(수정 2026-11-17, advisor):** 자세 A에서 `height_scale`(gemini_fingertip_detect_v2.height_scale)을 계산해 0.865 px/mm(앞뒤 국소 1.10 px/mm). 높이 허용 ±2.5 mm = ±2.16 px, 검출 흩어짐 상한 약 2 mm × 1.10 = 2.2 px를 제곱합 평균으로 합쳐 **TOL = 3.1 px**. 이전 "1.5 px/mm → 3.7 px"은 철회. 0 근처 구간 |Δv| < 3.1 px와 메시 일치 구간 [−14.6, −8.4] px는 겹치지 않는다(간격 5.3 px).
  - 판정 역할: 점 2(J6 100)만 가설을 가린다: |Δv| < TOL이면 '0 근처(J6 영향 없음)', 예측 ±TOL 이내면 '메시 예측과 일치', 그 외 '다른 값'. 점 1·3(140)은 값 보고용. 반복성 = 점 4 대 점 0의 중점 차(px).
- - **Run 1(블록을 둔 채 세트 28) 추가 사전 등록 — 옆 오프셋 d_x:** 각 점 사진에서 AprilTag 36h11 id 7(블록 윗면 마커, g01_e0g_analyze.detect)의 중심 픽셀을 찾아 블록 윗면 평면(높이 0.030 m, E-0G·r15의 P 규칙)으로 역투영해 프로젝트 좌표 x_block를 얻고, 두 캡 중점 픽셀을 그 점의 예측 캡 끝 높이 평면(r15 predict의 hh=(z+11)/1000 규칙)으로 역투영해 x_cap를 얻는다. **d_x = x_cap − x_block (mm, 프로젝트 x, 열림 축)**. 마커 미검출이면 그 점의 d_x만 '판정 불가'(전체 판정 불가 아님). **J1 보정 제안 dJ1 = −d_x / (dx/dJ1)**: dx/dJ1은 그 점 원시 각도에서 J1을 +1° 바꾼 FK 캡 중점 프로젝트 x의 차분(mm/°). 주 값은 J6 오므림 점 0과 점 4의 평균이며 점 1~3은 같은 규칙 보고용, 점 0 대 점 4의 d_x 차는 반복성(J6 176 대 176). 이 값은 Run 2 계획에서 J1 목표를 정하는 입력이지만 안전 한도는 아니다(Run 2에서도 원시 J1 관문과 정렬 허용 ≤ 3 mm 사진 확인).
+ - **Run 1(블록을 둔 채 세트 28) 추가 사전 등록 — 옆 오프셋 d_x:** 각 점 사진에서 AprilTag 36h11 id 7(블록 윗면 마커, g01_e0g_analyze.detect)의 중심 픽셀을 찾아 블록 윗면 평면(높이 0.030 m, E-0G·r15의 P 규칙)으로 역투영해 프로젝트 좌표 x_block를 얻고, 두 캡 중점 픽셀을 그 점의 예측 캡 끝 높이 평면(r15 predict의 hh=(z+11)/1000 규칙)으로 역투영해 x_cap를 얻는다. **d_x = x_cap − x_block (mm, 프로젝트 x, 열림 축)**. **x_block는 기준 사진(블록 있음, 팔 K1)의 마커 id 7을 주 값으로 쓴다**(점 사진에서는 캡·그림자가 마커를 가려 검출이 실패할 수 있음: 합성 시험에서 점 2~4 미검출), 점 사진에서 검출되면 블록 이동 교차 확인으로 함께 기록. 기준 사진에서 미검출이면 d_x 전체 판정 불가. **J1 보정 제안은 점 2(J6 100, 접근 상태)의 d_x로 정하고(수정), 점 0·4(오므림)는 교차 확인·반복성**. 점 2에서 **캡별 옆 여유 m_left/m_right = |x_cap_i − x_block| − 15 − 5 (mm, 블록 반폭 15, 캡 반폭 추정 5; 열림 축, §6 간격 표의 옆 오프셋과 같은 정의에서 오프셋 = d_x)**를 각각 기록(두 캡의 x는 캡별 픽셀 역투영). 그림자 영향은 Run 1 점 0 결과로 판정하고 실패 시 규칙 수정 없이 판정 불가. **J1 보정 제안 dJ1 = −d_x / (dx/dJ1)**: dx/dJ1은 그 점 원시 각도에서 J1을 +1° 바꾼 FK 캡 중점 프로젝트 x의 차분(mm/°). 주 값은 J6 오므림 점 0과 점 4의 평균이며 점 1~3은 같은 규칙 보고용, 점 0 대 점 4의 d_x 차는 반복성(J6 176 대 176). 이 값은 Run 2 계획에서 J1 목표를 정하는 입력이지만 안전 한도는 아니다(Run 2에서도 원시 J1 관문과 정렬 허용 ≤ 3 mm 사진 확인).
  - **높이와 앞뒤는 한 대의 카메라로 분리되지 않는다**: 결과 보고에서 mm 환산값은 '캡이 메시 방향으로 움직인다는 가정 아래 환산'이라고 쓴다."""
 import sys, json, os
 sys.path.insert(0, 'evidence/G06'); sys.path.insert(0, 'scripts'); sys.path.insert(0, 'src')
@@ -63,13 +63,14 @@ def caps_world(q, j6):
         pts = np.vstack([(np.c_[M[k], np.ones(len(M[k]))] @ ch[k].T)[:, :3] for k in ch if k[0] == sd]); p = pts[np.argmax(pts[:, 1])].copy(); p[1] += 4.0
         ws.append(t + R @ np.array([p[0], p[1] - 90, 0]))
     w = (ws[0] + ws[1]) / 2; return -w[0], w[1], w[2]
-def dx_mm(img_path, q, j6, cap_mid_px):
-    """d_x(mm) = x_cap − x_block (프로젝트 x). 마커 id 7 미검출이면 None."""
-    det = E.detect(cv2.imread(img_path)); m = det.get(7)
+def dx_mm(img_path, q, j6, cap_mid_px, ref_path=None):
+    """d_x(mm) = x_cap − x_block (프로젝트 x). **x_block는 기준 사진(블록 있음, 팔 K1)의 마커 id 7 중심을 주 값으로 쓴다**(캡·그림자가 점 사진의 마커를 가릴 수 있음, 합성 시험에서 점 2~4 미검출), 점 사진에서 검출되면 블록 이동 교차 확인으로 함께 기록한다. 기준 사진에서 미검출이면 None."""
+    m = E.detect(cv2.imread(ref_path)).get(7) if ref_path else None
     if m is None: return None
+    mp = E.detect(cv2.imread(img_path)).get(7)
     xb, yb = inv_P(m['center'][0], m['center'][1], 0.030); xc0, yc0, zc = caps_world(q, j6)
     xc, yc = inv_P(cap_mid_px[0], cap_mid_px[1], (zc + 11) / 1000.0)
-    return {'marker_px': [round(m['center'][0], 1), round(m['center'][1], 1)], 'x_block': round(xb, 2), 'y_block': round(yb, 2), 'x_cap': round(xc, 2), 'y_cap': round(yc, 2), 'd_x_mm': round(xc - xb, 2)}
+    return {'marker_point_photo_px': ([round(mp['center'][0], 1), round(mp['center'][1], 1)] if mp else None), 'marker_px': [round(m['center'][0], 1), round(m['center'][1], 1)], 'x_block': round(xb, 2), 'y_block': round(yb, 2), 'x_cap': round(xc, 2), 'y_cap': round(yc, 2), 'd_x_mm': round(xc - xb, 2)}
 def dx_per_J1(q, j6):
     q1 = list(q); q1[0] += 1.0; return caps_world(q1, j6)[0] - caps_world(q, j6)[0]
 def detect_caps(img_path, ref_path, pred, area=300, half=80):
@@ -100,11 +101,12 @@ def photo_len(logpath):
     except Exception: return None
 if __name__ == '__main__':
     res = json.load(open(sys.argv[1])); pre = sys.argv[2]; ref = sys.argv[3]; rows = []
+    rawq_by_label = {}
     pr = res['poses'][0]; pts = pr['j6_points']; drift = {d['point'] for d in pr.get('drift', [])}
     for pt in pts:
         lab = pt['label']; j6 = 178 if lab in ('start', '4') else pt['j6_target']; rawq = [pt['raw_pre_arm'][k]['deg'] for k in '1234']
         if any(v is None for v in rawq): rows.append({'label': lab, 'status': '판정 불가: 원시 각도 None'}); continue
-        c = caps_px(rawq, j6); mid_pred = ((c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2); idx = 0 if lab == 'start' else int(lab); PID = pr['pose_id']; img = '%s%d%d.png' % (pre, PID, idx)
+        rawq_by_label[lab] = rawq; c = caps_px(rawq, j6); mid_pred = ((c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2); idx = 0 if lab == 'start' else int(lab); PID = pr['pose_id']; img = '%s%d%d.png' % (pre, PID, idx)
         row = {'label': lab, 'j6': j6, 'pred_mid_px': [round(float(mid_pred[0]), 1), round(float(mid_pred[1]), 1)], 'pred_caps_px': [[round(float(x), 1) for x in cc] for cc in c]}
         if lab in drift: row['status'] = '판정 불가: 정지 중 처짐'
         elif not os.path.exists(img): row['status'] = '사진 없음'
@@ -114,10 +116,19 @@ if __name__ == '__main__':
             cp = detect_caps(img, ref, mid_pred); mid = ((cp[0][0]+cp[1][0])/2, (cp[0][1]+cp[1][1])/2) if cp else None; row['status'] = 'ok' if cp else '미검출 또는 병합: 제외'
             if cp: row['caps_px'] = [[round(x, 1) for x in q_] for q_ in sorted(cp)]; row['cap_gap_px'] = round(abs(cp[0][0] - cp[1][0]), 1); row['pred_cap_gap_px'] = round(INNER_GAP[idx] * 1.37 + 10 * 1.37, 1); row['pred_cap_gap_mesh_tip_px'] = round(abs(c[0][0] - c[1][0]), 1)
             if cp is not None and PA_BLOCK:
-                dxr = dx_mm(img, rawq, j6, mid); row['dx'] = dxr
-                if dxr: row['dJ1_suggest_deg'] = round(-dxr['d_x_mm'] / dx_per_J1(rawq, j6), 2)
+                dxr = dx_mm(img, rawq, j6, mid, ref); row['dx'] = dxr
+                if dxr: row['dJ1_suggest_deg'] = round(-dxr['d_x_mm'] / dx_per_J1(rawq, j6), 2); row['dJ1_primary'] = (lab == '2')
             if mid is not None: row['mid_px'] = [round(mid[0], 1), round(mid[1], 1)]; row['diff_px'] = [round(mid[0] - mid_pred[0], 1), round(mid[1] - mid_pred[1], 1)]
         rows.append(row); print(row)
+    for r in rows:
+        if r.get('label') == '2' and r.get('dx') and r.get('caps_px'):
+            xbk = r['dx']['x_block']; hc = (r['dx']['x_cap'] if False else None)
+            zc = caps_world(rawq_by_label.get('2'), 100)[2] if rawq_by_label.get('2') else None
+            if zc is not None:
+                mm = []
+                for cpx in r['caps_px']:
+                    xi, yi = inv_P(cpx[0], cpx[1], (zc + 11) / 1000.0); mm.append(round(abs(xi - xbk) - 15 - 5, 2))
+                r['cap_side_margin_mm'] = mm   # [왼쪽 캡(u 작은 쪽), 오른쪽 캡]
     r0 = rows[0] if rows else None
     if r0 is None or 'mid_px' not in r0: print('판정 불가: 점 0(오므림 178)에서 두 캡이 검출되지 않았다(규칙 수정 없음).'); verdict = {'run': '판정 불가'}
     else:

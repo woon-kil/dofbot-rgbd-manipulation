@@ -37,7 +37,7 @@ PLAN="${ROOT}/evidence/G01/s4_2_plan_${SET}_${TS}.json"
 RN="--return-nominal"   # P2k: 복귀 목표를 K1 명목값으로 고정
 python3 "${ROOT}/scripts/g01_s42_plan_p2k.py" --set "${SET}" --start "${START}" ${RN} --out "${PLAN}" || { echo "이동 계획 게이트 실패. 중단(팔은 움직이지 않았다)"; exit 8; }
 if [ "${SET}" = 12 ] || [ "${SET}" = 20 ] || [ "${SET}" = 21 ] || [ "${SET}" = 22 ] || [ "${SET}" = 23 ] || { [ "${SET}" = 24 ] || [ "${SET}" = 25 ] || [ "${SET}" = 28 ]; } || [ "${SET}" = 14 ] || [ "${SET}" = 15 ] || [ "${SET}" = 16 ] || [ "${SET}" = 17 ] || [ "${SET}" = 18 ] || [ "${SET}" = 19 ]; then   # P1: 실행 시점 회독으로 만든 계획 전체(정상+복귀 상태별 경로)를 블록·종이·베이스 충돌 모델로 다시 검증한다(scipy 필요: venv 파이썬)
-  export P1_GATE_MM=10
+  export P1_GATE_MM=10; if [ "${SET}" = 28 ]; then export P1_DZ_EXTRA_MM=35.8; fi   # Run 1(블록 있음): 오프라인 근거(−35.8 변형에서 box 14.2 mm 통과)와 같은 변형을 실행 시점에도 검사한다(미달이면 팔이 움직이기 전에 중단)
   if [ "${SET}" = 23 ]; then export P1_DZ_EXTRA_MM=35.8; fi   # D2: 검증 상한 −35.8 mm(오프셋 22.5 + 최악 도착 부족 9.3 + 이탈 4, 승인 D2-2)
   if [ "${SET}" = 22 ]; then export P1_DZ_EXTRA_MM=45; fi   # D1-A: 실제 손끝이 FK보다 최대 45 mm 낮은 변형을 충돌 검증에 추가(D0 실측 26~36 mm 위로 여유)   # P1-b2 (b) 세트 20(C만): 충돌 여유 게이트 10 mm(사용자 승인 B1, 2026-11-16). 다른 세트는 기존 값(기본 20 mm)
   VPY="${P1_CHECK_PY:-${ROOT}/.venv/bin/python}"
