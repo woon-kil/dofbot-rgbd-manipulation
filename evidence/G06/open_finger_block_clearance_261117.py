@@ -17,7 +17,7 @@ def chain(g):
     l1=Tm([-0.012375,0.029275,0.0045],2.7292,g); l2=l1@Tm([0.027362,0.012302,-0.0025],-1.1584,-g)
     r3=Tm([0.0045,0.047275,0.0045],0.42401,-g); l3=Tm([-0.0045,0.047275,0.0045],2.7292,g)
     return {'rlink1':r1,'rlink2':r2,'rlink3':r3,'llink1':l1,'llink2':l2,'llink3':l3}
-def finger_points(q,g,cap_cx=None):
+def finger_points(q,g,cap_cx=None,tag=False):
     o=D.fk.fk(np.array([list(q)+[90.0]])); t=o['tcp'][0][0]*1000; R=o['tcp'][1][0]; ch=chain(g); pts=[]; tips={}
     for side in 'rl':
         P=np.vstack([(np.c_[M[k],np.ones(len(M[k]))]@ch[k].T)[:,:3] for k in ch if k[0]==side]); tip=P[np.argmax(P[:,1])]; tips[side]=tip
@@ -27,10 +27,16 @@ def finger_points(q,g,cap_cx=None):
         cx=tip[0] if cap_cx is None else (cap_cx/2 if side=='r' else -cap_cx/2)   # 관측 보정: 캡 중심 간격(mm)을 직접 지정(P2k 관측 J6 100 약 61.8 mm)
         pts.append(np.array([[cx+x,tip[1]+y,tip[2]+z] for x in xs for y in ys for z in zs]))
     A=np.vstack(pts); W=t+(R@np.c_[A[:,0],A[:,1]-90,A[:,2]].T).T
+    nlink=sum(len(x) for x in pts[0::2]); part=np.array(['링크']*len(A)); 
+    off=0
+    for k,x in enumerate(pts):
+        part[off:off+len(x)]='링크' if k%2==0 else '캡'; off+=len(x)
+    global PART; PART=part
     return W,t,R
 def box_clear(W,c,half):
     d=np.abs(W-c)-half; out=np.maximum(d,0); dist=np.linalg.norm(out,axis=1); inside=(d<0).all(axis=1)
-    return (np.where(inside,d.max(axis=1),dist)).min()
+    v=np.where(inside,d.max(axis=1),dist); global LIM; LIM=PART[int(np.argmin(v))]
+    return v.min()
 half=np.array([15.0,30.0,15.0]); CAPCX=float(sys.argv[1]) if len(sys.argv)>1 else None   # 인자: 캡 중심 간격 mm(관측 보정, 없으면 메시 끝 점 기준)
 
 J2=np.arange(40,96,1.0); J3=np.arange(0,101,2.0); J4=np.arange(10,101,2.0)
@@ -39,13 +45,13 @@ o=D.fk.fk(Q); t=o['tcp'][0]*1000; R=o['tcp'][1]; a=R[:,:,1]; a=np.where(a[:,2:3]
 print('※ 오프라인 UNVERIFIED. 단위 mm. 간격 = 열린 손가락(링크+캡 근사)과 블록 상자 사이 최소 거리(음수 = 관통).')
 print('캡 끝(오므림 모델) 높이 | 자세(J2,J3,J4,tilt) | J6 100: 옆 오프셋 −8/−4/0/+4/+8 mm의 블록 간격 | 최소 높이(손가락 점, 종이 위) | J6 더 열림(−0.62) 간격 −8/0/+8')
 for level in (50,40,30,25,20,15):
-    ok=(np.hypot(cap[:,0]-(-1.4),cap[:,1]-189)<=2)&(np.abs(cap[:,2]-level)<=1.5)&(tilt<=30)&(G[:,2]>=10)
+    ok=(np.hypot(cap[:,0]-(-1.4),cap[:,1]-189)<=2)&(np.abs(cap[:,2]-level)<=1.5)&(tilt<=30)&(G[:,0]>=52)&(G[:,1]>=10)&(G[:,2]>=10)   # 러너 관절 창(J2 하한은 세트별, 여기서는 52 이상, J3·J4 [10,105])
     idx=np.where(ok)[0]
     if len(idx)==0: print(level,'후보 없음'); continue
     i=sorted(idx,key=lambda k:(abs(tilt[k]-27),abs(cap[k,2]-level)))[0]; q=Q[i,:4]
     row=[]
     for g,offs in ((-0.79,(-8,-4,0,4,8)),(-0.62,(-8,0,8))):
         W,tt,RR=finger_points(q,g,CAPCX if g==-0.79 else None); res=[]
-        for dx in offs: res.append(round(float(box_clear(W,np.array([-1.4+dx,189.0,15.0]),half)),1))
+        for dx in offs: res.append((round(float(box_clear(W,np.array([-1.4+dx,189.0,15.0]),half)),1),LIM))
         row.append((res,round(float(W[:,2].min()),1)))
     print('%d | J2 %.0f J3 %.0f J4 %.0f tilt %.0f | %s | %.1f | %s'%(level,q[1],q[2],q[3],tilt[i],row[0][0],row[0][1],row[1][0]))
