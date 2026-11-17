@@ -1,0 +1,24 @@
+{
+  "request_id": "pa_261118-001026_snap11-1794928352591",
+  "ok": true,
+  "req_recv_time": 1794928355.0862114,
+  "saved_time": 1794928355.241477,
+  "stale_dropped": {
+    "color": 0,
+    "depth": 0
+  },
+  "color": {
+    "stamp": 1794928355.181043,
+    "recv": 1794928355.2402186,
+    "recv_minus_stamp": 0.059175729751586914,
+    "stamp_minus_req": 0.09483146667480469,
+    "frame_id": "camera_color_optical_frame"
+  },
+  "depth": {
+    "stamp": 1794928355.181062,
+    "recv": 1794928355.2265651,
+    "recv_minus_stamp": 0.04550313949584961,
+    "stamp_minus_req": 0.09485054016113281,
+    "frame_id": "camera_depth_optical_frame"
+  }
+}

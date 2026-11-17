@@ -1,0 +1,15 @@
+{
+  "session": "pa_261118-001026",
+  "usb_disconnect_lines": 0,
+  "usb_disconnect_text": "",
+  "snap_after_stop_failed": true,
+  "auto_exit_polled_s": 0.3,
+  "auto_exit_status": "컨테이너 실행 중\n드라이버 프로세스 없음\nstarted_epoch 1794929590.062046001\nwarmup_sec 12\nmax_sec 45\n경과 0 s\n",
+  "auto_exit_driver_gone": true,
+  "auto_exit_snap_failed": false,
+  "containers_left_after_stop": [
+    0,
+    0,
+    0
+  ]
+}

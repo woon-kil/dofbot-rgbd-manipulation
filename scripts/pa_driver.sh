@@ -16,9 +16,9 @@ running() { docker ps --format '{{.Names}}' | grep -q "^${NAME}$"; }
 exists() { docker ps -a --format '{{.Names}}' | grep -q "^${NAME}$"; }
 stop_all() {
   if running; then
-    docker exec "$NAME" bash -lc 'pkill -INT -f "[o]rbbec_camera_node|[g]emini_330_series" >/dev/null 2>&1 || true' >/dev/null 2>&1 || true
+    docker exec "$NAME" bash -lc 'pkill -INT -f "[c]omponent_container|[o]rbbec_camera_node|[g]emini_330_series" >/dev/null 2>&1 || true' >/dev/null 2>&1 || true
     sleep 4
-    docker exec "$NAME" bash -lc 'pgrep -f "[o]rbbec_camera_node" >/dev/null && { pkill -f "[o]rbbec_camera_node" >/dev/null 2>&1 || true; sleep 2; } || true' >/dev/null 2>&1 || true
+    docker exec "$NAME" bash -lc 'pgrep -f "[c]omponent_container|[o]rbbec_camera_node" >/dev/null && { pkill -f "[c]omponent_container|[o]rbbec_camera_node" >/dev/null 2>&1 || true; sleep 2; } || true' >/dev/null 2>&1 || true
     docker exec -u 0 "$NAME" chown -R "$(id -u):$(id -g)" /work >/dev/null 2>&1 || true
   fi
   if exists; then docker rm -f "$NAME" >/dev/null 2>&1 || true; fi
@@ -30,7 +30,7 @@ case "$ACTION" in
   status)
     if running; then
       echo "컨테이너 실행 중"
-      docker exec "$NAME" bash -lc 'pgrep -f "[o]rbbec_camera_node" >/dev/null && echo "드라이버 프로세스 있음" || echo "드라이버 프로세스 없음"' 2>/dev/null || true
+      docker exec "$NAME" bash -lc 'pgrep -f "[c]omponent_container|[o]rbbec_camera_node" >/dev/null && echo "드라이버 프로세스 있음" || echo "드라이버 프로세스 없음"' 2>/dev/null || true   # 실제 드라이버 프로세스는 component_container(ComposableNode)다(P-A 첫 세션 driver.log:3, orbbec_camera_node 패턴만으로는 살아 있어도 '없음'으로 나왔다)
       if [ -f "$STATE" ]; then cat "$STATE"; s="$(awk '$1=="started_epoch"{print $2}' "$STATE")"; [ -n "$s" ] && echo "경과 $(( $(date +%s) - ${s%.*} )) s"; fi
     elif exists; then echo "컨테이너 종료됨(상한 도달 등), 정리는 stop"
     else echo "컨테이너 없음"; fi

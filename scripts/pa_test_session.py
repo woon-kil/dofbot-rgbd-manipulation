@@ -96,8 +96,9 @@ def main():
         print("⑧ 기준 사진 B(약 40 s)"); base_photo(S, "b")
         print("⑨ stop 뒤 snap(실패해야 한다)"); r = snap("%s_after_stop" % S); cycles["snap_after_stop_failed"] = bool(r.returncode != 0 and not (D / ("%s_after_stop.color.png" % S)).exists())
         print("⑩ start/stop 2회째(정상)"); r = pa_driver("start", WARMUP=WARMUP); pa_driver("stop"); left.append(containers_left())
-        print("   3회째: MAXSEC=45 자동 종료 시험(status 폴링으로 드라이버가 꺼진 것을 확인한 뒤 snap)"); r = pa_driver("start", WARMUP=WARMUP, MAXSEC=45); t3 = time.time()
+        print("   3회째: MAXSEC=45 자동 종료 시험(타임아웃 시각 이후 status 폴링으로 드라이버가 꺼진 것을 확인한 뒤 snap)"); r = pa_driver("start", WARMUP=WARMUP, MAXSEC=45); t3 = time.time(); cycles["cycle3_start_rc"] = r.returncode
         exited, last = False, ""
+        time.sleep(max(0, 45 - WARMUP - 5 - 2)); cycles["auto_exit_first_poll_after_start_s"] = round(time.time() - t3, 1)   # 타임아웃(launch+45 s) 전에는 '꺼짐'을 인정하지 않는다(첫 세션: 상태 확인 패턴 결함으로 0.3 s에 거짓 '꺼짐')
         while time.time() - t3 < 55:       # launch 기준 45+15+10 s 안에 꺼져야 한다(start 반환 시각은 launch보다 약 15 s 늦다)
             last = pa_driver("status").stdout
             if "드라이버 프로세스 없음" in last or "컨테이너 종료됨" in last: exited = True; break
