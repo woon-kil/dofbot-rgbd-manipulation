@@ -7,11 +7,12 @@ sys.path.insert(0, 'evidence/G06'); sys.path.insert(0, 'scripts'); sys.path.inse
 import cv2, numpy as np
 spec = importlib.util.spec_from_file_location('pa', 'evidence/G06/p2k_analyze_261117.py'); PA = importlib.util.module_from_spec(spec); spec.loader.exec_module(PA)
 img, ref = sys.argv[1], sys.argv[2]; Q = [87.4, 81.0, 16.28, 19.31]; RUN1_MARKER = (678.2, 265.8)
+if len(sys.argv) > 3 and sys.argv[3] == '31' and os.path.exists('evidence/G06/p2k_marker_ref.txt'): _rf = [l for l in open('evidence/G06/p2k_marker_ref.txt', encoding='utf-8') if not l.startswith('#')]; RUN1_MARKER = tuple(float(v) for v in _rf[0].split()[:2]); Q[0] = float(_rf[1].split()[0])   # 세트 31: 사전 등록 파일(Run 3 복귀 뒤 위치)
 out = ['', '=' * 60, '[Run 2 정렬 보고] (사전 등록 규칙, J6 100 열린 상태 50 mm 사진)']
 mk = PA.E.detect(cv2.imread(ref)).get(7)
 if mk is None: out.append('기준 사진에서 마커 id 7 미검출 → 정렬 NG')
 else:
-    dmk = float(np.hypot(mk['center'][0] - RUN1_MARKER[0], mk['center'][1] - RUN1_MARKER[1])); out.append('기준 사진 마커 (%.1f, %.1f), Run 1 기준 (678.2, 265.8)과 차 %.2f px (관문 ≤ 1.0)' % (mk['center'][0], mk['center'][1], dmk))
+    dmk = float(np.hypot(mk['center'][0] - RUN1_MARKER[0], mk['center'][1] - RUN1_MARKER[1])); out.append('기준 사진 마커 (%.1f, %.1f), 기준 (%.2f, %.2f)과 차 %.2f px (관문 ≤ 1.0)' % (mk['center'][0], mk['center'][1], RUN1_MARKER[0], RUN1_MARKER[1], dmk))
 c = PA.caps_px(Q, 100); mid_pred = ((c[0][0] + c[1][0]) / 2, (c[0][1] + c[1][1]) / 2)
 cp = PA.detect_caps(img, ref, mid_pred) if os.path.exists(img) else None
 ok = False

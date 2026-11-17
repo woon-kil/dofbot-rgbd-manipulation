@@ -51,7 +51,8 @@ ret = [ (r['after_move'], r['state'], r['route']) for r in plan['return_routes']
 last_route = plan['return_routes'][-1]
 cur2 = list(map(float, plan['return_routes'][-1]['state']))
 half = np.array([15.0, 30.0, 15.0])
-xa = PA.caps_world([87.4,81.0,16.28,19.31], 100)[0]   # A50 자세 J6 100 캡 중점 x(프로젝트)
+_J1A = 86.4 if str(plan.get('set')) == '31' else 87.4   # 세트 31(Run 4)은 J1 86(원시 86.4 예상)
+xa = PA.caps_world([_J1A,81.0,16.28,19.31], 100)[0]   # A50 자세 J6 100 캡 중점 x(프로젝트)
 # 중단 복귀 경로(열린 손가락 상태로 하강 중 중단): 상태 J1 ≤ 88(J1 보정 뒤)인 복귀 경로를 모두 평가
 abort_states = []
 for r in plan['return_routes']:
