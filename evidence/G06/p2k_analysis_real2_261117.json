@@ -1,0 +1,230 @@
+{
+ "rows": [
+  {
+   "label": "start",
+   "j6": 178,
+   "pred_mid_px": [
+    696.3,
+    250.0
+   ],
+   "pred_caps_px": [
+    [
+     690.1,
+     249.8
+    ],
+    [
+     702.6,
+     250.1
+    ]
+   ],
+   "photo_len_s": 37,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     675.1,
+     247.0
+    ],
+    [
+     699.6,
+     249.0
+    ]
+   ],
+   "cap_gap_px": 24.5,
+   "pred_cap_gap_px": 20.6,
+   "pred_cap_gap_mesh_tip_px": 12.6,
+   "mid_px": [
+    687.4,
+    248.0
+   ],
+   "diff_px": [
+    -9.0,
+    -2.0
+   ]
+  },
+  {
+   "label": "1",
+   "j6": 140,
+   "pred_mid_px": [
+    696.7,
+    245.9
+   ],
+   "pred_caps_px": [
+    [
+     674.9,
+     245.5
+    ],
+    [
+     718.5,
+     246.2
+    ]
+   ],
+   "photo_len_s": 37,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     661.0,
+     241.0
+    ],
+    [
+     715.8,
+     246.0
+    ]
+   ],
+   "cap_gap_px": 54.8,
+   "pred_cap_gap_px": 47.0,
+   "pred_cap_gap_mesh_tip_px": 43.6,
+   "mid_px": [
+    688.4,
+    243.5
+   ],
+   "diff_px": [
+    -8.3,
+    -2.4
+   ],
+   "dv_obs_px": -4.5,
+   "dv_pred_px": -4.1
+  },
+  {
+   "label": "2",
+   "j6": 100,
+   "pred_mid_px": [
+    697.2,
+    239.2
+   ],
+   "pred_caps_px": [
+    [
+     665.1,
+     238.7
+    ],
+    [
+     729.3,
+     239.6
+    ]
+   ],
+   "photo_len_s": 37,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     648.9,
+     229.0
+    ],
+    [
+     731.8,
+     235.0
+    ]
+   ],
+   "cap_gap_px": 82.9,
+   "pred_cap_gap_px": 74.4,
+   "pred_cap_gap_mesh_tip_px": 64.2,
+   "mid_px": [
+    690.3,
+    232.0
+   ],
+   "diff_px": [
+    -6.8,
+    -7.2
+   ],
+   "dv_obs_px": -16.0,
+   "dv_pred_px": -10.8
+  },
+  {
+   "label": "3",
+   "j6": 140,
+   "pred_mid_px": [
+    696.7,
+    245.7
+   ],
+   "pred_caps_px": [
+    [
+     674.9,
+     245.4
+    ],
+    [
+     718.4,
+     246.0
+    ]
+   ],
+   "photo_len_s": 36,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     659.5,
+     240.0
+    ],
+    [
+     717.9,
+     244.0
+    ]
+   ],
+   "cap_gap_px": 58.3,
+   "pred_cap_gap_px": 55.8,
+   "pred_cap_gap_mesh_tip_px": 43.6,
+   "mid_px": [
+    688.7,
+    242.0
+   ],
+   "diff_px": [
+    -7.9,
+    -3.7
+   ],
+   "dv_obs_px": -6.0,
+   "dv_pred_px": -4.3
+  },
+  {
+   "label": "4",
+   "j6": 178,
+   "pred_mid_px": [
+    696.4,
+    249.9
+   ],
+   "pred_caps_px": [
+    [
+     690.1,
+     249.7
+    ],
+    [
+     702.7,
+     250.0
+    ]
+   ],
+   "photo_len_s": 36,
+   "hold_s": 55.8,
+   "status": "ok",
+   "caps_px": [
+    [
+     675.1,
+     247.0
+    ],
+    [
+     699.7,
+     249.0
+    ]
+   ],
+   "cap_gap_px": 24.6,
+   "pred_cap_gap_px": 22.9,
+   "pred_cap_gap_mesh_tip_px": 12.6,
+   "mid_px": [
+    687.4,
+    248.0
+   ],
+   "diff_px": [
+    -9.0,
+    -1.9
+   ],
+   "dv_obs_px": 0.0,
+   "dv_pred_px": -0.1
+  }
+ ],
+ "verdict": {
+  "run": "ok",
+  "repeatability_px": [
+   0.0,
+   0.0
+  ],
+  "point2": "다른 값"
+ }
+}
