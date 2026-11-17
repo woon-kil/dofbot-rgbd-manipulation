@@ -114,6 +114,7 @@ def main():
     r = run(["scp", "-q", "-o", "BatchMode=yes", str(ROOT / "scripts" / "pa_snap.py"), "p620:dofbot-g01-work/pa_snap.py"])
     if r.returncode: print("pa_snap.py를 p620로 보내지 못했다(전원·접속 확인):", r.stderr); return 2
     cycles = {"session": S}; left = []; session_start = time.time()
+    if os.environ.get("PA_SESSION_FAST_FOR_TEST") == "1": cycles["fast_mode"] = True      # 가짜 환경 세션은 평가에서 판정 없음으로 처리된다
     try:
         for tag in ("a1", "a2"):
             print("① 기준 사진 %s(약 40 s)" % tag.upper())

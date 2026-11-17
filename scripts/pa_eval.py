@@ -172,6 +172,10 @@ def evaluate(S, d):
     keys = ["M1", "M1'", "M1''", "m2a", "m2b", "m2c", "M3", "M4"]
     verdict = [r[k]["pass"] for k in keys]
     r["overall"] = ("불성립" if any(v is False for v in verdict) else ("판정 불가 포함" if any(v is None for v in verdict) else "성립"))
+    c = cycles or {}
+    # 사전 등록(측정 전): 시험 장치 점검·확인용 snap·기준 사진 A·snap 3회 연속 실패로 중단된 세션, 가짜 환경(FAST) 세션은 P-A 판정이 아니다(재실행 대상). 아래 지표는 참고용 계산이다.
+    if c.get("aborted"): r["overall"] = "시험 중단(판정 없음): %s" % c["aborted"]
+    elif c.get("fast_mode"): r["overall"] = "시험용 FAST 세션(판정 없음)"
     return r
 
 
@@ -182,4 +186,5 @@ if __name__ == "__main__":
     (D / ("%s_eval.json" % sys.argv[1])).write_text(json.dumps(res, indent=2, ensure_ascii=False, default=str) + "\n", encoding="utf-8")
     for k in ["M1", "M1'", "M1''", "m2a", "m2b", "m2c", "M3", "M4"]:
         print("%-5s %s" % (k, {True: "PASS", False: "FAIL", None: "판정 불가"}[res[k]["pass"]]), json.dumps({a: b for a, b in res[k].items() if a != "pass" and a != "latencies_s"}, ensure_ascii=False, default=str)[:300])
+    if res["overall"].startswith(("시험 중단", "시험용")): print("★ P-A 판정 없음 — 아래 지표는 참고용 계산이다(재실행 대상)")
     print("전체:", res["overall"])

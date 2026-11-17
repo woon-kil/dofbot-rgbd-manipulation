@@ -147,3 +147,29 @@ def test_evaluate_full_with_synthetic_files_and_frozen_constants():
         assert r["overall"] in ("성립", "판정 불가 포함")                         # 이미지 파일이 없으면 M3만 판정 불가
     assert (E.M1_MAX_S, E.BIAS_CENTER_PX, E.BIAS_SIDE_PX, E.BIAS_YAW_DEG, E.GATE_CENTER_PX, E.GATE_SIDE_PX, E.GATE_YAW_DEG, E.E1_SIDE_PX, E.M3_BRIGHT, E.M3_VALID, E.M4_MIN_HZ) == (3.0, 0.32, 0.25, 1.0, 0.75, 0.75, 3.0, 0.5, 2.0, 0.02, 29.0)
     assert E.BASES == ("a1", "a2", "b1", "b2") and E.N_STARTS_LOGS == 3
+
+
+def _full_session_files(d, cycles_extra):
+    for i in range(1, 21):
+        n = "S_snap%02d" % i
+        (d / (n + ".mac_timing.txt")).write_text("m_start 0.0\nm_detect_done 1.0\n")
+        (d / (n + ".meta.json")).write_text(json.dumps({"ok": True, "request_id": n + "-1", "color": {"stamp_minus_req": 0.3, "recv_minus_stamp": 0.05}, "depth": {"stamp_minus_req": 0.3, "recv_minus_stamp": 0.04}}))
+        (d / (n + ".detect.json")).write_text(json.dumps(BASE)); (d / (n + ".req_id.txt")).write_text(n + "-1\n")
+    for t in E.BASES: (d / ("S_base_%s.detect.json" % t)).write_text(json.dumps(BASE))
+    cyc = {"snap_after_stop_failed": True, "auto_exit_snap_failed": True, "usb_counts": {"l1": 0, "l2": 0, "l3": 0}, "containers_left_after_stop": [0, 0, 0]}; cyc.update(cycles_extra)
+    (d / "S_cycles.json").write_text(json.dumps(cyc))
+    p = {"rate": {"color": {"arrival_hz": 30.0}, "depth": {"arrival_hz": 30.0}}}
+    (d / "S_probe_start.json").write_text(json.dumps(p)); (d / "S_probe_end.json").write_text(json.dumps(p))
+
+
+def test_aborted_or_fast_session_is_not_a_p_a_verdict():
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d); _full_session_files(d, {"aborted": "status_pattern_start1"})
+        r = E.evaluate("S", d)
+        assert r["overall"] == "시험 중단(판정 없음): status_pattern_start1"          # 지표가 FAIL이어도 불성립으로 세지 않는다
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d); _full_session_files(d, {"fast_mode": True})
+        assert E.evaluate("S", d)["overall"] == "시험용 FAST 세션(판정 없음)"
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d); _full_session_files(d, {})                                       # 정상 세션은 지표로 판정(이미지 없음 → M3 판정 불가)
+        assert E.evaluate("S", d)["overall"] in ("성립", "판정 불가 포함")
