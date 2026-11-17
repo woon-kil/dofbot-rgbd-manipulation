@@ -370,6 +370,7 @@ def main():
     FAKE["abort_close"] = int(a.fake_abort_close) if a.fake_abort_close else None
     FAKE["ceils"] = {int(t_.split(":")[0]): int(t_.split(":")[1]) for t_ in a.fake_ceil.split(",") if ":" in t_}
     if plan["set"] == "23": WINDOWS[2] = [55, 110]; WINDOWS[1] = [70, 122]
+    if plan["set"] == "31": WINDOWS[2] = [66, 110]   # Run 3: J2 창 하한 70 → 66(이 세트에 한정, 사용자 승인 N1 2026-11-17). 하강 자세 J2 69의 도착 회독 68(더 넘어가면 67)에서 복귀 쓰기가 거부되지 않게 한다. docs/gates/G07-첫접촉시험-선행조건과-최소시험안.md §17
     if plan["set"] == "24": WINDOWS[2] = [52, 110]; WINDOWS[1] = [70, 122]   # D3: J2 창 하한 55 → 52(이 세트에 한정). 2404 도착 J2가 54.9° 부근(정수 회독 54)일 수 있어 하한 55이면 복귀 쓰기가 거부된다(가짜 시험 C에서 발견, 승인 D3-5b 대기)   # D2: J2 창 하한 55(세트 22 승인값), J1 창 상한 110 → 122(이 세트에 한정, 선택 자세 J1 120, 승인 D2-1·D2-2 2026-11-16)
     if plan["set"] == "22": WINDOWS[2] = [55, 110]   # D1-A: J2 창 하한 70 → 55(이 세트에 한정, 승인 D1-2 2026-11-16)
     if plan["set"] == "21": WINDOWS[2] = [58, 110]   # D0: J2 창 하한 70 → 58(이 세트에 한정, 사용자 승인 D0-3, docs/gates/G07-D0-파지근방-손끝높이-승인-요청-문서.md §5)
