@@ -1,0 +1,47 @@
+{
+  "run_id": "261117-211138",
+  "mode": "dry_run",
+  "started_at": "2026-11-17T20:11:39",
+  "windows": {
+    "open": [
+      95,
+      179
+    ],
+    "press": [
+      95,
+      150
+    ],
+    "finish": [
+      95,
+      179
+    ]
+  },
+  "ladder_s": [
+    10,
+    20,
+    30
+  ],
+  "control_s": 10,
+  "rest_s": 90,
+  "limits": {
+    "crush_rise": 2,
+    "e3_max": 1,
+    "budget_extra_s": 1.0
+  },
+  "phases": [],
+  "trials": [],
+  "interrupted": false,
+  "ended": "aborted",
+  "ladder_stop": null,
+  "abort_reason": "시작 회독 S=176가 오므림 범위 [177, 178, 179]도 열림 범위 [99, 100, 101]도 아니다. 명령은 보내지 않았다.",
+  "adapter_logs": [
+    [
+      [
+        "read",
+        176
+      ]
+    ]
+  ],
+  "writes_total": 0,
+  "finished_at": "2026-11-17T20:11:43"
+}
