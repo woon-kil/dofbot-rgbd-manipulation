@@ -252,7 +252,7 @@ def main():
                 result["closing_unconfirmed"] = True; result["return_error"] = str(e); print("\n★ 닫는 쪽 복귀 미확인:", e)
             except BaseException as e:
                 result["return_error"] = repr(e); print("복귀 처리 중단:", repr(e))
-                if result.get("return_sent") and not result.get("returned_to_start"): result["return_unconfirmed"] = True; print("★★ 복귀 쓰기를 보냈지만 확인 전에 끊겼다. 열렸다고 믿지 마세요. 손을 넣지 마세요. 전원 차단 담당자가 판단하세요.")
+                if result.get("return_sent") and not result.get("returned_to_start"): result["return_unconfirmed"] = True; print("★★ 복귀 쓰기를 보냈지만 확인 전에 끊겼다. 복귀했다고 믿지 마세요. 손을 넣지 마세요. 전원 차단 담당자가 판단하세요.")
         result["adapter_logs"] = [[(["write", *l[1:3], "fake" if (a.fake and not a.fake_dry and l[0] == "write") else l[3], *l[4:]] if l[0] == "write" else list(l)) for l in x.log] for x in ADAPTERS]
         result["writes_total"] = sum(1 for x in ADAPTERS for l in x.log if l[0] == "write")
         result["finished_at"] = datetime.datetime.now().isoformat(timespec="seconds")
