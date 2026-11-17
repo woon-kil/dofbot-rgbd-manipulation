@@ -1,5 +1,53 @@
-{"note": "G07 P2k 후보 자세(오프라인 plan_check용, 승인 전, J1 90, 블록 중심 위 캡 끝 약 40 mm). docs/gates/G07-P2k-Gemini-J6별-캡끝-측정-승인-요청-문서.md §1",
+{
+ "note": "G07 P2k 후보 자세(오프라인 plan_check용, 승인 전, J1 90, 블록 중심 위 캡 끝 약 40 mm). docs/gates/G07-P2k-Gemini-J6별-캡끝-측정-승인-요청-문서.md §1",
  "poses": [
-  {"id": 2501, "sdk_deg": [90, 77, 18, 22, 90], "split": "p2k", "name": "P2k 후보 A(J2 77 J3 18 J4 22, tilt 27)"},
-  {"id": 2502, "sdk_deg": [90, 70, 30, 14, 90], "split": "p2k", "name": "P2k 후보 B(J2 70 J3 30 J4 14, tilt 24)"},
-  {"id": 2503, "sdk_deg": [90, 75, 22, 18, 90], "split": "p2k", "name": "P2k 후보 C(J2 75 J3 22 J4 18, tilt 25)"}]}
+  {
+   "id": 2501,
+   "sdk_deg": [
+    90,
+    77,
+    18,
+    22,
+    90
+   ],
+   "split": "p2k",
+   "name": "P2k 후보 A(J2 77 J3 18 J4 22, tilt 27)"
+  },
+  {
+   "id": 2502,
+   "sdk_deg": [
+    90,
+    70,
+    30,
+    14,
+    90
+   ],
+   "split": "p2k",
+   "name": "P2k 후보 B(J2 70 J3 30 J4 14, tilt 24)"
+  },
+  {
+   "id": 2503,
+   "sdk_deg": [
+    90,
+    75,
+    22,
+    18,
+    90
+   ],
+   "split": "p2k",
+   "name": "P2k 후보 C(J2 75 J3 22 J4 18, tilt 25)"
+  },
+  {
+   "id": 2504,
+   "sdk_deg": [
+    90,
+    81,
+    18,
+    20,
+    90
+   ],
+   "split": "p2k",
+   "name": "첫 접촉 후보 정렬 높이 50 mm(J2 81 J3 18 J4 20, tilt 29)"
+  }
+ ]
+}
