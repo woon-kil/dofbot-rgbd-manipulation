@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# G01.5b-4 S3 write6 방식 실행 래퍼(제조사 Arm_serial_servo_write6로 여섯 서보에 한 번에 쓰고 움직이지 않는 서보에는 시작 읽기값을 넣는다).
+# 사용: bash scripts/g01_5b4_s3w6_run.sh --check | --noop [--real] | [--real]
+#   --noop        : 여섯 서보에 현재값만 넣은 write6 1회(8000 ms)로 아무것도 안 움직이는지 확인(S3 --real 전에 먼저 통과해야 한다)
+#   (기본)         : J3+J4 20° 계단 접기(8이동). dry_run은 읽기만, --real은 실제 쓰기
+# 대화형이므로 터미널(TTY)에서만 실행된다. 이동 직전 안내 줄("[이동 N/M]")을 보면 맥에서 afplay로 소리를 낸다.
+# 비상: 이상 징후 시 손부터 빼고 Ctrl-C(3초 대기 중인 다음 이동만 취소, 이미 보낸 이동은 서보가 끝까지 간다). SDK에 정지 함수는 없다. 전원 차단은 담당자가 판단.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+H="${JETSON_HOST:-$(grep '^LG_JETSON_HOST=' "${HOME}/projects/learned-grasp-poc/.env" | cut -d= -f2- | tr -d '"')}"
+MODE="dry_run"; ARGS=""; CHECK=0; GATE=""; NOOP=0; PROBE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --real) MODE="real"; ARGS="--real";;
+    --check) CHECK=1;;
+    --noop) NOOP=1; GATE="--noop";;
+    --probe) PROBE="${2:-}"; shift; GATE="--probe ${PROBE}";;
+    *) echo "알 수 없는 인자: $1"; exit 2;;
+  esac; shift
+done
+TS="$(date +%y%m%d-%H%M%S)"; KIND=s3w6; [ "${NOOP}" = 1 ] && KIND=noop6; [ -n "${PROBE}" ] && { case "${PROBE}" in 4|3|34) KIND="probe${PROBE}";; *) echo "--probe 4|3|34 가 필요하다"; exit 2;; esac; }; OUT="${ROOT}/evidence/G01/raw/g01_5b4_${KIND}_result-${MODE}-${TS}.json"; mkdir -p "${ROOT}/evidence/G01/raw"
+for f in scripts/g01_5b4_s3w6_test.py scripts/g01_5b4_joint_test.py scripts/gripper_adapter.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
+cmp -s "${ROOT}/src/control/gripper_adapter.py" "${ROOT}/scripts/gripper_adapter.py" || { echo "scripts/gripper_adapter.py가 src/control/gripper_adapter.py와 다르다. 복사 후 재실행"; exit 2; }
+SSH=(ssh -o BatchMode=yes -o ConnectTimeout=8 "${H}")
+"${SSH[@]}" 'python3 -c "import Arm_Lib" 2>/dev/null && echo Arm_Lib_ok' | grep -q Arm_Lib_ok || { echo "Jetson에서 Arm_Lib import 확인 실패(읽기 전용 확인, 생성자 미호출)"; exit 3; }
+"${SSH[@]}" 'ps -eo args | grep -Ei "color_grasp|color_detect|arm_driver|dofbot_pro_(color|moveit|driver)" | grep -v grep && exit 9 || exit 0' || { echo "팔 제어 관련 프로세스가 실행 중이다. 중단"; exit 4; }
+if [ "${NOOP}" != 1 ] && [ "${MODE}" = real ]; then
+  python3 - "${ROOT}" <<'PYE' || { echo "S3 --real 전에 오늘 날짜의 --noop --real(현재값 유지 확인) 통과 기록이 필요하다. 먼저: bash scripts/g01_5b4_s3w6_run.sh --noop --real"; exit 7; }
+import glob, json, sys
+ok = False
+for f in glob.glob(sys.argv[1] + "/evidence/G01/raw/g01_5b4_noop6_result-real-*.json"):
+    j = json.load(open(f))
+    if j.get("ended") == "completed" and j.get("overall_ok") is True and str(j.get("finished_at", "")).startswith(__import__("datetime").date.today().isoformat()): ok = True
+sys.exit(0 if ok else 1)
+PYE
+fi
+if [ "${CHECK}" = 1 ]; then echo "사전 검증 통과(대화·쓰기 없음)"; exit 0; fi
+[ -t 0 ] && [ -t 1 ] || { echo "대화형 터미널(TTY)이 아니다. 사람이 입회한 별도 터미널에서 실행하라. 명령은 보내지 않았다."; exit 5; }
+echo "S3 write6(${KIND}), 모드: ${MODE}. 대화형 확인이 시작된다. 사람이 입회한 상태에서만 계속하라."
+RD=dofbot-g01_5b4   # 모터 제어 코드는 공용 /tmp가 아니라 전용 폴더(권한 700)에서 실행한다
+"${SSH[@]}" "mkdir -p ~/${RD} && chmod 700 ~/${RD} && rm -f ~/${RD}/result.json"   # 이전 실행 기록이 섞이지 않게 먼저 지운다
+scp -q -o BatchMode=yes "${ROOT}/scripts/g01_5b4_s3w6_test.py" "${ROOT}/scripts/g01_5b4_joint_test.py" "${ROOT}/scripts/gripper_adapter.py" "${H}:${RD}/"
+# 터미널 벨(\a)은 설정에 따라 소리가 안 날 수 있어, 이동 직전 안내 줄("[이동 N/8]")을 보면 맥에서 직접 소리를 낸다.
+beep_watch() { while IFS= read -r l; do case "$l" in *"[이동 "*) afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &;; esac; done; }
+ssh -t -o ConnectTimeout=8 "${H}" "cd ~/${RD} && python3 g01_5b4_s3w6_test.py ${ARGS} ${GATE} --run-id ${TS} --out ~/${RD}/result.json" | tee >(beep_watch) || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
+scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
+python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'기록 항목=',len(j['steps']),'returned_to_start=',j.get('returned_to_start'))" "${OUT}" "${TS}" "${MODE}"
+echo "저장: ${OUT}"
+echo "비상 절차: 시험은 마지막에 시작값 S로 복귀한다. 복귀 없이 끝났거나 관절에서 소리·발열·처짐이 있으면 손부터 빼고, 낙하 받침 위치를 확인한 뒤 담당자가 전원을 차단한다."
+echo "이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽으므로 원래 위치로 돌아가지 않는다. 원래 S는 기록(JSON)의 targets[0]이다."
