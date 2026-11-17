@@ -6,7 +6,7 @@
       python3 g01_pb_press_test.py --real                       (실제 쓰기. 확인 문구를 직접 입력해야 한다)
 구간: (열기, 시작이 오므림일 때만) 179→160→140→120→100 → (블록 없음 대조 1회, 10 s) → (블록 있음 사다리 10→20→30 s) → (마무리) 100→120→140→160→179 [블록 제거 뒤].
 한 시도: 100→120→130→135→140→145→150으로 닫고, 150 쓰기부터 총 T초(2 s 정착 + T−2 s 읽기만, 추가 쓰기 없음) 누른 뒤 100으로 열기(3000 ms).
-블록 있음 시도는 150 미만 계단에서 정체하면(조기 접촉) 거기서 중단하고 열며, 150에서 정체하지 않으면(블록 미접촉) 누르지 않고 열고 중단한다.
+블록 있음 시도는 145 미만(140 이하) 계단에서 정체하면(조기 접촉) 거기서 중단하고 열며(145 정체는 정상 접촉으로 기록하고 150까지 계속), 150에서 정체하지 않으면(블록 미접촉) 누르지 않고 열고 중단한다.
 누름 시간 코드 상한: PressBudget이 150 쓰기 시점부터 센다. 백스톱 = T + 1.0 s.
 """
 import argparse, datetime, json, signal, sys, time
@@ -25,6 +25,7 @@ WIN_PRESS = (95, 150)                            # 누르는 구간 각도 창(P
 LADDER_S = [10, 20, 30]                          # PB-1 승인. 40 s는 결과를 본 뒤 별도 승인
 CONTROL_S = 10                                   # PB-2 블록 없음 대조(발열 비교)
 REST_S = 90                                      # PB-1 시도 사이 휴식
+EARLY_BELOW = 145                                # 사용자 승인 2026-11-17(권장안 A): 조기 접촉 중단은 명령 145 미만(140 이하) 정체에만 적용한다. 145 정체(P2h 3/3: 145→142)는 정상 접촉으로 기록하고 150까지 계속한다
 CRUSH_RISE = 2                                   # PB-1: 누름 중 마지막 5회 읽기가 단조 증가하고 정체값보다 이만큼 오르면 눌림(문서 '2° 넘게'를 보수적으로 ≥2로 구현)
 E3_MAX = 1                                       # PB-1: 누름 중 회독 최대−최소가 이를 넘으면 기록하고 사다리를 멈춘다(즉시 열기는 아님)
 RETURN_MS = 3000                                 # 150→100 = 50° × 60 ms/° = 3000 ms
@@ -148,7 +149,7 @@ def main():
             if last is None: st["arrival_failed"] = True; tr["abort"] = "회독 None"; break
             stalled = len(t5) == 5 and max(t5) - min(t5) <= 1 and tgt - last >= 3
             if stalled and tr["stall_step"] is None: tr["stall_step"] = tgt
-            if block and stalled and tgt < 150: st["early_contact"] = True; tr["abort"] = "조기 접촉: 명령 %d에서 회독 %s(잔차 %d°)로 정체(150이 아님). 홀더 위치가 Run 3·4와 다를 수 있다" % (tgt, last, tgt - last); break
+            if block and stalled and tgt < EARLY_BELOW: st["early_contact"] = True; tr["abort"] = "조기 접촉: 명령 %d에서 회독 %s(잔차 %d°)로 정체(P2h는 140에서 138·139, 145에서 142로 정체). 홀더 위치가 P2h와 다를 수 있다" % (tgt, last, tgt - last); break
             if not block and (abs(tgt - last) > 3):
                 st["free_contact_suspect"] = True; tr["abort"] = "블록 없음 구간인데 명령 %d에서 회독 %s(잔차 %d°). 손가락 사이에 무언가 있거나 서보 이상이 의심된다" % (tgt, last, tgt - last); break
             if block and not last_step and not stalled and abs(tgt - last) > 3: st["arrival_failed"] = True; tr["abort"] = "도착 실패(회독 %s, 목표 %d)" % (last, tgt); break
@@ -181,7 +182,7 @@ def main():
     try:
         print("G07 P-B J6 연속 누름 시험(%s): 그리퍼 서보 6만 움직인다. 팔 관절은 명령하지 않는다." % mode)
         print("사전 확인:")
-        for k, q in enumerate(("전원 차단 담당자가 현재 자리에 있다", "팔이 K1 기립(대기) 자세이고 낙하 받침이 준비돼 있다(전원 차단 시 직립 팔이 낙하할 수 있음)", "블록 없음 대조 구간 동안 손가락 사이에 아무것도 없다", "블록 홀더(스탠드·집게)와 블록이 준비돼 있다(블록은 대조가 끝난 뒤에 둔다. **등록 블록(마커 id 7)이 아닌 여분 블록 사용 권장, PB-4**)", "누름이 최대 약 30 s까지 간다(서보 발열 미측정). 눌림·소리·냄새·떨림이 보이면 즉시 Ctrl-C, 시도 사이 휴식 %d s를 지킨다" % REST_S), 1): print("  %d. %s" % (k, q))
+        for k, q in enumerate(("전원 차단 담당자가 현재 자리에 있다", "팔이 K1 기립(대기) 자세이고 낙하 받침이 준비돼 있다(전원 차단 시 직립 팔이 낙하할 수 있음)", "블록 없음 대조 구간 동안 손가락 사이에 아무것도 없다", "블록 홀더(스탠드·집게)와 **여분(다른 색) 블록**이 준비돼 있다(블록은 대조가 끝난 뒤에 둔다. **등록 블록(마커 id 7)은 종이 위에 그대로 둔다**, PB-4)", "누름이 최대 약 30 s까지 간다(서보 발열 미측정). 눌림·소리·냄새·떨림이 보이면 즉시 Ctrl-C, 시도 사이 휴식 %d s를 지킨다" % REST_S), 1): print("  %d. %s" % (k, q))
         if not ask("위 5개를 모두 확인했습니까? (질문은 이 한 번으로 묶었습니다)"): raise Abort("사전 확인 미충족. 명령은 보내지 않았다.")
         if a.real and input("실제 쓰기를 시작하려면 정확히 '%s'를 입력: " % PHRASE).strip() != PHRASE: raise Abort("승인 문구 불일치. 명령은 보내지 않았다.")
         if a.fake:

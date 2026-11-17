@@ -143,3 +143,13 @@ def test_closing_return_unconfirmed_is_not_resent():
         assert sent and r.get("closing_unconfirmed") is True and "닫는 쪽 복귀 미확인" in txt, txt[-800:]
         assert sum(1 for x in r["adapter_logs"] for l in x if l[0] == "write" and l[1] == 179) == 1, "닫는 쓰기는 한 번만 보내야 한다"
         assert r.get("returned_to_start") is not True
+
+
+def test_stall_at_145_is_normal_contact_and_continues():
+    p, r = run("y\ny\ny\ny\ny\ny\ny\ny\n", "--fake-stall-at", "142", "--no-control")   # P2h처럼 145에서 142로 정체
+    assert r["ended"] == "completed" and r["trials"][0]["stall_step"] == 145, (r.get("abort_reason"), r["trials"][0].get("stall_step"))
+    assert r["trials"][0]["abort"] is None and r["trials"][0]["hold"] is not None and not r["trials"][0]["steps"][3].get("early_contact")
+
+
+def test_early_below_constant_is_145():
+    assert P.EARLY_BELOW == 145
