@@ -12,7 +12,7 @@ NAME="${1:-pa0_$(date +%y%m%d-%H%M%S)}"
 CHK="${ROOT}/scripts/pa0_g01_gemini_check_timed.sh"; [ -f "${CHK}" ] || { echo "scripts/pa0_g01_gemini_check_timed.sh 없음"; exit 2; }
 OUT="${ROOT}/data/g04/${NAME}.png"; [ ! -e "${OUT}" ] || { echo "이미 있음: ${OUT} (다른 이름을 쓴다)"; exit 2; }
 mkdir -p "${ROOT}/data/g04"; MAC_T="${ROOT}/data/g04/${NAME}.mac_timing.txt"; : > "${MAC_T}"
-M() { echo "$1 $(python3 -c 'import time;print("%.3f"%time.time())')" >> "${MAC_T}"; }
+M() { echo "$1 $(python3 -c 'import time;print("%.3f"%time.time())' 2>/dev/null)" >> "${MAC_T}" 2>/dev/null || true; }   # 계측 실패가 촬영 흐름을 바꾸지 않는다. 표시마다 python3를 띄우므로 Mac 구간에 수십 ms 오버헤드가 붙는다
 M m_start
 echo "[1/3] p620 연결 확인"; M m_p620_check_start; ssh -o BatchMode=yes -o ConnectTimeout=8 p620 'test -f ~/dofbot-g01-work/g01_gemini_probe.py && echo p620_ok' | grep -q p620_ok || { echo "p620 접속 또는 프로브 파일 확인 실패(전원 확인)"; exit 3; }
 M m_p620_check_done
@@ -29,5 +29,4 @@ scp -q -o BatchMode=yes "p620:dofbot-g01-work/${NAME}.host_timing.txt" "${ROOT}/
 scp -q -o BatchMode=yes "p620:dofbot-g01-work/${NAME}/timing.txt" "${ROOT}/data/g04/${NAME}.container_timing.txt" || echo "(컨테이너 타임스탬프 파일 못 가져옴)"
 python3 "${ROOT}/scripts/pa0_timing_report.py" "${ROOT}/data/g04/${NAME}" || echo "(보고 표 실패)"
 echo "저장: ${OUT}"
-echo "롤백(필요 시): rm ${OUT}; ssh p620 'rm -rf ~/dofbot-g01-work/${NAME}'"
-echo "다음: bash scripts/p1_preflight.sh --image ${OUT} --manifest evidence/scripts_snapshot/261115-bigm3/MANIFEST.sha256"
+echo "롤백(필요 시): rm ${OUT} ${ROOT}/data/g04/${NAME}.*timing.txt ${ROOT}/data/g04/${NAME}.p620_clock.txt; ssh p620 'rm -rf ~/dofbot-g01-work/${NAME} ~/dofbot-g01-work/${NAME}.host_timing.txt'"

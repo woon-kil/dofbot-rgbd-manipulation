@@ -7,7 +7,7 @@ IMAGE=cad-less-robotics:humble-p003
 VOL=bytesize-robotics-camera-install
 WORK="$HOME/dofbot-g01-work"
 TIMING="$WORK/${CFG_NAME:?CFG_NAME 필요}.host_timing.txt"   # p620 호스트 시계 기준 단계 시각(컨테이너 안 시각은 /work/<이름>/timing.txt, 같은 기계 시계)
-T() { echo "$1 $(date +%s.%N)" >> "$TIMING"; }
+T() { echo "$1 $(date +%s.%N)" >> "$TIMING" 2>/dev/null || true; }   # 계측은 원본의 제어 흐름·실패 동작(특히 EXIT trap의 컨테이너 정리)을 바꾸지 않는다
 T h_script_start
 cleanup() { T h_cleanup_start; docker exec -u 0 "$NAME" chown -R "$(id -u):$(id -g)" /work >/dev/null 2>&1 || true; docker rm -f "$NAME" >/dev/null 2>&1 || true; echo "컨테이너 정리: $(docker ps -a --format '{{.Names}}' | grep -c "^${NAME}$" || true)개 남음"; T h_cleanup_end; }
 trap cleanup EXIT
@@ -29,7 +29,7 @@ run_cfg() {
   docker exec -e CFG="$cfg" -e EXTRA="$*" "$NAME" bash -lc '
     set +u; source /opt/ros/humble/setup.bash; source /opt/cad-less-install/setup.bash; set -u
     mkdir -p /work/$CFG
-    T() { echo "$1 $(date +%s.%N)" >> /work/$CFG/timing.txt; }
+    T() { echo "$1 $(date +%s.%N)" >> /work/$CFG/timing.txt 2>/dev/null || true; }
     T c_cfg_start
     setsid stdbuf -oL -eL ros2 launch orbbec_camera gemini_330_series.launch.py enable_point_cloud:=false enable_colored_point_cloud:=false enable_publish_extrinsic:=true $EXTRA > /work/$CFG/driver.log 2>&1 &
     echo $! > /tmp/drv.pid
