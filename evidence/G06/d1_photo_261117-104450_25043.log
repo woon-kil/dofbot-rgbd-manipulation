@@ -1,0 +1,12 @@
+photo_start_epoch=1794880297
+[1/3] p620 연결 확인
+[2/3] Gemini 촬영(약 40초)
+{"first_frame_sec": {"depth": 0.04630134699982591, "color": 0.06019592099983129}, "rate": {"color": {"n": 450, "arrival_hz": 29.990493786944082, "stamp_hz": 29.963690624301968}, "depth": {"n": 450, "arrival_hz": 29.994977288946668, "stamp_hz": 29.963690147558935}}}
+드라이버 없음(d1_261117-104450_25043)
+컨테이너 정리: 0개 남음
+[3/3] 사진 가져오기
+사진 확인 (720, 1280, 3)
+저장: /Users/woonkil/projects/dofbot-rgbd-manipulation/data/g04/d1_261117-104450_25043.png
+롤백(필요 시): rm /Users/woonkil/projects/dofbot-rgbd-manipulation/data/g04/d1_261117-104450_25043.png; ssh p620 'rm -rf ~/dofbot-g01-work/d1_261117-104450_25043'
+다음: bash scripts/p1_preflight.sh --image /Users/woonkil/projects/dofbot-rgbd-manipulation/data/g04/d1_261117-104450_25043.png --manifest evidence/scripts_snapshot/261115-bigm3/MANIFEST.sha256
+photo_end_epoch=1794880334

@@ -253,6 +253,13 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
             for t_ in seq[1:]: adc.confirm_hands_clear(); adc.move(t_, cfg["close_ms"]); say("  dry_run: P4a 닫기 목표 %d (time %d ms) — 쓰기 0회" % (t_, cfg["close_ms"]))
             adc.confirm_hands_clear(); adc.return_to_start(cfg["release_ms"]); say("  dry_run: 정체 뒤 열기 검사(시작 %d, %d ms) — 쓰기 0회" % (s, cfg["release_ms"])); return
         r2 = pose_rec.setdefault("run2", {}); r2["hold_%d_open" % pid] = p2k_hold(plan, "0", arm, {"pose_id": pid}, a)
+        hg = cfg.get("height_gate")   # 닫기 직전 높이 관문(사용자 승인 문턱): 원시 각도로 예측한 닫힘 모델 캡 끝 높이가 문턱 미만이면 닫지 않고 복귀한다
+        if hg:
+            rw = raw_set(arm); dg = [(rw.get(str(k)) or {}).get("deg") for k in (2, 3, 4)]
+            if any(v is None for v in dg): raise Abort("높이 관문: J2~J4 원시 각도 읽기 실패(None). 닫지 않고 복귀합니다.")
+            m_ = hg["model"]; hp = m_["h_ref"] + sum(c_ * (d_ - q_) for c_, d_, q_ in zip(m_["a"], dg, m_["q_ref"]))
+            r2["height_pred_mm"] = round(hp, 2); r2["raw_at_contact"] = dg; say("  [높이 관문] 원시 J2~J4 %s → 예측 닫힘 모델 캡 끝 %.1f mm (문턱 %.1f mm 이상이어야 닫습니다)" % ([round(v, 2) for v in dg], hp, hg["h_min"]))
+            if hp < hg["h_min"]: raise Abort("높이 관문 미달: 예측 %.1f mm < %.1f mm. 닫지 않고 복귀합니다(열린 채 상승)." % (hp, hg["h_min"]))
         say("\n[접촉] J6를 열린 %d에서 %s로 닫습니다(P2h 정체 규칙: 명령 − 회독 ≥ 3° 이고 같은 값 연속 2회면 정체 → 3초 안에 엽니다). 손을 팔 범위에 넣지 마세요." % (s, cfg["close_seq"]))
         steps = []; stalled = None
         for t_ in seq[1:]:
@@ -264,7 +271,7 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
             if settled and t_ - vals[-1] >= 3: stalled = vals[-1]; st["stall"] = True   # P2h 규칙(명령 − 회독 ≥ 3°)을 정착(명령 시간 뒤 같은 값 3회 연속)한 뒤에만 정체로 센다
             steps.append(st); say("  닫기 목표 %d → 회독 %s%s" % (t_, st["final"], " ← 정체" if st.get("stall") else ""))
             if stalled is not None: break
-        r2["close_steps"] = steps; r2["stall_readback"] = stalled; r2["stall_command"] = steps[-1]["target"] if stalled is not None else None
+        r2["close_steps"] = steps; r2["stall_in_band"] = (stalled is not None and 138 <= stalled <= 146); r2["stall_readback"] = stalled; r2["stall_command"] = steps[-1]["target"] if stalled is not None else None
         adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
         sr = poll(adc, 2 * cfg["release_ms"] + 1000); lastr = next((v for _, v in reversed(sr) if v is not None), None); r2["release_readback"] = lastr
         say("  열기 완료(회독 %s). 정체 %s." % (lastr, ("회독 %s" % stalled) if stalled is not None else "없음(150까지 닫혔다 = 블록 없음 곡선 또는 접촉 안 됨)"))
@@ -413,10 +420,10 @@ def main():
                   "낙하 받침 없이 진행합니다(사용자 결정 2026-11-16). 전원이 끊기면 팔이 넘어지거나 내려앉을 수 있습니다. 팔 앞쪽·옆쪽과 팔 주변에 손·사람·케이블·물체가 없습니까?",
                   "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 176~179, 지난 실행이 176으로 끝나 하한을 176으로 넓혔습니다)? 이번 실행은 블록 중심 위 자세에서 정지한 채 J6만 178 → 140 → 100 → 140 → 178로 움직입니다(열리면 손가락이 좌우 약 ±47 mm까지 벌어지고 손끝은 올라갑니다). 점마다 55초 정지하는 동안 입력하지 마세요.",
                   "DaBai·그리퍼 케이블이 당겨지지 않고 여유가 있어 보입니까?", "J2·J3·J4와 그리퍼 서보 J6를 만져서 **뜨겁지 않습니까?**", "위 회독값과 이동 계획이 맞다."]
-        if plan["set"] == "29":   # Run 2(첫 접촉): 블록 옆으로 내려가 닫는다. 들어올림 없음
+        if plan["set"] in ("29", "31"):   # Run 2·3(첫 접촉): 블록 옆으로 내려가 닫는다. 들어올림 없음(Run 3은 더 깊이 + 닫기 직전 높이 관문)
             qs = ["전원 차단 담당자가 현재 자리에 있습니까?", "노란 블록(마커 id 7)은 **Run 1 이후 만지지 않았고** 지정 자리 그대로이며, 눈금자·클램프·폰 거치대는 없고, 보드 위에 그 밖의 물체·손·사람·케이블이 없습니까?",
                   "낙하 받침 없이 진행합니다(사용자 결정 2026-11-16). 전원이 끊기면 팔이 넘어지거나 내려앉을 수 있습니다. 팔 앞쪽·옆쪽과 팔 주변에 손·사람·케이블·물체가 없습니까?",
-                  "이번 실행은 **처음으로 손가락이 블록에 닿는 시험**입니다: J1 87, 50 mm에서 J6를 100으로 열고 정렬을 확인한 뒤(Mac 화면의 보고를 읽고 y/N 1회), 열린 채 블록 양옆으로 약 20 mm까지 내려가 J6를 닫아 블록을 물어 정체를 읽고 3초 안에 열고 올라옵니다. 들어올림은 없습니다. 하강·닫는 동안 손을 팔 범위에 넣지 마세요. **J6를 연 뒤에도 블록이 손가락에 붙어 함께 올라오면 즉시 Ctrl-C(전원 스위치는 담당자)**.",
+                  "이번 실행은 **처음으로 손가락이 블록에 닿는 시험**입니다: J1 87, 50 mm에서 J6를 100으로 열고 정렬을 확인한 뒤(Mac 화면의 보고를 읽고 y/N 1회), 열린 채 블록 양옆으로 내려가(Run 3은 이전보다 약 6 mm 더 깊이) 닫기 직전 **높이 관문**(원시 각도 예측 닫힘 캡 끝 7 mm 이상, 미달이면 닫지 않고 복귀)을 통과하면 J6를 닫아 블록을 물어 정체를 읽고 3초 안에 열고 올라옵니다. 들어올림은 없습니다. 하강·닫는 동안 손을 팔 범위에 넣지 마세요. **J6를 연 뒤에도 블록이 손가락에 붙어 함께 올라오면 즉시 Ctrl-C(전원 스위치는 담당자)**.",
                   "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 176~179)?", "DaBai·그리퍼 케이블이 당겨지지 않고 여유가 있어 보입니까?", "J2·J3·J4와 그리퍼 서보 J6를 만져서 **뜨겁지 않습니까?**", "위 회독값과 이동 계획이 맞다."]
         for k, q in enumerate(qs, 1): say("  %d. %s" % (k, q))
         if not ask("위 %d개를 모두 확인했습니까? (y면 이동 시작, 이동마다 소리 뒤 대기 후 움직입니다. 자세 도착마다 촬영 중 가만히 계세요)" % len(qs)): raise Abort("사전 확인 미충족. 쓰기 없음.")

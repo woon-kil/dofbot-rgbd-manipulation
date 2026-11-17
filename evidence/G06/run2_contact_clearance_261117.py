@@ -45,7 +45,7 @@ for (j,t,pid) in cmds:
         q = list(cur); q[j-1] = cur[j-1] + (tt-cur[j-1])*f; states.append(q); labels.append((j,t,pid))
     cur[j-1] = tt
 # A50 자세(2901 도착) 이후 상태만 평가
-first = next(i for i,l in enumerate(labels) if l[2] == 2901 and l[0] == 2 )
+_first_pid = int(list(plan['poses'])[0]); first = next(i for i,l in enumerate(labels) if l[2] == _first_pid and l[0] == 2)
 ret = [ (r['after_move'], r['state'], r['route']) for r in plan['return_routes']]
 # 복귀 경로도 추가(마지막 정상 상태 이후 route)
 last_route = plan['return_routes'][-1]

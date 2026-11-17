@@ -18,14 +18,15 @@ for p in pose:
     r2.update(p.get('run2', {})); drift += p.get('drift', [])
 rows = {}
 rows['S1'] = bool(r2.get('align_confirmed'))
-rows['S2'] = all(('hold_%d' % k) in r2 or ('hold_%d_open' % k) in r2 for k in (2902, 2903, 2904)) and not drift
+_pids = [p['pose_id'] for p in pose]; _mid = _pids[1:4]   # 자세 2902·2903·2904(또는 3102~3104)
+rows['S2'] = all(('hold_%d' % k) in r2 or ('hold_%d_open' % k) in r2 for k in _mid) and not drift
 steps = r2.get('close_steps', [])
 stall = next((s for s in steps if s.get('stall')), None); rows['S3'] = stall is not None
 mref = PA.E.detect(cv2.imread(ref)).get(7); mpost = PA.E.detect(cv2.imread(post)).get(7) if post and os.path.exists(post) else None
 if mref and mpost:
     sh = float(np.hypot(mpost['center'][0]-mref['center'][0], mpost['center'][1]-mref['center'][1])); sd = abs(mpost['side_px']-mref['side_px']); rows['S4'] = (sh <= 2.0 and sd <= 1.0); s4txt = '마커 이동 %.2f px, 변 길이 차 %.2f px' % (sh, sd)
 else: rows['S4'] = False; s4txt = '복귀 뒤 사진 또는 마커 미검출(판정 불가=실패)'
-m41 = PA.E.detect(cv2.imread(pre + '29041.png')).get(7) if os.path.exists(pre + '29041.png') else None
+_tag41 = str(_pids[0] // 10) + '41'; m41 = PA.E.detect(cv2.imread(pre + _tag41 + '.png')).get(7) if os.path.exists(pre + _tag41 + '.png') else None
 if m41 and mref: s4txt += ' | 보조(29041): 마커 이동 %.2f px' % float(np.hypot(m41['center'][0]-mref['center'][0], m41['center'][1]-mref['center'][1]))
 rr = r2.get('release_readback'); rows['S5'] = rr is not None and abs(rr-100) <= 3
 print('Run 2 분석 (사전 등록 규칙)')
@@ -39,7 +40,8 @@ for p in pose:
     pr = p.get('capture', {}).get('raw_pre') or {}
     try: q0 = [pr[k]['deg'] for k in '1234']
     except Exception: pass
-for tag in ('29010', '29020', '29030', '29040', '29041'):
+_b = str(_pids[0] // 10)
+for tag in (_b + '10', _b + '20', _b + '30', _b + '40', _b + '41'):
     f = pre + tag + '.png'
     if not os.path.exists(f) or q0 is None: print(' ', tag, '사진 없음'); continue
     cp = PA.detect_caps(f, ref, (697.0, 235.0))
