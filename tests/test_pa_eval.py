@@ -58,69 +58,92 @@ def test_m1_double_prime_request_id_and_cycles():
 
 
 BASE = {"found": True, "center": [676.0, 266.5], "side_px": 28.5, "yaw_deg": -178.2}
+BASES4 = [BASE, BASE, BASE, BASE]
 
 
 def test_m2_bias_pass_and_yaw_wrap():
     s = [_snap(i, yaw=179.0 if i % 2 else -179.0) for i in range(1, 21)]      # ±180 경계에 걸친 yaw
-    b1 = dict(BASE, yaw_deg=179.5); b2 = dict(BASE, yaw_deg=-179.5)
-    r = E.m2(s, b1, b2)
+    bs = [dict(BASE, yaw_deg=179.5), dict(BASE, yaw_deg=-179.5), dict(BASE, yaw_deg=179.5), dict(BASE, yaw_deg=-179.5)]
+    r = E.m2(s, bs)
     assert r["m2a"]["pass"] and r["m2b"]["pass"] is True, r["m2b"]
 
 
-def test_m2_bias_fail_and_baseline_moved_undecidable():
+def test_m2_bias_fail_and_front_back_gate_undecidable():
     s = [_snap(i, center=(676.5, 266.5)) for i in range(1, 21)]                 # 중심 편향 0.5 > 0.32
-    r = E.m2(s, BASE, BASE)
-    assert r["m2b"]["pass"] is False
-    moved = dict(BASE, center=[677.0, 266.5])                                   # 기준 앞·뒤 차 1.0 > 0.75 → 장면이 움직임
-    exact = dict(BASE, center=[676.75, 266.5])                                  # 정확히 0.75 → G2 원문 '이하이면 정상'이라 판정 불가가 아니다
-    assert E.m2(s, BASE, exact)["m2b"]["undecidable"] is False
-    r2 = E.m2(s, BASE, moved)
+    assert E.m2(s, BASES4)["m2b"]["pass"] is False
+    moved = [BASE, BASE, dict(BASE, center=[677.0, 266.5]), dict(BASE, center=[677.0, 266.5])]   # 앞 평균 대 뒤 평균 1.0 > 0.75 → 장면이 움직임
+    r2 = E.m2(s, moved)
     assert r2["m2b"]["pass"] is None and r2["m2b"]["undecidable"]
+    exact = [BASE, BASE, dict(BASE, center=[676.75, 266.5]), dict(BASE, center=[676.75, 266.5])]  # 정확히 0.75 → '이하이면 정상'
+    assert E.m2(s, exact)["m2b"]["undecidable"] is False
 
 
-def test_m2c_e1_side_diff_threshold():
+def test_within_pair_noise_alone_does_not_make_undecidable():
+    s = [_snap(i) for i in range(1, 21)]
+    noisy = [BASE, dict(BASE, side_px=29.4), BASE, dict(BASE, side_px=29.4)]    # A1-A2·B1-B2 변 길이 차 0.9 > 0.75이지만 앞·뒤 평균은 같다
+    r = E.m2(s, noisy)
+    assert r["m2b"]["undecidable"] is False and r["m2b"]["within_pair_diff_reference"]["A1-A2"][1] > 0.75
+
+
+def test_m2c_within_start_18_pairs_and_cross_start_pair_excluded():
     s = [_snap(i, side=28.5 + (0.45 if i % 2 else 0.0)) for i in range(1, 21)]
-    assert E.m2(s, BASE, BASE)["m2c"]["pass"]                                   # 최대 0.45 < 0.5
-    s[5]["detect"]["side_px"] = 29.1; s[6]["detect"]["side_px"] = 28.5
-    assert not E.m2(s, BASE, BASE)["m2c"]["pass"]
+    r = E.m2(s, BASES4)["m2c"]
+    assert r["pass"] and r["n_pairs"] == 18                                     # 18쌍(기동 안), 최대 0.45 < 0.5
+    s2 = [_snap(i, side=28.5 if i <= 10 else 29.4) for i in range(1, 21)]       # 기동 안은 모두 같고 기동 #1→#2에서만 0.9 차이
+    assert E.m2(s2, BASES4)["m2c"]["pass"]                                       # snap10(#1)-snap11(#2) 쌍은 제외되어 통과
+    s2[3]["detect"]["side_px"] = 29.2                                            # 같은 기동 안 쌍 0.7 ≥ 0.5
+    assert not E.m2(s2, BASES4)["m2c"]["pass"]
 
 
 def test_m2a_requires_all_20_detected():
     s = [_snap(i) for i in range(1, 21)]; s[2]["detect"] = {"found": False}
-    assert not E.m2(s, BASE, BASE)["m2a"]["pass"]
+    assert not E.m2(s, BASES4)["m2a"]["pass"]
 
 
-def test_m3_same_session_range():
-    s = [_snap(i) for i in range(1, 21)]
-    a = {"bright": 116.0, "valid": 0.763}; b = {"bright": 116.8, "valid": 0.765}
-    assert E.m3(s, a, b)["pass"]
-    s[0]["bright"] = 119.5
-    assert not E.m3(s, a, b)["pass"]
-    assert E.m3(s, {"bright": None, "valid": None}, b)["pass"] is None
+def _bases3(vals, valid=0.764):
+    return [{"bright": b, "valid": valid} for b in vals]
 
 
-def test_m4_requires_hz_usb_and_clean_stop():
+def test_m3_per_start_means_against_four_start_range():
+    s = [_snap(i) for i in range(1, 21)]                                         # 모든 프레임 116.4
+    assert E.m3(s, _bases3([116.0, 118.0, 115.5, 119.0]))["pass"]                # 기동 평균 116.4 ∈ [113.5, 121.0]
+    far = _bases3([120.0, 121.0, 122.0, 123.0])                                  # 범위 [118.0, 125.0] 밖
+    assert not E.m3(s, far)["pass"]
+    for i in range(10, 20): s[i]["bright"] = 124.0                                # 기동 #2 평균 124 → #1은 안, #2는 밖이면 실패
+    assert not E.m3(s, _bases3([116.0, 118.0, 115.5, 119.0]))["pass"]
+    assert E.m3(s, [{"bright": None, "valid": None}] * 4)["pass"] is None
+
+
+def test_m3_depth_all_frames_within_baseline_range():
+    s = [_snap(i) for i in range(1, 21)]; s[4]["valid"] = 0.80
+    assert not E.m3(s, _bases3([116.0, 117.0, 116.5, 116.8]))["pass"]
+
+
+def test_m4_per_file_usb_counts_and_clean_stops():
     p = {"rate": {"color": {"arrival_hz": 30.0}, "depth": {"arrival_hz": 29.9}}}
-    ok = {"usb_disconnect_lines": 0, "containers_left_after_stop": [0, 0, 0]}
+    ok = {"usb_counts": {"a": 0, "b": 0, "c": 0}, "containers_left_after_stop": [0, 0, 0]}
     assert E.m4(p, p, ok)["pass"]
+    assert not E.m4(p, p, dict(ok, usb_counts={"a": 0, "b": 1, "c": 0}))["pass"]            # 어느 로그든 끊김이 있으면 실패
+    assert not E.m4(p, p, dict(ok, usb_counts={"a": 0, "b": 0}))["pass"]                     # 로그 수가 3이 아니면(다른 세션 로그 혼입·누락) 판정하지 않는다
+    assert not E.m4(p, p, dict(ok, containers_left_after_stop=[0, 1, 0]))["pass"]
     assert not E.m4(p, {"rate": {"color": {"arrival_hz": 28.0}, "depth": {"arrival_hz": 30.0}}}, ok)["pass"]
-    assert not E.m4(p, p, dict(ok, usb_disconnect_lines=1))["pass"] and not E.m4(p, p, dict(ok, containers_left_after_stop=[0, 1, 0]))["pass"]
 
 
-def test_evaluate_full_with_synthetic_files_uses_thresholds_without_changing_them():
+def test_evaluate_full_with_synthetic_files_and_frozen_constants():
     with tempfile.TemporaryDirectory() as d:
         d = Path(d)
         for i in range(1, 21):
             n = "S_snap%02d" % i
-            (d / (n + ".mac_timing.txt")).write_text("m_start 0.0\nm_detect_done 2.0\n")
+            (d / (n + ".mac_timing.txt")).write_text("m_start 0.0\nm_detect_done 1.0\n")
             (d / (n + ".meta.json")).write_text(json.dumps({"ok": True, "request_id": n + "-1", "color": {"stamp_minus_req": 0.3, "recv_minus_stamp": 0.05}, "depth": {"stamp_minus_req": 0.3, "recv_minus_stamp": 0.04}}))
-            (d / (n + ".detect.json")).write_text(json.dumps(BASE | {"side_px": 28.5}))
+            (d / (n + ".detect.json")).write_text(json.dumps(BASE))
             (d / (n + ".req_id.txt")).write_text(n + "-1\n")
-        for t in "ab": (d / ("S_base_%s.detect.json" % t)).write_text(json.dumps(BASE))
-        (d / "S_cycles.json").write_text(json.dumps({"snap_after_stop_failed": True, "auto_exit_snap_failed": True, "usb_disconnect_lines": 0, "containers_left_after_stop": [0, 0, 0]}))
+        for t in E.BASES: (d / ("S_base_%s.detect.json" % t)).write_text(json.dumps(BASE))
+        (d / "S_cycles.json").write_text(json.dumps({"snap_after_stop_failed": True, "auto_exit_snap_failed": True, "usb_counts": {"l1": 0, "l2": 0, "l3": 0}, "containers_left_after_stop": [0, 0, 0]}))
         p = {"rate": {"color": {"arrival_hz": 30.0}, "depth": {"arrival_hz": 30.0}}}
         (d / "S_probe_start.json").write_text(json.dumps(p)); (d / "S_probe_end.json").write_text(json.dumps(p))
         r = E.evaluate("S", d)
         assert r["M1"]["pass"] and r["M1'"]["pass"] and r["M1''"]["pass"] and r["m2a"]["pass"] and r["m2b"]["pass"] and r["m2c"]["pass"] and r["M4"]["pass"]
         assert r["overall"] in ("성립", "판정 불가 포함")                         # 이미지 파일이 없으면 M3만 판정 불가
-    assert (E.M1_MAX_S, E.BIAS_CENTER_PX, E.BIAS_SIDE_PX, E.BIAS_YAW_DEG, E.GATE_CENTER_PX, E.GATE_SIDE_PX, E.GATE_YAW_DEG, E.E1_SIDE_PX) == (3.0, 0.32, 0.25, 1.0, 0.75, 0.75, 3.0, 0.5)
+    assert (E.M1_MAX_S, E.BIAS_CENTER_PX, E.BIAS_SIDE_PX, E.BIAS_YAW_DEG, E.GATE_CENTER_PX, E.GATE_SIDE_PX, E.GATE_YAW_DEG, E.E1_SIDE_PX, E.M3_BRIGHT, E.M3_VALID, E.M4_MIN_HZ) == (3.0, 0.32, 0.25, 1.0, 0.75, 0.75, 3.0, 0.5, 2.0, 0.02, 29.0)
+    assert E.BASES == ("a1", "a2", "b1", "b2") and E.N_STARTS_LOGS == 3
