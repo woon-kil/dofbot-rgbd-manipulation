@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" width="1180" height="760" role="img" aria-label="src 모듈 관계도">
+<title>src 모듈 관계도 (2026-11-17)</title>
+<style>
+:root{--bg:#fbfaf7;--fg:#1c1b19;--mut:#6b675f;--line:#8a857b;--plan-f:#e3edf8;--plan-s:#2f6db3;--kin-f:#e2f1e5;--kin-s:#2e7d46;--tf-f:#fbeadb;--tf-s:#b5601a;--ctl-f:#ece4f6;--ctl-s:#6c46a8;--emp-s:#9a958b}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1a18;--fg:#efece5;--mut:#a29d92;--line:#8d887e;--plan-f:#1e2f44;--plan-s:#6aa6e6;--kin-f:#1d3425;--kin-s:#62c07f;--tf-f:#3b2a1b;--tf-s:#e0904a;--ctl-f:#2d2440;--ctl-s:#a784dd;--emp-s:#7d786d}}
+text{font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;fill:var(--fg)}
+.t{font-size:14px;font-weight:600} .s{font-size:12px;fill:var(--mut)} .h{font-size:13px;font-weight:600} .n{font-size:12px;fill:var(--mut)}
+.e{fill:none;stroke:var(--line);stroke-width:1.6}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--line)"/></marker></defs>
+<rect width="1180" height="760" fill="var(--bg)"/>
+<text x="20" y="28" class="t" style="font-size:18px">src 모듈 관계도 — 화살표는 "가져다 쓴다(import)" 방향</text>
+<text x="20" y="48" class="s">2026-11-17 기준, src/ 파이썬 파일의 import를 AST로 읽어 그렸다(그린 선 12개 = 코드에서 뽑은 선 12개). 호출 순서나 실행 흐름이 아니다.</text>
+
+<path class="e" d="M430,230 L480,230" marker-end="url(#a)"/>
+<path class="e" d="M300,200 L300,170 L785,170 L785,200" marker-end="url(#a)"/>
+<path class="e" d="M260,200 L260,120 L1040,120 L1040,200" marker-end="url(#a)"/>
+<path class="e" d="M430,270 L660,270 L660,375 L700,375" marker-end="url(#a)"/>
+<path class="e" d="M330,290 L330,480 L1050,480 L1050,390" marker-end="url(#a)"/>
+<path class="e" d="M650,230 L700,230" marker-end="url(#a)"/>
+<path class="e" d="M620,200 L620,150 L1000,150 L1000,200" marker-end="url(#a)"/>
+<path class="e" d="M540,260 L540,345 L700,345" marker-end="url(#a)"/>
+<path class="e" d="M590,260 L590,440 L1000,440 L1000,390" marker-end="url(#a)"/>
+<path class="e" d="M870,230 L920,230" marker-end="url(#a)"/>
+<path class="e" d="M1005,260 L1005,330" marker-end="url(#a)"/>
+<path class="e" d="M420,560 L480,560" marker-end="url(#a)"/>
+<rect x="230" y="200" width="200" height="90" rx="8" fill="var(--plan-f)" stroke="var(--plan-s)" stroke-width="1.6"/>
+<text x="330.0" y="242.0" text-anchor="middle" class="h">p1_*, final_location (26개)</text>
+<text x="330.0" y="260.0" text-anchor="middle" class="s">planning/ 안의 시험 점검·분석 모듈</text>
+<rect x="480" y="200" width="170" height="60" rx="8" fill="var(--plan-f)" stroke="var(--plan-s)" stroke-width="1.6"/>
+<text x="565.0" y="227.0" text-anchor="middle" class="h">planning/dry_run</text>
+<text x="565.0" y="245.0" text-anchor="middle" class="s">BEST·TRUTH·TABLE_Z</text>
+<rect x="700" y="200" width="170" height="60" rx="8" fill="var(--plan-f)" stroke="var(--plan-s)" stroke-width="1.6"/>
+<text x="785.0" y="227.0" text-anchor="middle" class="h">planning/observe</text>
+<text x="785.0" y="245.0" text-anchor="middle" class="s">PoseGrid·카메라 자세</text>
+<rect x="700" y="330" width="170" height="60" rx="8" fill="var(--plan-f)" stroke="var(--plan-s)" stroke-width="1.6"/>
+<text x="785.0" y="357.0" text-anchor="middle" class="h">planning/collision_3a</text>
+<text x="785.0" y="375.0" text-anchor="middle" class="s">손가락·링크 충돌</text>
+<rect x="920" y="200" width="170" height="60" rx="8" fill="var(--plan-f)" stroke="var(--plan-s)" stroke-width="1.6"/>
+<text x="1005.0" y="227.0" text-anchor="middle" class="h">planning/reach</text>
+<text x="1005.0" y="245.0" text-anchor="middle" class="s">Model·solve_ik</text>
+<rect x="920" y="330" width="170" height="60" rx="8" fill="var(--kin-f)" stroke="var(--kin-s)" stroke-width="1.6"/>
+<text x="1005.0" y="357.0" text-anchor="middle" class="h">kinematics/urdf_fk</text>
+<text x="1005.0" y="375.0" text-anchor="middle" class="s">UrdfFK 순기구학</text>
+<rect x="230" y="530" width="190" height="60" rx="8" fill="var(--tf-f)" stroke="var(--tf-s)" stroke-width="1.6"/>
+<text x="325.0" y="557.0" text-anchor="middle" class="h">transforms/dual_camera</text>
+<text x="325.0" y="575.0" text-anchor="middle" class="s">두 카메라 변환 연결</text>
+<rect x="480" y="530" width="170" height="60" rx="8" fill="var(--tf-f)" stroke="var(--tf-s)" stroke-width="1.6"/>
+<text x="565.0" y="557.0" text-anchor="middle" class="h">transforms/se3</text>
+<text x="565.0" y="575.0" text-anchor="middle" class="s">SE(3) 연산</text>
+<rect x="740" y="530" width="230" height="60" rx="8" fill="var(--ctl-f)" stroke="var(--ctl-s)" stroke-width="1.6"/>
+<text x="855.0" y="557.0" text-anchor="middle" class="h">control/gripper_adapter</text>
+<text x="855.0" y="575.0" text-anchor="middle" class="s">승인 목록 검사용(직접 연결 안 함)</text>
+<rect x="20" y="200" width="170" height="90" rx="8" fill="none" stroke="var(--line)" stroke-dasharray="5 4"/>
+<text x="105" y="222" text-anchor="middle" class="h">scripts/</text>
+<text x="105" y="242" text-anchor="middle" class="s">gripper_adapter를 쓰는</text>
+<text x="105" y="258" text-anchor="middle" class="s">파이썬 17개 + 실행 래퍼가</text>
+<text x="105" y="274" text-anchor="middle" class="s">plan_check·preflight 호출</text>
+<rect x="20" y="320" width="170" height="70" rx="8" fill="none" stroke="var(--line)" stroke-dasharray="5 4"/>
+<text x="105" y="344" text-anchor="middle" class="h">tests/</text>
+<text x="105" y="364" text-anchor="middle" class="s">테스트 16개 중 7개가 src를 import</text>
+<text x="20" y="636" class="h">구현 없는 빈 패키지 (src/README.md: 구현 경계용)</text>
+<rect x="20" y="650" width="130" height="40" rx="8" fill="none" stroke="var(--emp-s)" stroke-dasharray="4 4"/><text x="85" y="675" text-anchor="middle" class="s">camera/</text>
+<rect x="170" y="650" width="130" height="40" rx="8" fill="none" stroke="var(--emp-s)" stroke-dasharray="4 4"/><text x="235" y="675" text-anchor="middle" class="s">perception/</text>
+<rect x="320" y="650" width="130" height="40" rx="8" fill="none" stroke="var(--emp-s)" stroke-dasharray="4 4"/><text x="385" y="675" text-anchor="middle" class="s">calibration/</text>
+<rect x="470" y="650" width="130" height="40" rx="8" fill="none" stroke="var(--emp-s)" stroke-dasharray="4 4"/><text x="535" y="675" text-anchor="middle" class="s">verification/</text>
+<text x="20" y="712" class="n">해당 코드는 현재 scripts/·evidence/G06/ 등에 있다(예: hand-eye 풀이 scripts/g04_solve.py, 전부 확인하지 않음).</text>
+<text x="740" y="636" class="h">색 = 패키지</text>
+<rect x="740" y="650" width="96" height="26" rx="6" fill="var(--plan-f)" stroke="var(--plan-s)" stroke-width="1.4"/><text x="788" y="668" text-anchor="middle" class="s" style="fill:var(--fg)">planning</text>
+<rect x="848" y="650" width="96" height="26" rx="6" fill="var(--kin-f)" stroke="var(--kin-s)" stroke-width="1.4"/><text x="896" y="668" text-anchor="middle" class="s" style="fill:var(--fg)">kinematics</text>
+<rect x="956" y="650" width="96" height="26" rx="6" fill="var(--tf-f)" stroke="var(--tf-s)" stroke-width="1.4"/><text x="1004" y="668" text-anchor="middle" class="s" style="fill:var(--fg)">transforms</text>
+<rect x="1064" y="650" width="96" height="26" rx="6" fill="var(--ctl-f)" stroke="var(--ctl-s)" stroke-width="1.4"/><text x="1112" y="668" text-anchor="middle" class="s" style="fill:var(--fg)">control</text>
+<text x="740" y="712" class="n">하드웨어 명령은 이 그림의 어느 모듈에도 없다. 실제 전송은 scripts/가 Jetson에서 한다.</text>
+</svg>
