@@ -39,6 +39,9 @@ def containers_left():
     except Exception: return None
 
 
+def driver_alive(): return "드라이버 프로세스 있음" in pa_driver("status").stdout     # 시험 장치 점검(평가 지표 아님, 사전 등록): start 직후 status가 살아 있는 드라이버를 '있음'으로 잡는지
+
+
 def snap(name): return run(["bash", str(ROOT / "scripts" / "pa_snap_mac.sh"), name])
 
 
@@ -77,6 +80,8 @@ def main():
         print("② start"); r = pa_driver("start", WARMUP=WARMUP); print(r.stdout[-200:]);
         if r.returncode: print("start 실패:", r.stdout, r.stderr); cycles["aborted"] = "start"; return 3
         start = time.time()
+        if not driver_alive(): print("시험 장치 점검 실패: start 직후 status가 '드라이버 프로세스 있음'을 내지 않았다 → 즉시 중단(패턴 결함 의심)"); cycles["aborted"] = "status_pattern"; return 7
+        cycles["status_alive_main"] = True
         print("   확인용 snap 1회(평가 제외)"); r = snap("%s_warmcheck" % S)
         if r.returncode != 0 or not r.stdout.startswith("OK"): print("확인용 snap 실패 → 즉시 중단:", r.stdout[-200:], r.stderr[-200:]); cycles["aborted"] = "warmcheck"; return 5
         print("③ probe(15 s)"); probe(S, "start")
@@ -95,11 +100,14 @@ def main():
         print("⑦ stop"); pa_driver("stop"); left.append(containers_left())
         print("⑧ 기준 사진 B(약 40 s)"); base_photo(S, "b")
         print("⑨ stop 뒤 snap(실패해야 한다)"); r = snap("%s_after_stop" % S); cycles["snap_after_stop_failed"] = bool(r.returncode != 0 and not (D / ("%s_after_stop.color.png" % S)).exists())
-        print("⑩ start/stop 2회째(정상)"); r = pa_driver("start", WARMUP=WARMUP); pa_driver("stop"); left.append(containers_left())
-        print("   3회째: MAXSEC=45 자동 종료 시험(타임아웃 시각 이후 status 폴링으로 드라이버가 꺼진 것을 확인한 뒤 snap)"); r = pa_driver("start", WARMUP=WARMUP, MAXSEC=45); t3 = time.time(); cycles["cycle3_start_rc"] = r.returncode
+        print("⑩ start/stop 2회째(정상)"); r = pa_driver("start", WARMUP=WARMUP); cycles["status_alive_cycle2"] = driver_alive(); pa_driver("stop"); left.append(containers_left())
+        if not cycles["status_alive_cycle2"]: print("시험 장치 점검 실패(2회째): status가 '있음'을 내지 않음 → 중단"); cycles["aborted"] = "status_pattern_cycle2"; cycles["containers_left_after_stop"] = left; return 7
+        print("   3회째: MAXSEC=45 자동 종료 시험(타임아웃 시각 이후 status 폴링으로 드라이버가 꺼진 것을 확인한 뒤 snap)"); r = pa_driver("start", WARMUP=WARMUP, MAXSEC=45); t3 = time.time(); cycles["cycle3_start_rc"] = r.returncode; cycles["status_alive_cycle3"] = driver_alive()
+        if not cycles["status_alive_cycle3"]: print("시험 장치 점검 실패(3회째): status가 '있음'을 내지 않음 → 자동 종료 시험 중단"); cycles["aborted"] = "status_pattern_cycle3"; pa_driver("stop"); left.append(containers_left()); cycles["containers_left_after_stop"] = left; return 7
         exited, last = False, ""
-        time.sleep(max(0, 45 - WARMUP - 5 - 2)); cycles["auto_exit_first_poll_after_start_s"] = round(time.time() - t3, 1)   # 타임아웃(launch+45 s) 전에는 '꺼짐'을 인정하지 않는다(첫 세션: 상태 확인 패턴 결함으로 0.3 s에 거짓 '꺼짐')
-        while time.time() - t3 < 55:       # launch 기준 45+15+10 s 안에 꺼져야 한다(start 반환 시각은 launch보다 약 15 s 늦다)
+        time.sleep(45 - WARMUP + 2); cycles["auto_exit_first_poll_after_start_s"] = round(time.time() - t3, 1)   # start는 launch 후 적어도 WARMUP s가 지나야 반환하므로 첫 polling은 늘 launch+47 s 이후(타임아웃 45 s 뒤). 첫 세션: 패턴 결함으로 0.3 s에 거짓 '꺼짐'
+        cycles["auto_exit_poll_bound_after_start_s"] = 60
+        while time.time() - t3 < 60:      # launch+70 s(45+15+10) 최악 경우를 덮는다       # launch 기준 45+15+10 s 안에 꺼져야 한다(start 반환 시각은 launch보다 약 15 s 늦다)
             last = pa_driver("status").stdout
             if "드라이버 프로세스 없음" in last or "컨테이너 종료됨" in last: exited = True; break
             time.sleep(3)
