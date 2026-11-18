@@ -37,6 +37,11 @@ PARAMS = {
     # --- E-2 사전 등록 값(E-7 포함) ---
     "e1_center_up_px": 8.0, "e1_side_len_px": 0.7, "e1_lateral_px": 4.0,
     "q3_shift_max_px": 2.0, "q3_response_min": 0.3,
+    # --- S4' 관문 승인 값(E-2b `:14` 승인됨, S4' 문서 §3 `:22~28`) ---
+    "g2_deadzone_px": 0.75, "g2_s_range_mm": (-1.26, -0.77), "g2_magnitude_mm": 3.0, "g4_side_px": 0.75, "g5_yaw_deg": 3.0,
+    # --- 미확정(기본값 없음; 정렬 보고 계산 `p2k_align_report.py`·`p2k_analyze_261117.py` 정독 전) ---
+    "g2_mm_per_px": UNSET,                  # G2: 중심 이동(px) → Δx_block(mm) 환산(S4' 문서는 '0.75 px ≈ 0.6 mm'로만 적음)
+    "g2_x_sign": UNSET,                     # G2: 영상 x 이동 부호 → 프로젝트 x 부호 규약(프로젝트 x와 월드 x가 반대, 구현 전 원 기록으로 확정)
     # --- 미확정(P9 확정 전, 기본값 없음) ---
     "q3_box": UNSET,                        # P9: (나') (800,0,900,100) 원칙 동의, 확정은 사전 등록 전
     "q3_arm_in_box_criterion": UNSET,       # P9 조건 ③: 들어올림 자세에서 팔이 영역에 들어오면 판정 불가로 처리하는 기준
