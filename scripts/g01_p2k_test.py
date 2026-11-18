@@ -370,6 +370,10 @@ def main():
     FAKE_ENTRIES[:] = [x.strip() for x in a.fake_entry.split(",") if x.strip()] if a.fake_entry else []
     FAKE.update({"countdown_int": a.fake_countdown_int, "return_int": a.fake_return_int, "capture_fail": a.fake_capture_fail})
     plan = json.load(open(a.plan, encoding="utf-8"))
+    if plan.get("set") == "33":   # 들어올림 세트: 미확정 상수(UNSET)가 하나라도 있으면 --real 거부(fail-closed, 사용자 결정 2026-11-18). Arm_Lib import·안전 질문·쓰기보다 앞
+        import g01_lift_params as LP
+        try: LP.check_real_allowed("fake" if a.fake else ("real" if a.real else "dry_run"), LP.params_for_plan(plan))
+        except LP.ParamsNotFinal as e: sys.exit("세트 33: %s" % e)
     FAKE["abort_close"] = int(a.fake_abort_close) if a.fake_abort_close else None
     FAKE["ceils"] = {int(t_.split(":")[0]): int(t_.split(":")[1]) for t_ in a.fake_ceil.split(",") if ":" in t_}
     if plan["set"] == "23": WINDOWS[2] = [55, 110]; WINDOWS[1] = [70, 122]

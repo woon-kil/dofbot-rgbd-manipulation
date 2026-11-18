@@ -49,6 +49,15 @@ PARAMS = {
 }
 
 
+def params_for_plan(plan):
+    """계획 JSON(세트 33)이 공급하는 값을 PARAMS 사본에 채운다: 접촉 자세마다 생성기가 계산한 두 번째 J2 최대 정수 목표(P10).
+    plan[\"lift\"][\"j2_max_target\"]가 정수가 아니면 UNSET을 유지한다(fail-closed)."""
+    import copy
+    p = copy.deepcopy(PARAMS); v = (plan.get("lift") or {}).get("j2_max_target")
+    if isinstance(v, int) and not isinstance(v, bool): p["lift_j2_max_target"] = v
+    return p
+
+
 def unset_names(params=None):
     p = PARAMS if params is None else params
     return sorted(k for k, v in p.items() if isinstance(v, _Unset))
