@@ -259,6 +259,19 @@ class SagCapMethods:
         finally: R.ask = orig
         self.assertEqual(r["ended"], "aborted"); self.assertIn("복귀하지 않습니다", r["abort_reason"]); self.assertNotEqual(r.get("returned_to_start"), True)                 # 정상 들어올림에서도 N이면 복귀하지 않는다
 
+    def test_set33_safety_questions_have_no_false_sentences(self):
+        """세트 33 러너 안전 확인 8항목(화면 출력, 사람이 y로 답하는 문장)에 'Run 3 이후'·옛 들어올림 높이가 남지 않는다. ask 순서도 문서와 같다."""
+        import io, contextlib
+        qs = []; orig = R.ask
+        def ask(msg): qs.append(msg); return True
+        R.ask = ask; buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf): self.run33(FakeChannel(REF, photos()))
+        finally: R.ask = orig
+        out = buf.getvalue(); self.assertIn("마커 기준 재등록 사진", out); self.assertNotIn("Run 3 이후 만지지", out); self.assertNotIn("약 15~20 mm", out); self.assertIn("약 10~17 mm", out)
+        keys = ["위 8개를 모두 확인했습니까", "정렬 확인이 모두 맞습니까", "블록이 낙하했습니다", "마지막 확인 1회"]   # --real 정상 경로의 ask 순서(안내문서 §4와 같음)
+        pos = [next(i for i, q in enumerate(qs) if k in q) for k in keys]; self.assertEqual(pos, sorted(pos)); self.assertEqual(len(qs), 4)
+
     def test_dead_terminal_during_press_still_opens_j6_once_and_writes_result(self):
         """ssh/pty가 끊겨(SIGHUP→Hangup, 이후 print가 OSError) 사진 A를 기다리는 누름 중에도 비상 J6 열기가 정확히 1회 나가고 result.json이 써져야 한다(래퍼 경유 dry run에서 result.json이 사라진 원인 가설: finally 안의 say가 죽은 pty에서 OSError → 열기·기록 건너뜀)."""
         import builtins
