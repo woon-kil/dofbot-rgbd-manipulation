@@ -96,7 +96,7 @@ if [ "${MODE}" = real ]; then
   bash "${ROOT}/scripts/pa_snap_mac.sh" "lift_${TS}_post" || echo "(복귀 뒤 P-A 스냅 실패: 기록 없음)"
   pa_stop
 else
-  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) > /dev/null || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"   # dry_run: 쓰기 0, 사진·P-A 없음
+  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"   # dry_run: 쓰기 0, 사진·P-A 없음
 fi
 scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
 python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'returned_to_start=',j.get('returned_to_start'),'lift=',(j.get('lift') or {}).get('ended_reason'))" "${OUT}" "${TS}" "${MODE}"

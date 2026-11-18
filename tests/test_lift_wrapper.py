@@ -53,6 +53,11 @@ class TestStatic(unittest.TestCase):
         for f in ("g01_lift_r8.py", "g01_lift_classify.py"): self.assertIn("scripts/" + f, t33)
         self.assertIn('g01_lift_r8.py" "${OUT}" --ts "${TS}" --log "${BLOG}"', t33); self.assertIn("sha=hashlib.sha256", t33)                    # 기준 사진 해시를 기준 JSON에 싣는다
 
+    def test_runner_output_is_never_hidden_in_any_mode(self):
+        """dry_run에서 러너 출력을 /dev/null로 보내면 안전 질문이 안 보여 사용자가 멈춘 줄 안다(2026-11-18 실사용 발견)."""
+        for l in t33.splitlines():
+            if 'ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}"' in l: self.assertNotIn("/dev/null", l.split("|", 1)[1].replace(">(beep_watch)", "")); self.assertIn("| tee", l)
+
     def test_no_wildcard_delete_and_bridge_not_deployed_to_jetson(self):
         self.assertNotRegex(t33, r"rm -[a-z]*f?[^\n]*\*")                                                       # 와일드카드 삭제 금지
         self.assertNotIn("g01_lift_bridge.py\" \"${ROOT}", "".join(l for l in t33.splitlines() if l.startswith("scp")))   # 다리는 Mac 쪽이다
