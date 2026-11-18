@@ -6,6 +6,10 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import g01_lift_bridge as B, g01_lift_hook as LH, g01_lift_params as LP
 
 REF = {"found": True, "center": [673.0, 267.0], "side_px": 29.3, "yaw_deg": -178.8}
+try:
+    import cv2, numpy; HAS_CV = True
+except ImportError: HAS_CV = False
+need_cv = unittest.skipUnless(HAS_CV, "cv2·numpy 필요(venv 전용: 관문의 Δx_block 환산)")
 PARAMS = dict(LP.PARAMS); P_UNSET = LP.UNSET
 
 
@@ -33,16 +37,19 @@ class TestBridge(unittest.TestCase):
         self.assertEqual(B.parse_request("  [사진 요청 A id=run-A-123]"), ("A", "run-A-123"))
         self.assertIsNone(B.parse_request("[이동 1/2] J2")); self.assertIsNone(B.parse_request("[사진 요청 D id=x]"))
 
+    @need_cv
     def test_a_happy_path_echoes_token_and_epoch(self):
         r = Rec(); res = bridge(r).handle("[사진 요청 A id=tok1]")
         self.assertEqual(r.pushed[0][0], "A"); self.assertEqual(res["request_id"], "tok1"); self.assertEqual(res["started_epoch"], 1000.0); self.assertTrue(res["gate"]["go"])
 
+    @need_cv
     def test_gate_exception_is_written_not_silent(self):
         moved = dict(REF, center=[676.0, 267.0]); r = Rec(detect=moved)
         p = dict(PARAMS, g2_deadzone_metric=P_UNSET)                           # 판정 지표가 UNSET이면 관문 계산이 ParamsNotFinal
         res = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=p, say=lambda s: None).handle("[사진 요청 A id=t]")
         self.assertFalse(res["gate"]["go"]); self.assertIn("ParamsNotFinal", res["gate"]["reason"]); self.assertEqual(len(r.pushed), 1)   # 결과는 반드시 전달된다
 
+    @need_cv
     def test_gate_records_dx_block_and_passes_normal_grip_shift(self):
         r = Rec(detect=dict(REF, center=[675.0, 267.0])); res = bridge(r).handle("[사진 요청 A id=t]")      # 정상 물림 규모의 x 이동(약 −1.6~−2 mm급): 불감대 밖이지만 3 mm 안
         self.assertTrue(res["gate"]["go"], res["gate"]); self.assertIsNotNone(res["gate"]["dx_block_mm"]); self.assertTrue(res["gate"]["dx_depth_assumed"])
@@ -69,6 +76,7 @@ class TestBridge(unittest.TestCase):
         ref = B.make_ref("rid", REF, 1000.0, 1800, 1042.5)
         self.assertEqual((ref["run_id"], ref["elapsed_at_ref_s"], ref["maxsec"], ref["started_epoch"]), ("rid", 42.5, 1800, 1000.0))
 
+    @need_cv
     def test_end_to_end_with_runner_file_channel(self):
         with tempfile.TemporaryDirectory() as d:
             lines = []; ch = LH.FilePhotoChannel(lines.append, folder=d)

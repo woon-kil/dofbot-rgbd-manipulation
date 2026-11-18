@@ -19,15 +19,27 @@ def parse_request(line):
 def dx_block_mm(ref_detect, a_detect, root=None):
     """Δx_block(프로젝트 x, mm) = x(A 마커) − x(기준 마커), 사전 등록 `p2k_analyze_261117.inv_P`(높이 0.030 m 평면 역투영)로 환산.
     부호 규약 확인(2026-11-18): Run 4 기준·복귀 뒤 사진에서 −1.93 mm가 재현된다(Run 4 보고서 §3의 관측 −1.93과 일치, tests/test_lift_bridge.py). 프로젝트 x는 FK x와 반대 부호지만 이 함수 안에서 일관되게 프로젝트 x만 쓴다."""
-    import importlib.util
-    root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    for sub in ("scripts", os.path.join("evidence", "G06"), "src"): sys.path.insert(0, os.path.join(root, sub))
-    cwd = os.getcwd(); os.chdir(root)                                   # 모듈이 상대 경로(data/refs)를 읽는다
-    try:
-        spec = importlib.util.spec_from_file_location("p2k_analyze_261117", os.path.join(root, "evidence", "G06", "p2k_analyze_261117.py")); PA = importlib.util.module_from_spec(spec); spec.loader.exec_module(PA)
-        xr = PA.inv_P(ref_detect["center"][0], ref_detect["center"][1], 0.030)[0]; xa = PA.inv_P(a_detect["center"][0], a_detect["center"][1], 0.030)[0]
-    finally: os.chdir(cwd)
+    PA = load_pa(root)
+    xr = PA.inv_P(ref_detect["center"][0], ref_detect["center"][1], 0.030)[0]; xa = PA.inv_P(a_detect["center"][0], a_detect["center"][1], 0.030)[0]
     return float(xa - xr)
+
+
+_PA = None
+
+
+def load_pa(root=None):
+    """사전 등록 분석 모듈을 한 번만 읽는다(메시·FK 적재가 있어 사진 요청 경로 안에서 매번 읽으면 3.0 s 창을 먹는다). 다리 시작 때 미리 부른다."""
+    global _PA
+    if _PA is None:
+        import importlib.util
+        root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        for sub in ("scripts", os.path.join("evidence", "G06"), "src"): sys.path.insert(0, os.path.join(root, sub))
+        cwd = os.getcwd(); os.chdir(root)                                   # 모듈이 상대 경로(data/refs)를 읽는다
+        try:
+            spec = importlib.util.spec_from_file_location("p2k_analyze_261117", os.path.join(root, "evidence", "G06", "p2k_analyze_261117.py")); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+            m.inv_P(600.0, 300.0, 0.030); _PA = m                            # 지연 적재가 있으면 여기서 끝낸다
+        finally: os.chdir(cwd)
+    return _PA
 
 
 def s4_gate_safe(ref_detect, detect, P=None):
@@ -65,6 +77,7 @@ class Bridge:
         if started is None: res["error_status"] = err_s
         if detect is None: res["error_snap"] = err_d
         if name == "A": res["gate"] = {"go": False, "reason": "스냅 실패"} if detect is None else s4_gate_safe(self.ref["detect"], detect, self.P)
+        res["mac"]["gate_done"] = self.now()
         try: self.push(name, res); res["mac"]["push_done"] = self.now()
         except Exception as e: self.say("[다리] 사진 %s 전달 실패: %r" % (name, e)); self.done[name] = None; return None
         self.done[name] = res; self.say("[다리] 사진 %s 전달 %.2f s%s" % (name, self.now() - t0, " gate=%s" % res["gate"].get("go") if "gate" in res else "")); return res
@@ -114,6 +127,7 @@ def main():
     def say(s):
         print(s, flush=True)
         if logf: logf.write(s + "\n"); logf.flush()
+    t0 = time.time(); load_pa(root); say("[다리] 분석 모듈 적재 %.2f s(사진 요청 경로 밖)" % (time.time() - t0))
     b = Bridge(ref, real_snap(root, a.name_prefix), real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say)
     for line in sys.stdin: b.handle(line)
     if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}}, ensure_ascii=False) + "\n"); logf.close()
