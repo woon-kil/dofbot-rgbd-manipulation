@@ -155,9 +155,18 @@ class TestAlign(unittest.TestCase):
         with self.assertRaises(RuntimeError): B.align_report("/nonexistent", "a", "b", run=lambda *a, **k: R())
         self.assertLess(B.ALIGN_TIMEOUT_S, 30)
 
-    @unittest.skipUnless(not list((ROOT / "evidence" / "G06").glob("lift_marker_ref_*.txt")) and (ROOT / ".venv" / "bin" / "python").exists(), "재등록 전(기준 파일 없음)에만")
+    @unittest.skipUnless((ROOT / "data" / "g04" / "d1_261117-143127_31010.png").exists() and (ROOT / ".venv" / "bin" / "python").exists(), "원 사진 또는 venv 없음")
     def test_set33_without_ref_file_reports_NG_not_run1_fallback(self):
-        txt = B.align_report(str(ROOT), str(ROOT / "data/g04/d1_261117-143127_31010.png"), str(ROOT / "data/g04/p2kref_261117-143127.png"), python=str(ROOT / ".venv/bin/python"))
+        """저장소 상태(재등록 여부)와 무관: 기준 파일이 없는 임시 루트에서 정렬 보고를 실행한다(스크립트·src·data는 심볼릭 링크, evidence/G06은 lift_marker_ref_*만 뺀 링크)."""
+        import tempfile, shutil
+        tmp = Path(tempfile.mkdtemp()); (tmp / "evidence").mkdir()
+        try:
+            for n in ("scripts", "src", "data"): os.symlink(ROOT / n, tmp / n)
+            (tmp / "evidence" / "G06").mkdir()
+            for f in (ROOT / "evidence" / "G06").iterdir():
+                if not f.name.startswith("lift_marker_ref_"): os.symlink(f, tmp / "evidence" / "G06" / f.name)
+            txt = B.align_report(str(tmp), str(ROOT / "data/g04/d1_261117-143127_31010.png"), str(ROOT / "data/g04/p2kref_261117-143127.png"), python=str(ROOT / ".venv/bin/python"))
+        finally: shutil.rmtree(tmp, ignore_errors=True)
         self.assertIn("정렬 NG", txt); self.assertIn("마커 기준 파일이 0개", txt); self.assertNotIn("d_x =", txt); self.assertNotIn("678.2", txt)   # Run 1 위치·87.4로 계산한 보고가 아니다
 
     @unittest.skipUnless((ROOT / "data" / "g04" / "d1_261117-143127_31010.png").exists() and (ROOT / ".venv" / "bin" / "python").exists(), "원 사진 또는 venv 없음")
