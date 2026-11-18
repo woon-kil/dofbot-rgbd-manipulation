@@ -33,6 +33,7 @@ RETRIES = {"n": 0}   # 쓰기 재전송 누적(한 실행에서 2회 넘으면 �
 MAX_RETRIES = 2
 PROG = {"sent": 0, "return_started": False}   # sent: 계획 이동 중 쓰기를 실제로 보낸 마지막 이동 번호(복귀 상태 결정에 사용)
 FAKE = {}   # 가짜 시험용 훅
+LIFT_CHANNEL = None   # 들어올림 사진 채널(시험에서 가짜로 대체, 기본은 g01_lift_hook.FilePhotoChannel)
 
 
 class Reader:   # 쓰기 없는 관절용 읽기 전용 래퍼
@@ -263,10 +264,21 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
             m_ = hg["model"]; hp = m_["h_ref"] + sum(c_ * (d_ - q_) for c_, d_, q_ in zip(m_["a"], dg, m_["q_ref"]))
             r2["height_pred_mm"] = round(hp, 2); r2["raw_at_contact"] = dg; say("  [높이 관문] 원시 J2~J4 %s → 예측 닫힘 모델 캡 끝 %.1f mm (문턱 %.1f mm 이상이어야 닫습니다)" % ([round(v, 2) for v in dg], hp, hg["h_min"]))
             if hp < hg["h_min"]: raise Abort("높이 관문 미달: 예측 %.1f mm < %.1f mm. 닫지 않고 복귀합니다(열린 채 상승)." % (hp, hg["h_min"]))
+        import g01_lift_params as LP
+        lift_clock = None
+        if LP.is_lift_plan(plan):   # 들어올림 계획: 닫기 전 사전 점검(기준 사진·P-A 경과, R5·R6)과 누름 시계(145 쓰기부터)
+            import g01_lift_hook as LH
+            lparams = LP.params_for_plan(plan); lch = LIFT_CHANNEL or LH.FilePhotoChannel(say); ok_, why_, lref = LH.precheck_before_close(lch, lparams, P2K["t_start"])
+            if not ok_: raise Abort("들어올림 사전 점검 실패: %s. 닫지 않고 복귀합니다." % why_)
+            lift_clock = LH.new_clock(lparams); lub = dict(LH.L.step_upper_bounds(lparams))
         say("\n[접촉] J6를 열린 %d에서 %s로 닫습니다(P2h 정체 규칙: 명령 − 회독 ≥ 3° 이고 같은 값 연속 2회면 정체 → 3초 안에 엽니다). 손을 팔 범위에 넣지 마세요." % (s, cfg["close_seq"]))
         steps = []; stalled = None
         for t_ in seq[1:]:
-            adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.move(t_, cfg["close_ms"]); P2K["cur6"] = t_
+            adc.confirm_hands_clear(); time.sleep(QUIET_S)
+            if lift_clock is not None and t_ >= 145:   # 누름 시계: 145 쓰기부터, 각 단계는 '경과 + 단계 상한 ≤ 26.8 s'일 때만 시작(아니면 정체 없음으로 보고 기존 열기 경로)
+                if t_ == 145: lift_clock.start()
+                if not lift_clock.may_start("close145" if t_ == 145 else "stall150", lub["close145" if t_ == 145 else "stall150"]): break
+            adc.move(t_, cfg["close_ms"]); P2K["cur6"] = t_
             P2K["contact"] = True; series, settled = poll_stall(adc, t_, cfg["close_ms"], 2 * cfg["close_ms"] + 1000); vals = [v for _, v in series if v is not None]   # 명령 시간 뒤 같은 값 3회 연속이면 바로 끝(누름 시간 최소화, 가짜 정체 방지)
             if FAKE.get("abort_close") == len(steps) + 1: raise KeyboardInterrupt()   # 가짜 시험: 닫기 계단 중 중단 주입
             st = {"target": t_, "series_tail": series[-4:], "final": vals[-1] if vals else None}
@@ -275,6 +287,17 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
             steps.append(st); say("  닫기 목표 %d → 회독 %s%s" % (t_, st["final"], " ← 정체" if st.get("stall") else ""))
             if stalled is not None: break
         r2["close_steps"] = steps; r2["stall_in_band"] = (stalled is not None and 138 <= stalled <= 146); r2["stall_readback"] = stalled; r2["stall_command"] = steps[-1]["target"] if stalled is not None else None
+        if lift_clock is not None and stalled is not None and steps[-1]["target"] == 150:   # 들어올림 진행 조건 = 정체 명령 150(R3). 150 미만 정체·정체 없음은 아래 기존 열기 경로
+            def _release():   # J6 열기 1회 + 도착 확인(아래 기존 열기와 같은 순서)
+                adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
+                sr_ = poll(adc, 2 * cfg["release_ms"] + 1000); return next((v for _, v in reversed(sr_) if v is not None), None)
+            out_ = LH.lift_after_stall({"plan": plan, "arm": arm, "adc": adc, "cfg": cfg, "rec": r2, "params": lparams, "clock": lift_clock, "channel": lch, "ref": lref, "run_move": run_move, "raw_set": raw_set,
+                                        "Adapter": GripperTestAdapter, "WINDOWS": WINDOWS, "PROG": PROG, "P2K": P2K, "say": say, "cmd": P2K["cmd"], "start_all": P2K["start_all"], "ads": P2K["ads"], "mode": mode,
+                                        "stalled": stalled, "n_plan": len(plan["moves"]), "release": _release})
+            if out_ == "lifted":
+                P2K["lift_done"] = True; P2K["low"] = True; lo_ = r2["lift"].get("open_readback"); r2["release_readback"] = lo_
+                if lo_ is None or abs(lo_ - s) > 3: raise Abort("열기 도착 실패(회독 %s, 목표 %d). 이후 이동 없음, 복귀로 이어집니다." % (lo_, s))
+                return
         adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
         sr = poll(adc, 2 * cfg["release_ms"] + 1000); lastr = next((v for _, v in reversed(sr) if v is not None), None); r2["release_readback"] = lastr
         say("  열기 완료(회독 %s). 정체 %s." % (lastr, ("회독 %s" % stalled) if stalled is not None else "없음(150까지 닫혔다 = 블록 없음 곡선 또는 접촉 안 됨)"))
@@ -378,7 +401,7 @@ def main():
     FAKE["abort_close"] = int(a.fake_abort_close) if a.fake_abort_close else None
     FAKE["ceils"] = {int(t_.split(":")[0]): int(t_.split(":")[1]) for t_ in a.fake_ceil.split(",") if ":" in t_}
     if plan["set"] == "23": WINDOWS[2] = [55, 110]; WINDOWS[1] = [70, 122]
-    if plan["set"] == "31": WINDOWS[2] = [66, 110]   # Run 3: J2 창 하한 70 → 66(이 세트에 한정, 사용자 승인 N1 2026-11-17). 하강 자세 J2 69의 도착 회독 68(더 넘어가면 67)에서 복귀 쓰기가 거부되지 않게 한다. docs/gates/G07-첫접촉시험-선행조건과-최소시험안.md §17
+    if plan["set"] in ("31", "33"): WINDOWS[2] = [66, 110]   # Run 3: J2 창 하한 70 → 66(이 세트에 한정, 사용자 승인 N1 2026-11-17). 하강 자세 J2 69의 도착 회독 68(더 넘어가면 67)에서 복귀 쓰기가 거부되지 않게 한다. docs/gates/G07-첫접촉시험-선행조건과-최소시험안.md §17
     if plan["set"] == "24": WINDOWS[2] = [52, 110]; WINDOWS[1] = [70, 122]   # D3: J2 창 하한 55 → 52(이 세트에 한정). 2404 도착 J2가 54.9° 부근(정수 회독 54)일 수 있어 하한 55이면 복귀 쓰기가 거부된다(가짜 시험 C에서 발견, 승인 D3-5b 대기)   # D2: J2 창 하한 55(세트 22 승인값), J1 창 상한 110 → 122(이 세트에 한정, 선택 자세 J1 120, 승인 D2-1·D2-2 2026-11-16)
     if plan["set"] == "22": WINDOWS[2] = [55, 110]   # D1-A: J2 창 하한 70 → 55(이 세트에 한정, 승인 D1-2 2026-11-16)
     if plan["set"] == "21": WINDOWS[2] = [58, 110]   # D0: J2 창 하한 70 → 58(이 세트에 한정, 사용자 승인 D0-3, docs/gates/G07-D0-파지근방-손끝높이-승인-요청-문서.md §5)
@@ -404,7 +427,7 @@ def main():
         lists = {j: [state[j]] + [m["target"] for m in moves if m["joint"] == j] for j in (1, 2, 3, 4)}
         times = [m["time_ms"] for m in moves] + [3000, 1500, 8000]
         ads = make_adapters(arm, lists, times, mode, 8000)
-        cmd = {j: state[j] for j in (1, 2, 3, 4)}
+        cmd = {j: state[j] for j in (1, 2, 3, 4)}; P2K["cmd"] = cmd; P2K["ads"] = ads; P2K["t_start"] = time.monotonic(); P2K["lift_done"] = False   # 들어올림 훅이 main의 상태를 넘겨받는다(F5)
         say("\n계획 요약: 접기 계단 후 기준 깊은 자세 J1~J4 = %s (모델 높이 %.1f mm), 자세 순서 %s" % (plan["base"], plan["gate"]["base_z"], list(plan["poses"].keys())))
         say("자세별 모델 높이(mm) %s, 전이 최저 %s, 복귀(첫 구간) 최저 %.1f mm" % (plan["gate"]["pose_z"], plan["gate"]["transition_min"], plan["gate"]["return_j12_min"]))
         say("\n== 안전 확인(시작 시 1회) ==")
@@ -428,11 +451,12 @@ def main():
                   "낙하 받침 없이 진행합니다(사용자 결정 2026-11-16). 전원이 끊기면 팔이 넘어지거나 내려앉을 수 있습니다. 팔 앞쪽·옆쪽과 팔 주변에 손·사람·케이블·물체가 없습니까?",
                   "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 176~179, 지난 실행이 176으로 끝나 하한을 176으로 넓혔습니다)? 이번 실행은 블록 중심 위 자세에서 정지한 채 J6만 178 → 140 → 100 → 140 → 178로 움직입니다(열리면 손가락이 좌우 약 ±47 mm까지 벌어지고 손끝은 올라갑니다). 점마다 55초 정지하는 동안 입력하지 마세요.",
                   "DaBai·그리퍼 케이블이 당겨지지 않고 여유가 있어 보입니까?", "J2·J3·J4와 그리퍼 서보 J6를 만져서 **뜨겁지 않습니까?**", "위 회독값과 이동 계획이 맞다."]
-        if plan["set"] in ("29", "31"):   # Run 2·3(첫 접촉): 블록 옆으로 내려가 닫는다. 들어올림 없음(Run 3은 더 깊이 + 닫기 직전 높이 관문)
+        if plan["set"] in ("29", "31", "33"):   # Run 2·3(첫 접촉)·세트 33(들어올림, 접촉 재현 + 들어올림): 블록 옆으로 내려가 닫는다. 들어올림 없음(Run 3은 더 깊이 + 닫기 직전 높이 관문)
             qs = ["전원 차단 담당자가 현재 자리에 있습니까?", "노란 블록(마커 id 7)은 **Run 3 이후 만지지 않았고** 지정 자리 그대로이며, 눈금자·클램프·폰 거치대는 없고, 보드 위에 그 밖의 물체·손·사람·케이블이 없습니까?",
                   "낙하 받침 없이 진행합니다(사용자 결정 2026-11-16). 전원이 끊기면 팔이 넘어지거나 내려앉을 수 있습니다. 팔 앞쪽·옆쪽과 팔 주변에 손·사람·케이블·물체가 없습니까?",
                   "이번 실행은 **Run 3 접촉의 재현 시험**입니다(같은 깊이, 정렬 J1만 86으로 바꿈, 블록은 Run 3 이후 만지지 않은 그 자리): J1 86, 50 mm에서 J6를 100으로 열고 정렬을 확인한 뒤(Mac 화면의 보고를 읽고 y/N 1회), 열린 채 블록 양옆으로 내려가(Run 3과 같은 깊이: 예상 닫힘 모델 캡 끝 종이 위 16.4 mm) 닫기 직전 **높이 관문**(원시 각도 예측 닫힘 캡 끝이 **종이 위 7 mm 이상**, 미달이면 닫지 않고 복귀)을 통과하면 J6를 닫아 블록을 물어 정체를 읽고 3초 안에 열고 올라옵니다. 들어올림은 없습니다. 하강·닫는 동안 손을 팔 범위에 넣지 마세요. **J6를 연 뒤에도 블록이 손가락에 붙어 함께 올라오면 즉시 Ctrl-C(전원 스위치는 담당자)**.",
                   "팔이 K1 기립 자세이고 그리퍼는 오므려져 있습니까(J6 회독 176~179)?", "DaBai·그리퍼 케이블이 당겨지지 않고 여유가 있어 보입니까?", "J2·J3·J4와 그리퍼 서보 J6를 만져서 **뜨겁지 않습니까?**", "위 회독값과 이동 계획이 맞다."]
+        if plan["set"] == "33": qs[3] = "이번 실행은 **들어올림 시험(세트 33)**입니다: Run 4와 같은 접촉(J1 86, 열린 채 하강, J6 닫기)을 재현한 뒤 J6를 150으로 누른 채 블록을 쥐고 J2·J4로 약 15~20 mm 들어올립니다(사진 A·B·C는 Mac이 P-A로 촬영). 정지·유지 뒤 J6를 열어 블록을 떨어뜨립니다(낙하 받침 없음). 누름 합계는 145 쓰기부터 26.8 s로 제한되며 초과하면 즉시 엽니다. 팔이 들린 동안 블록·손가락 근처에 손을 넣지 마세요."
         for k, q in enumerate(qs, 1): say("  %d. %s" % (k, q))
         if not ask("위 %d개를 모두 확인했습니까? (y면 이동 시작, 이동마다 소리 뒤 대기 후 움직입니다. 자세 도착마다 촬영 중 가만히 계세요)" % len(qs)): raise Abort("사전 확인 미충족. 쓰기 없음.")
         say("\n▶ **지켜볼 관절은 이동 안내마다 바뀝니다**(J1 좌우 회전, J2 어깨, J3 팔꿈치, J4 손목). 소리가 나면 안내된 관절을 보세요. 접힌 자세에서 J1·J2를 처음 움직일 때는 처짐·케이블을 특히 봐 주세요.")
@@ -468,6 +492,7 @@ def main():
                 hold_for_measure(plan, pid, a, result["poses"][-1], arm)
                 if plan.get("p2k") and not plan.get("run2"): p2k_j6_sequence(plan, arm, result["poses"][-1], a, mode)
                 if plan.get("run2"): run2_hook(plan, pid, arm, result["poses"][-1], a, mode)
+                if P2K.get("lift_done"): break   # 들어올림 뒤 남은 계획 이동은 건너뛴다(F6: 정상 종료 복귀 경로는 PROG["sent"]의 들어올린 상태 색인)
                 if plan.get("hold_min_mm"):   # D0 중단 규칙(코드): 입력값이 숫자가 아니거나 하한 미만이면 더 내려가지 않는다(복귀 질문으로 이어짐)
                     rec_ = result["poses"][-1]
                     if a.fake and FAKE_ENTRIES and str(pid) in [str(x_) for x_ in plan.get("hold_poses", [])]: rec_["user_entry"] = FAKE_ENTRIES.pop(0)   # 가짜: 측정 대기가 있는 자세에서만 입력을 소비
@@ -480,6 +505,9 @@ def main():
         # 복귀(정상 종료 시에도 같은 경로로 직립까지)
         if mode != "dry_run":
             do_return(plan, {"ads": ads}, arm, cmd, start_all, state, result, PROG["sent"], a, mode, normal=True)
+            if P2K.get("lift_done") and result.get("returned_to_start"):   # 들어올림 뒤 K1 도착: J6를 시작값(오므림)으로 닫는다(새 코드)
+                import g01_lift_hook as LH
+                result["j6_k1_close_readback"] = LH.close_j6_at_k1({"cfg": plan["run2"], "plan": plan, "arm": arm, "Adapter": GripperTestAdapter, "Abort": Abort, "QUIET_S": QUIET_S, "poll": poll, "P2K": P2K, "start_all": start_all})
             if not result.get("returned_to_start"): raise Abort("정상 종료 뒤 직립 복귀가 완료되지 않았다(%s). 팔 상태를 확인하고 에이전트에게 알리세요." % (result.get("return_abort") or result.get("return_state_mismatch") or "원인 미상"))
         if mode != "dry_run":
             result["overall_ok"] = ask("마지막 확인 1회: 전체 이동에서 소리·떨림·냄새, 처짐·흔들림, 접촉·걸림, 케이블 당김이 없었고 **J2·J3·J4와 오므린 그리퍼 서보 J6가 뜨겁지 않았습니까?**")

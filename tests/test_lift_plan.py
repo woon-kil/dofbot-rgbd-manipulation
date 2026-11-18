@@ -43,7 +43,8 @@ class LiftPlanTest(unittest.TestCase):
 
     def test_source_plan_is_not_mutated_and_other_fields_kept(self):
         self.assertEqual(self.src, self.src_copy)
-        for k in ("moves", "run2", "p2k", "return_target", "return_nominal"): self.assertEqual(self.plan[k], self.src[k])
+        for k in ("moves", "run2", "return_target", "return_nominal"): self.assertEqual(self.plan[k], self.src[k])
+        self.assertEqual(self.plan["p2k"], dict(self.src["p2k"], hold_s=3.0))          # 세트 33은 정지 대기만 3 s로(P-A 사용, Gemini 36 s 사진 없음)
 
     def test_only_set31_plans_are_accepted(self):
         bad = copy.deepcopy(self.src_copy); bad["set"] = "29"

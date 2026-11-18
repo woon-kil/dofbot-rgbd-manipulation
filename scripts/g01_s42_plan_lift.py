@@ -57,6 +57,7 @@ def make_lift_plan(plan31, G=None, C=None):
             state = [st[0], j2, st[2], j4]; lo, route = G.return_route(state, ret_target); full = G.route_min(state, route)
             if full < floor - G.EPS: errs.append("들어올린 상태 %s 복귀 경로 최저 %.1f < %.1f" % (state, full, floor))
             idx = len(rets); rets.append({"after_move": idx, "state": state, "route": [{"joint": j, "target": t, "time_ms": tm} for j, t, tm in route], "lift_stage": stage}); index["%s:%d" % (stage, j2)] = idx
+    plan["p2k"] = dict(plan["p2k"], hold_s=3.0)   # 세트 33: Gemini 36 s 사진(55 s 정지)을 쓰지 않는다(사진은 P-A 스냅, 기준 사진은 실행 전). 정지는 처짐 감시용 짧은 대기뿐(누름 없음)
     plan["set"] = "33"; plan["lift"] = {"j2_first_target": first_target, "j2_max_target": int(t_max), "j4_delta": J4_DELTA, "contact_moves_done": k, "q0": q0, "q0_source": "run4_raw" if use_q0 else "command_proxy",
                                          "tilt_limit_deg": TILT_LIMIT_DEG, "tilt_peak_at_max_deg": round(peak, 2), "model": "FK UNVERIFIED, 증가 방향 부족 0·J4 넘침 %.1f 최악" % DEC_OVERSHOOT_DEG, "return_index": index}
     plan["gate_errors"] = list(plan.get("gate_errors", [])) + errs
