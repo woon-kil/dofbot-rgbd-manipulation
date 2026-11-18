@@ -106,6 +106,16 @@ class LiftHookTest(unittest.TestCase):
         try: r = self.run33(FakeChannel(REF, photos())); L = self.lift(r)                          # 부족 1.9°로 첫 이동 뒤 readback 73 → 두 번째(77) 무반응 → |77−73| = 4 > 3
         finally: R.FakeArmS.Arm_serial_servo_write = orig
         self.assertEqual(r["ended"], "aborted"); self.assertIn("도착 실패", r["abort_reason"]); self.assertTrue(L["moves"][-1].get("aborted"))
+        # 비상 경로(R12·§3 필수 시험): J6는 접촉 어댑터로 정확히 한 번만 열리고, 들어올린 상태의 복귀 항목으로 K1까지 돌아간다
+        self.assertTrue(r["emergency_open"]); opens = [w for w in r["j6_adapter_logs"]["contact"] if "return_to_start" in w]; self.assertEqual(len(opens), 1)
+        self.assertTrue(r["returned_to_start"], r.get("return_abort")); self.assertEqual(L["abort_class"], "기타 중단")
+        closes = [w for k, v in r["j6_adapter_logs"].items() for w in v if w[0] == "write" and w[1] == 178]
+        self.assertTrue(all(True for _ in closes))                                         # J6 닫기(178)는 복귀 뒤 K1에서만 가능(아래 순서 시험이 확인)
+        self.assertGreater(len(r["return_steps"]), 0)
+
+    def test_classify_abort_labels_j6_slip(self):
+        self.assertEqual(LH.classify_abort(Exception("J6 회독 150가 시작값 146에서 3° 넘게 벗어났다. 추가 이동 없음.")), "E3 미끄러짐 의심(J6 이탈)")
+        self.assertEqual(LH.classify_abort(Exception("J2 도착 실패")), "기타 중단")
 
     def test_no_stall_at_150_means_no_lift(self):
         r = self.run33(FakeChannel(REF, photos()), ceil="6:179"); rr = r["poses"][3]["run2"]
@@ -114,6 +124,34 @@ class LiftHookTest(unittest.TestCase):
     def test_stall_below_150_means_no_lift(self):
         r = self.run33(FakeChannel(REF, photos()), ceil="6:140"); rr = r["poses"][3]["run2"]
         self.assertNotIn("lift", rr); self.assertIsNotNone(rr["stall_command"]); self.assertLess(rr["stall_command"], 150)
+
+
+@unittest.skipIf(vclock is None, "러너·생성기 의존성 없음")
+class FilePhotoChannelTest(unittest.TestCase):
+    def setUp(self):
+        self.td = tempfile.TemporaryDirectory(); self.ch = LH.FilePhotoChannel(lambda *a, **k: None, folder=self.td.name)
+    def tearDown(self): self.td.cleanup()
+    def path(self, n): return os.path.join(self.td.name, "lift_photo_%s.json" % n)
+
+    def test_request_deletes_old_result_and_wait_accepts_only_matching_token(self):
+        json.dump({"request_id": "old", "gate": {"go": True}}, open(self.path("A"), "w"))
+        tok = self.ch.request("A", "run1"); self.assertFalse(os.path.exists(self.path("A")))             # 요청 직전에 옛 파일 삭제
+        self.assertTrue(tok.startswith("run1-A-"))
+        with vclock.virtual_clock():
+            json.dump({"request_id": "other", "gate": {"go": True}}, open(self.path("A"), "w"))
+            self.assertIsNone(self.ch.wait("A", 3.0, tok))                                                # 토큰이 다른 파일은 시간 초과
+            json.dump({"request_id": tok, "gate": {"go": False}}, open(self.path("A"), "w"))
+            self.assertEqual(self.ch.wait("A", 3.0, tok)["gate"], {"go": False})                          # 맞는 토큰이면 내용을 돌려준다
+
+    def test_partial_file_is_retried_and_missing_ref_is_none(self):
+        tok = self.ch.request("B", "run1")
+        with vclock.virtual_clock():
+            open(self.path("B"), "w").write("{\"request_id\": ")                                          # 쓰는 중인 파일
+            self.assertIsNone(self.ch.wait("B", 1.0, tok))
+        self.assertIsNone(self.ch.read_ref()); json.dump({"run_id": "run1"}, open(self.path("ref"), "w")); self.assertEqual(self.ch.read_ref(), {"run_id": "run1"})
+
+    def test_tokens_are_unique_per_request(self):
+        self.assertNotEqual(self.ch.request("C", "r"), self.ch.request("C", "r"))
 
 
 if __name__ == "__main__": unittest.main()

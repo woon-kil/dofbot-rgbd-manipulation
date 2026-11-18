@@ -84,6 +84,13 @@ class JudgeTest(unittest.TestCase):
         self.assertEqual(L.e1_decide(self.A, self.b(side=0.1))["verdict"], "불합격")             # 슬라이드: (i)는 통과, (ii)가 판별
         self.assertEqual(L.e1_decide(self.A, {"found": False})["verdict"], "판정 불가")
 
+    def test_e1_label_marks_possible_signal_shortfall_after_skipped_second_move(self):
+        fail = L.e1_decide(self.A, self.b(side=0.1)); ok = L.e1_decide(self.A, self.b())
+        self.assertTrue(L.e1_attempt_label(fail, {"second_j2": {"skipped_reason": "요청 폭 3.0° < 3.5°"}})["signal_shortfall_possible"])
+        self.assertTrue(L.e1_attempt_label(fail, {"second_j2": {"no_response": True}})["signal_shortfall_possible"])
+        self.assertFalse(L.e1_attempt_label(fail, {"second_j2": {"target": 77}})["signal_shortfall_possible"]); self.assertFalse(L.e1_attempt_label(ok, {"second_j2": {"skipped_reason": "x"}})["signal_shortfall_possible"])
+        self.assertFalse(L.e1_attempt_label(fail, None)["signal_shortfall_possible"])
+
     def test_e3_gemini_center_is_2d_distance(self):
         b = {"found": True, "center": [10.0, 10.0], "side_px": 30.0}; diag = {"found": True, "center": [10.8, 10.8], "side_px": 30.0}   # 축별 0.8, 2D 1.13
         self.assertEqual(L.e3_verdict(146, 146, True, True, (b, diag))["verdict"], "불합격")

@@ -38,7 +38,7 @@ PARAMS = {
     "e1_center_up_px": 8.0, "e1_side_len_px": 0.7, "e1_lateral_px": 4.0,
     "q3_shift_max_px": 2.0, "q3_response_min": 0.3,
     "lift_j2_min_effective_step_deg": 3.5,  # 서보 위(증가) 방향 최소 유효 폭(세트 16, docs/261115-1347-소각응답-결과보고서.md :3·:19: 요청 1.5~2.5° J2 3/3 움직임 없음, ≥ 3.5°에서 실현 비율 ≈ 0.5). 두 번째 J2 요청 폭이 이보다 작으면 보내지 않고 기록(P10 조건 ①)
-    "lift_j2_no_response_deg": 0.5,         # 두 번째 J2 이동 뒤 원시 J2 변화가 이보다 작으면 second_j2_no_response로 기록하고 J4로 진행(덜 들어올린 쪽이라 tilt 안전 방향, 재전송 없음)
+    "lift_j2_no_response_deg": 0.5,         # **기록 전용 라벨, 안전 값 아님(근거 없는 숫자)**: 두 번째 J2 이동 뒤 원시 변화가 이보다 작으면 no_response로 기록(제어 흐름은 같다: 어느 경우든 J4로 진행, 재전송 없음)
     # --- S4' 관문 승인 값(E-2b `:14` 승인됨, S4' 문서 §3 `:22~28`) ---
     "g2_deadzone_px": 0.75, "g2_s_range_mm": (-1.26, -0.77), "g2_magnitude_mm": 3.0, "g4_side_px": 0.75, "g5_yaw_deg": 3.0,
     # --- 미확정(기본값 없음, 사용자 확인 필요) ---

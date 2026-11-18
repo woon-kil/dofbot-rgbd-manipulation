@@ -75,6 +75,13 @@ def pa_elapsed_ok(elapsed_s, maxsec, P=None):
     return elapsed_s <= maxsec - P["pa_elapsed_margin_s"]
 
 
+def e1_attempt_label(e1, lift):
+    """E1 불합격 라벨(P10 조건 ③): 두 번째 J2 이동이 생략·무반응이었던 시도의 E1 불합격은 '파지 실패'가 아니라 '신호 부족 가능'일 수 있다고 표시한다(기록 전용)."""
+    sj = (lift or {}).get("second_j2") or {}
+    weak = bool(sj.get("skipped_reason") or sj.get("no_response"))
+    return dict(e1, signal_shortfall_possible=bool(weak and e1.get("verdict") == "불합격"), note=("두 번째 J2 이동 생략/무반응: 들어올림이 덜 되어 E1 불합격은 신호 부족일 수 있음" if weak and e1.get("verdict") == "불합격" else ""))
+
+
 # ---------- E1·E3 (R8, E-2 :28·:98~100, E-7) ----------
 def e1_decide(a, b, P=None):
     """a·b: detect.json(center, side_px). 위 = 영상 y 감소. (i) 위 이동 ≥ 8 px, (ii) 변 길이 증가 ≥ +0.7 px, (iii) 옆 ≤ 4 px."""

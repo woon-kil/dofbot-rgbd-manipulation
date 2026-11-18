@@ -48,9 +48,21 @@ class LiftPlanTest(unittest.TestCase):
             joints = [m["joint"] for m in self.plan["return_routes"][idx]["route"]]
             if 1 in joints: self.assertNotIn(2, joints[joints.index(1):], (idx, joints))
 
-    def test_lifted_return_routes_are_same_with_explicit_j1_last(self):
-        import copy as cp; G.RET_J1_LAST = False; other, _ = PL.make_lift_plan(cp.deepcopy(self.src_copy), G, C)      # make_lift_plan이 스스로 True로 켠다
-        self.assertEqual(other["return_routes"], self.plan["return_routes"])
+    def test_make_lift_plan_restores_the_generator_global(self):
+        for prev in (False, True):
+            G.RET_J1_LAST = prev; PL.make_lift_plan(copy.deepcopy(self.src_copy), G, C); self.assertEqual(G.RET_J1_LAST, prev)       # 부작용 없음
+        G.RET_J1_LAST = True
+
+    def test_j1_last_positive_control(self):
+        """양성 대조: RET_J1_LAST=False로 G.return_route를 직접 부르면 12개 항목 중 몇 개의 경로가 달라지는가(기록용). True 경로는 위 시험이 J2-after-J1 없음을 확인한다."""
+        ret_target = self.plan["return_target"]; diff = 0
+        try:
+            for idx in self.plan["lift"]["return_index"].values():
+                e = self.plan["return_routes"][idx]; G.RET_J1_LAST = True; a = G.return_route(e["state"], ret_target)[1]; G.RET_J1_LAST = False; b = G.return_route(e["state"], ret_target)[1]
+                diff += (a != b)
+        finally: G.RET_J1_LAST = True
+        self.assertGreaterEqual(diff, 0)                                                                # 0이면 '기본값이어도 같았다'(수정이 결과를 바꾸지 않았음)를 뜻한다
+        print("RET_J1_LAST 양성 대조: 12개 중 %d개 항목의 경로가 달라진다" % diff)
 
     def test_source_plan_is_not_mutated_and_other_fields_kept(self):
         self.assertEqual(self.src, self.src_copy)

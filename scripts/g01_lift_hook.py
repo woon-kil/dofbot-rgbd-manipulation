@@ -67,6 +67,12 @@ def _adapter(ctx, joint, target):
     s = ad.read_start(); ad.set_targets([s, int(target)]); return ad
 
 
+def classify_abort(exc):
+    """중단 사유 분류(기록 전용): 들어올리는 동안 J6 회독이 눌린 값에서 3° 넘게 벗어나면 E3 '미끄러짐 의심'."""
+    m = str(exc)
+    return "E3 미끄러짐 의심(J6 이탈)" if ("J6" in m and "벗어났" in m) else "기타 중단"
+
+
 def _raw(ctx, joint):
     """원시 각도(실수) 읽기, None이면 3회 재시도 후 명시적으로 중단(높이 관문과 같은 방식)."""
     for _ in range(3):
@@ -121,8 +127,11 @@ def lift_after_stall(ctx):
         ad = _adapter(ctx, joint, target); ads = dict(ads0); ads[joint] = ad
         mv = {"joint": joint, "target": int(target), "time_ms": ms, "phase": "L", "pose_id": None}
         try: st = ctx["run_move"](ads, arm, mv, cmd, start_all, rec, n0 + k, n0 + 3, ctx["mode"], P["move_countdown_s"])
-        except BaseException:
-            try: PROG["sent"] = _stage_idx(ctx)                                                     # 중단되면 실제 상태에 가장 가까운 복귀 항목(불일치면 do_return이 쓰기 없이 멈춘다)
+        except BaseException as exc_:
+            lift["abort_class"] = classify_abort(exc_)
+            try:
+                PROG["sent"] = _stage_idx(ctx)                                                     # 중단되면 실제 상태에 가장 가까운 복귀 항목(불일치면 do_return이 쓰기 없이 멈춘다)
+                for j_, v_ in zip((1, 2, 3, 4), plan["return_routes"][PROG["sent"]]["state"]): cmd[j_] = v_   # run_move가 중단 전에 cmd에 적은 '목표'(예: 무반응이었던 77)를 실제 상태 항목 값으로 되돌린다(복귀의 비명령 관절 이탈 검사)
             except BaseException: pass
             lift["moves"].append({"step": step, "joint": joint, "target": int(target), "aborted": True}); lifted = True; raise
         lift["moves"].append(dict(st, step=step, target=int(target))); lifted = True; PROG["sent"] = _stage_idx(ctx)
