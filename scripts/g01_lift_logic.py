@@ -75,11 +75,26 @@ def pa_elapsed_ok(elapsed_s, maxsec, P=None):
     return elapsed_s <= maxsec - P["pa_elapsed_margin_s"]
 
 
+def sag_cap(plan_max, margin, contact_q, read, refuse_at_or_below, first_target):
+    """P10 처짐 cap(사용자 결정 2026-11-18). 정점 tilt = t2 + J3 + J4 + c(민감도 1, Mac 자체 점검)이므로 같은 30° 규칙의 풀이는
+    cap = floor(plan_max + margin − (ΔJ3 + ΔJ4)), margin = 30° − 접촉 원시 q에서의 plan_max 정점, Δ = 이번 읽기 − 접촉 원시.
+    cap ≤ refuse_at_or_below 또는 cap < first_target이면 거부. 입력(margin·접촉 q·J3/J4 읽기) 중 하나라도 없으면 거부(fail-closed). 반환 dict."""
+    import math
+    try:
+        d3 = read[3] - contact_q[2]; d4 = read[4] - contact_q[3]; mg = float(margin)
+    except Exception: return {"cap": None, "refuse": True, "reason": "입력 없음(margin·접촉 q·J3/J4 읽기)", "margin": margin}
+    delta = d3 + d4; cap = min(int(plan_max), int(math.floor(plan_max + mg - delta + 1e-9)))
+    refuse = cap <= refuse_at_or_below or cap < first_target
+    return {"cap": cap, "refuse": refuse, "delta_deg": round(delta, 3), "d3": round(d3, 3), "d4": round(d4, 3), "margin": mg, "plan_max": int(plan_max), "reason": ("cap %d ≤ %d(E1 선) 또는 첫 목표 %d 미만" % (cap, refuse_at_or_below, first_target)) if refuse else ""}
+
+
 def e1_attempt_label(e1, lift):
     """E1 불합격 라벨(P10 조건 ③): 두 번째 J2 이동이 생략·무반응이었던 시도의 E1 불합격은 '파지 실패'가 아니라 '신호 부족 가능'일 수 있다고 표시한다(기록 전용)."""
     sj = (lift or {}).get("second_j2") or {}
-    weak = bool(sj.get("skipped_reason") or sj.get("no_response"))
-    return dict(e1, signal_shortfall_possible=bool(weak and e1.get("verdict") == "불합격"), note=("두 번째 J2 이동 생략/무반응: 들어올림이 덜 되어 E1 불합격은 신호 부족일 수 있음" if weak and e1.get("verdict") == "불합격" else ""))
+    late = (((lift or {}).get("sag") or {}).get("late")) or {}
+    capped = late.get("cap") is not None and late.get("plan_max") is not None and late["cap"] < late["plan_max"]      # 처짐 cap으로 둘째 목표가 낮아진 시도(P10)
+    weak = bool(sj.get("skipped_reason") or sj.get("no_response") or capped)
+    return dict(e1, signal_shortfall_possible=bool(weak and e1.get("verdict") == "불합격"), note=("두 번째 J2 이동 생략/무반응/처짐 cap: 들어올림이 덜 되어 E1 불합격은 신호 부족일 수 있음" if weak and e1.get("verdict") == "불합격" else ""))
 
 
 # ---------- E1·E3 (R8, E-2 :28·:98~100, E-7) ----------

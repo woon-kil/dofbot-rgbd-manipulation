@@ -73,13 +73,29 @@ def classify_abort(exc):
     return "E3 미끄러짐 의심(J6 이탈)" if ("J6" in m and "벗어났" in m) else "기타 중단"
 
 
-def _raw(ctx, joint):
-    """원시 각도(실수) 읽기, None이면 3회 재시도 후 명시적으로 중단(높이 관문과 같은 방식)."""
+def _read4(ctx, label=None):
+    """원시 각도 J1~J4를 한 번 읽는다(raw_set 1회). label이 있으면 lift["raw_reads"]에 기록한다(P10 처짐 자료: 기록만, 읽기를 추가하지 않는다)."""
+    r = ctx["raw_set"](ctx["arm"]); q = {j: (r.get(str(j)) or {}).get("deg") for j in (1, 2, 3, 4)}
+    if label: ctx["rec"].setdefault("lift", {}).setdefault("raw_reads", []).append({"label": label, "q": [q[j] for j in (1, 2, 3, 4)]})
+    return q
+
+
+def _raw(ctx, joint, label=None):
+    """원시 각도(실수) 읽기, None이면 3회 재시도 후 명시적으로 중단(높이 관문과 같은 방식). 재시도 규칙은 변경 전과 같다."""
     for _ in range(3):
-        v = ctx["raw_set"](ctx["arm"])[str(joint)]["deg"]
+        v = _read4(ctx, label)[joint]
         if v is not None: return v
         time.sleep(0.05)
     raise ctx["Abort"]("J%d 원시 각도 읽기 실패(None). 추가 이동 없음." % joint)
+
+
+def _raw_all(ctx, label):
+    """같은 읽기에서 J1~J4를 모두 돌려준다. 재시도는 변경 전 `_raw(ctx, 2)`와 같게 J2가 None일 때만(J3·J4 None은 재읽기 없이 호출자가 기록·처리한다)."""
+    for _ in range(3):
+        q = _read4(ctx, label)
+        if q[2] is not None: return q
+        time.sleep(0.05)
+    raise ctx["Abort"]("J2 원시 각도 읽기 실패(None). 추가 이동 없음.")
 
 
 def _int_read(raw, joint):
@@ -125,11 +141,13 @@ def lift_after_stall(ctx):
         return r
     # --- 사진 A·S4' 관문(들어올리기 전) ---
     a = photo("A")
-    if a is None: done("사진 A 없음(시계 또는 대기 초과): 들어올리지 않음"); return "no_lift"
+    if a is None: lift["code"] = "PHOTO_A"; done("사진 A 없음(시계 또는 대기 초과): 들어올리지 않음"); return "no_lift"
     ref = ctx["ref"]
-    if not L.same_start([ref.get("started_epoch"), a.get("started_epoch")]): done("기준·A가 다른 P-A 기동: 판정 없음"); return "no_lift"
+    if not L.same_start([ref.get("started_epoch"), a.get("started_epoch")]): lift["code"] = "P_A_START"; done("기준·A가 다른 P-A 기동: 판정 없음"); return "no_lift"
     lift["gate"] = a.get("gate")
-    if not (a.get("gate") or {}).get("go"): done("S4' no-go 또는 관문 결과 없음: 들어올리지 않음"); return "no_lift"
+    if not (a.get("gate") or {}).get("go"):
+        g_ = a.get("gate") or {}; lift["code"] = "P10" if (g_.get("tilt_check") is not None and not g_["tilt_check"].get("ok")) else (",".join(k.upper() for k in ("g1", "g2", "g4", "g5") if g_.get(k) is False) or "GATE")
+        done("S4' no-go 또는 관문 결과 없음: 들어올리지 않음"); return "no_lift"
     # --- 들어올림 3이동 ---
     cmd, start_all, ads0 = ctx["cmd"], ctx["start_all"], ctx["ads"]; ms = P["move_time_ms"]; n0 = ctx["n_plan"]; lifted = False
     start_all[6] = ctx["stalled"]   # R12: 들어올리기 직전에 J6 감시 기준을 눌린 값(정체 회독)으로 갱신(run_move가 J6를 start_all과 ±3°로 감시). 들어올리지 않으면 아래에서 되돌린다
@@ -137,7 +155,7 @@ def lift_after_stall(ctx):
         nonlocal lifted
         if not clk.may_start(step, ubs[step]): raise _ClockStop(step)
         # 복귀 색인은 쓰기 직전에 '이 이동이 끝난 뒤' 상태로 지정한다(이미 보낸 이동은 서보가 끝까지 수행, 쓰기 전에 중단되면 do_return이 3° 불일치로 쓰기 없이 멈춘다)
-        PROG["sent"] = _idx(plan, "before_j4", int(target)) if joint == 2 else _idx(plan, "after_j4", int(round(_raw(ctx, 2))))
+        PROG["sent"] = _idx(plan, "before_j4", int(target)) if joint == 2 else _idx(plan, "after_j4", int(round(_raw(ctx, 2, "J4 이동 전"))))
         ad = _adapter(ctx, joint, target); ads = dict(ads0); ads[joint] = ad
         mv = {"joint": joint, "target": int(target), "time_ms": ms, "phase": "L", "pose_id": None}
         try: st = ctx["run_move"](ads, arm, mv, cmd, start_all, rec, n0 + k, n0 + 3, ctx["mode"], P["move_countdown_s"])
@@ -151,14 +169,20 @@ def lift_after_stall(ctx):
         lift["moves"].append(dict(st, step=step, target=int(target))); lifted = True; PROG["sent"] = _stage_idx(ctx)
         return st
     try:
-        j2_start = _raw(ctx, 2); first = plan["lift"]["j2_first_target"]
+        rd0 = _raw_all(ctx, "누름 중(첫 이동 전)"); j2_start = rd0[2]; first = plan["lift"]["j2_first_target"]
         if first > plan["lift"]["j2_max_target"]: raise ValueError("계획의 첫 J2 명령이 최대 목표를 넘는다")
-        st = do_move("lift1", 2, first, 1); j2_read = _raw(ctx, 2)
-        t2, info = L.second_j2_command(first, j2_start, j2_read, dict(P, lift_j2_max_target=plan["lift"]["j2_max_target"])); lift["second_j2"] = dict(info, target=t2, j2_start=j2_start, j2_after_first=j2_read)
+        tc = (lift.get("gate") or {}).get("tilt_check") or {}; pmax = plan["lift"]["j2_max_target"]
+        def sag(phase, rd):   # P10 처짐 cap(사용자 결정 2026-11-18): 이동 0회 거부(누름 중) 또는 cap(첫 이동 뒤). 둘 다 같은 30° 규칙(L.sag_cap). 입력 없음은 거부(fail-closed)
+            r = L.sag_cap(pmax, tc.get("margin"), (rec or {}).get("raw_q_at_contact"), rd, P["lift_j2_refuse_at_or_below"], first); lift.setdefault("sag", {})[phase] = r
+            if r["refuse"]: raise _SagStop(phase, r)
+            return r["cap"]
+        sag("early", rd0)
+        st = do_move("lift1", 2, first, 1); rd1 = _raw_all(ctx, "첫 이동 뒤"); j2_read = rd1[2]; cap1 = sag("late", rd1)
+        t2, info = L.second_j2_command(first, j2_start, j2_read, dict(P, lift_j2_max_target=cap1)); lift["second_j2"] = dict(info, target=t2, j2_start=j2_start, j2_after_first=j2_read)
         if t2 is not None and t2 - j2_read < P["lift_j2_min_effective_step_deg"]:   # 요청 폭이 서보 최소 유효 폭(위 방향, 세트 16)보다 작으면 보내지 않는다(조용한 반쪽 이동 방지, P10 조건 ①)
             lift["second_j2"]["skipped_reason"] = "요청 폭 %.2f° < 최소 유효 폭 %.1f°" % (t2 - j2_read, P["lift_j2_min_effective_step_deg"]); say("  두 번째 J2 이동 생략: %s" % lift["second_j2"]["skipped_reason"]); t2 = None
         if t2 is not None:
-            do_move("lift2", 2, t2, 2); moved = _raw(ctx, 2) - j2_read; lift["second_j2"]["moved_deg"] = moved
+            do_move("lift2", 2, t2, 2); moved = _raw(ctx, 2, "둘째 이동 뒤") - j2_read; lift["second_j2"]["moved_deg"] = moved
             if moved < P["lift_j2_no_response_deg"]: lift["second_j2"]["no_response"] = True; say("  ! 두 번째 J2 무반응 의심(원시 변화 %.2f°). 재전송하지 않고 J4로 진행합니다(덜 들어올린 쪽)." % moved)
         do_move("lift3", 4, int(cmd[4]) + plan["lift"]["j4_delta"], 3)
         # --- 사진 B → 유지 → 사진 C ---
@@ -169,8 +193,12 @@ def lift_after_stall(ctx):
                 c = photo("C"); lift["photo_c_done"] = c is not None and L.same_start([ref.get("started_epoch"), c.get("started_epoch")])
         lift["j6_after_lift"] = ctx["adc"].read_position()
         done("완료" if lift["photo_c_done"] else ("유지·사진 C 일부 생략" if lift["hold_done"] else "사진 B 이후 생략"))
+    except _SagStop as e:
+        # 누름 중(early)이면 이동 0회라 lifted=False → 아래에서 no_lift(러너의 기존 열기 경로). 첫 이동 뒤(late)면 이미 첫 J2 이동(74)이 나간 상태: 시계 중단과 같은 경로(그 높이에서 열기 1회 + 들어올린 상태 복귀)로 끝낸다.
+        # 러너 내부 반환값 "lifted"는 복귀 경로를 위한 값일 뿐이고, 기록·분류는 lift["code"]/lifted_once로 구분한다(시도 + no_lift, 처짐 과다)
+        lift["code"] = "SAG_" + e.args[0].upper(); lift["lifted_once"] = bool(lifted); done("처짐 과다(%s): %s — %s" % (e.args[0], e.args[1].get("reason"), "첫 이동 뒤 그 높이에서 열기" if lifted else "이동 없이 열기"))
     except _ClockStop as e:
-        done("시계 규칙으로 단계 '%s' 시작 전 중단(경과 + 상한 > %.1f s): 즉시 열기" % (e.args[0], P["clock_limit_s"]))
+        lift["code"] = "CLOCK"; done("시계 규칙으로 단계 '%s' 시작 전 중단(경과 + 상한 > %.1f s): 즉시 열기" % (e.args[0], P["clock_limit_s"]))
     # --- 낙하 열기(시계의 끝) ---
     if not lifted: start_all[6] = ctx["cfg"]["open_j6"]; return "no_lift"
     lift["open_readback"] = ctx["release"](); lift["elapsed_at_open_s"] = clk.elapsed(); ctx["start_all"][6] = ctx["cfg"]["open_j6"]   # 열린 뒤 J6 감시 기준을 열림 값으로 되돌린다
@@ -178,6 +206,9 @@ def lift_after_stall(ctx):
 
 
 class _ClockStop(Exception): pass
+
+
+class _SagStop(Exception): pass
 
 
 def close_j6_at_k1(ctx):

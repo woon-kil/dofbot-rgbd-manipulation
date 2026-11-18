@@ -134,6 +134,22 @@ class JudgeTest(unittest.TestCase):
         self.assertTrue(L.s4_gate(ref, ref, dx_block_mm=None)["go"])              # 불감대 안이면 입력 없이 go
         self.assertNotIn("near", L.s4_gate(ref, ref))                            # 입력 없으면 표시 없음
 
+    def test_sag_cap_rule_and_boundaries(self):
+        r = lambda d3, d4, mg=0.21, **k: L.sag_cap(77, mg, [86.3, 68.32, 11.37, 31.42], {3: 11.37 + d3, 4: 31.42 + d4}, 75, 74)
+        self.assertEqual((r(0, 0)["cap"], r(0, 0)["refuse"]), (77, False))
+        self.assertEqual(r(0.25, 0)["cap"], 76); self.assertFalse(r(0.25, 0)["refuse"])                      # margin 0.21 − 0.25 → 76: E1 선(75) 위라 cap
+        self.assertEqual(r(0.1, 0.1)["cap"], 77); self.assertEqual(r(0.21, 0.0)["cap"], 77); self.assertEqual(r(0.22, 0.0)["cap"], 76)   # floor(77 + 0.21 − Δ) 경계
+        self.assertEqual(r(1.2, 0)["cap"], 76); self.assertEqual(r(1.22, 0)["cap"], 75); self.assertTrue(r(1.22, 0)["refuse"])           # cap 75 → 거부
+        self.assertTrue(r(3.5, 0)["refuse"]); self.assertLess(r(3.5, 0)["cap"], 74)                          # 첫 목표 미만도 같은 거부
+        self.assertEqual(r(-0.5, -0.5)["cap"], 77)                                                           # 유리한 이탈은 plan_max를 넘기지 않는다
+        for bad in (None, "x"): self.assertTrue(L.sag_cap(77, bad, [1, 2, 3, 4], {3: 1, 4: 1}, 75, 74)["refuse"])
+        self.assertTrue(L.sag_cap(77, 0.21, None, {3: 1, 4: 1}, 75, 74)["refuse"]); self.assertTrue(L.sag_cap(77, 0.21, [1, 2, 3, 4], {3: None, 4: 1}, 75, 74)["refuse"])
+
+    def test_e1_label_covers_cap_reduced_attempts(self):
+        fail = {"verdict": "불합격"}; lift = {"second_j2": {"target": 76}, "sag": {"late": {"cap": 76, "plan_max": 77}}}
+        self.assertTrue(L.e1_attempt_label(fail, lift)["signal_shortfall_possible"])
+        self.assertFalse(L.e1_attempt_label(fail, {"second_j2": {"target": 77}, "sag": {"late": {"cap": 77, "plan_max": 77}}})["signal_shortfall_possible"])
+
     def test_params_jsonable_survives_json(self):
         import json
         d = json.loads(json.dumps(L.params_jsonable())); self.assertEqual(d["q3_box"], [800, 0, 900, 100]); self.assertEqual(d["q3_zncc_min"], 0.90); self.assertEqual(d["lift_j2_max_target"], "UNSET"); self.assertEqual(d["j2_window"], [66, 110]); self.assertIsNone(d["first_move_min_ms"])

@@ -53,7 +53,7 @@ class TestWrapperStrings(unittest.TestCase):
     def test_wrapper_uses_only_lift_ref_and_fixes_question_text(self):
         t = (ROOT / "scripts" / "g01_lift_run.sh").read_text(encoding="utf-8")
         self.assertNotIn("678.2", t); self.assertNotIn("Run 3 이후 만지지 않았고", t); self.assertIn("LMR.load()", t); self.assertIn("재등록 사진 이후 만지지 않았고", t.replace("**", ""))
-        self.assertIn("정렬 NG 중단(시도 아님", t)
+        self.assertIn("g01_lift_classify.py", t)
         self.assertLess(t.index("g01_lift_marker_ref.py\" info"), t.index('scp -q -o BatchMode=yes "${ROOT}/scripts/g01_dabai_probe.py"'))   # 파일 확인이 배포보다 앞
 
 

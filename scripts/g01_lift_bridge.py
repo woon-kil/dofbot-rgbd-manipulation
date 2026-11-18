@@ -58,18 +58,23 @@ def parse_q(line):
     return v if len(v) == 4 else None
 
 
-def tilt_recheck(plan, q, modules=None):
-    """P10 런타임 확인(사용자 결정 2026-11-18, --real 전 필수): 실제 접촉 원시 q로 같은 규칙(FK 최악 정점 tilt ≤ 30°인 최대 정수 두 번째 J2 목표)을 다시 풀어
-    계획의 j2_max_target보다 작으면 거부한다. q 없음·계산 실패도 거부(fail-closed). 새 숫자 없음. FK UNVERIFIED."""
+def tilt_recheck(plan, q, modules=None, P=None):
+    """P10 런타임 확인(사용자 결정 2026-11-18: 거부가 아니라 cap): 실제 접촉 원시 q에서 계획 목표 plan_max의 최악 정점 tilt로 margin(= 30° − 정점, 음수 가능)을 구해 사진 A 응답에 싣는다.
+    훅이 누름 중·첫 이동 뒤 읽기의 ΔJ3+ΔJ4로 cap = floor(plan_max + margin − Δ)를 구한다. ok = 모델 자체 점검(t2·J3·J4 정점 민감도가 1에서 tilt_selfcheck_tol 이내) 통과
+    그리고 floor(plan_max + margin) > lift_j2_refuse_at_or_below. q 없음·계산 실패는 거부(fail-closed). 새 숫자 없음. FK UNVERIFIED."""
     try:
-        import g01_s42_plan_lift as PL
-        L = plan["lift"]; planned = int(L["j2_max_target"]); first = int(L["j2_first_target"])
+        import math, g01_s42_plan_lift as PL, g01_lift_params as LP
+        P = P or LP.PARAMS; L = plan["lift"]; planned = int(L["j2_max_target"]); first = int(L["j2_first_target"]); refuse_at = P["lift_j2_refuse_at_or_below"]; tol = P["tilt_selfcheck_tol"]
         if q is None: return {"ok": False, "reason": "접촉 원시 q가 요청에 없다", "planned_max": planned}
-        C = (modules or PL._load_modules())[1]
-        m = PL.max_target(C, list(q), first)
-        if m is None: return {"ok": False, "reason": "실제 접촉 q에서 허용 목표 없음", "q": q, "planned_max": planned}
-        return {"ok": m[0] >= planned, "recomputed_max": m[0], "peak_tilt_deg": round(m[1], 2), "planned_max": planned, "q": q,
-                "reason": "" if m[0] >= planned else "실제 접촉 q의 최대 목표 %d < 계획 %d" % (m[0], planned)}
+        C = (modules or PL._load_modules())[1]; q = list(q)
+        peak = lambda qq, t2: PL.worst_case_peak_tilt(C, qq, first, t2)[0]
+        p0 = peak(q, planned); margin = PL.TILT_LIMIT_DEG - p0; h = 0.1
+        slopes = {"t2": peak(q, planned + 1) - p0, "J3": (peak([q[0], q[1], q[2] + h, q[3]], planned) - p0) / h, "J4": (peak([q[0], q[1], q[2], q[3] + h], planned) - p0) / h}
+        selfcheck = all(abs(v - 1.0) <= tol for v in slopes.values()); cap0 = int(math.floor(planned + margin + 1e-9)); mt = PL.max_target(C, q, first)
+        ok = bool(selfcheck and cap0 > refuse_at)
+        reason = "" if ok else ("모델 자체 점검 실패(민감도 %s)" % {k: round(v, 3) for k, v in slopes.items()} if not selfcheck else "접촉 q에서 cap %d ≤ %d(E1 선)" % (cap0, refuse_at))
+        return {"ok": ok, "margin": round(margin, 3) if selfcheck else None, "plan_max": planned, "cap_at_contact": cap0, "recomputed_max": (mt[0] if mt else None), "peak_tilt_deg": round(p0, 2),
+                "slopes": {k: round(v, 4) for k, v in slopes.items()}, "selfcheck_tol": tol, "q": q, "reason": reason}
     except Exception as e: return {"ok": False, "reason": "%s: %s" % (type(e).__name__, e)}
 
 

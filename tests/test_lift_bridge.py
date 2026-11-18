@@ -113,12 +113,20 @@ class TestTiltRecheck(unittest.TestCase):
 
     def test_recorded_contact_pose_keeps_77(self):
         r = B.tilt_recheck(PLAN33, Q0, self.mods); self.assertTrue(r["ok"]); self.assertEqual(r["recomputed_max"], 77); self.assertAlmostEqual(r["peak_tilt_deg"], 29.79, places=2)
+        self.assertAlmostEqual(r["margin"], 0.21, places=2); self.assertEqual(r["cap_at_contact"], 77)
+        for k, v in r["slopes"].items(): self.assertAlmostEqual(v, 1.0, delta=0.01, msg=k)                      # 모델 자체 점검(t2·J3·J4 민감도 1)
         for dq in ([0, .08, 0, 0], [0, 0, .08, 0], [0, 0, 0, .08], [0, 0, -.08, 0]):                          # 측정된 접촉 원시 변동(0.08°)은 77을 유지
             self.assertTrue(B.tilt_recheck(PLAN33, [a + b for a, b in zip(Q0, dq)], self.mods)["ok"], dq)
 
-    def test_pose_that_needs_a_lower_target_is_refused(self):
-        r = B.tilt_recheck(PLAN33, [86.3, 68.32, 11.62, 31.42], self.mods)                                    # J3 +0.25°: 77의 정점이 30° 초과 → 76
-        self.assertFalse(r["ok"]); self.assertLess(r["recomputed_max"], 77); self.assertIn("< 계획", r["reason"])
+    def test_run3_and_run4_recorded_contacts_pass(self):
+        for q in ([86.3, 68.318, 11.455, 31.418], [86.3, 68.318, 11.373, 31.418]):                            # Run 3·4 기록의 접촉 원시 q(J1은 기록 없음 → Q0의 86.3)
+            r = B.tilt_recheck(PLAN33, q, self.mods); self.assertTrue(r["ok"], q); self.assertGreaterEqual(r["cap_at_contact"], 77 if q[2] < 11.4 else 76)
+
+    def test_pose_needing_lower_target_is_capped_not_refused(self):
+        r = B.tilt_recheck(PLAN33, [86.3, 68.32, 11.62, 31.42], self.mods)                                    # J3 +0.25°: margin 음수 → cap 76이지만 E1 선(75) 위라 거부하지 않는다(사용자 결정: 거부가 아니라 cap)
+        self.assertTrue(r["ok"]); self.assertLess(r["margin"], 0); self.assertEqual(r["cap_at_contact"], 76)
+        r = B.tilt_recheck(PLAN33, [86.3, 68.32, 12.9, 31.42], self.mods)                                     # J3 +1.5°: cap 75 이하 → 거부
+        self.assertFalse(r["ok"]); self.assertIn("E1 선", r["reason"])
 
     def test_missing_q_or_plan_is_fail_closed(self):
         self.assertFalse(B.tilt_recheck(PLAN33, None, self.mods)["ok"]); self.assertFalse(B.tilt_recheck({}, Q0, self.mods)["ok"])
@@ -126,7 +134,7 @@ class TestTiltRecheck(unittest.TestCase):
     @need_cv
     def test_bridge_gate_goes_no_go_when_tilt_fails_even_if_s4_passes(self):
         r = Rec(); b = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=PARAMS, say=lambda s: None, tilt=lambda q: B.tilt_recheck(PLAN33, q, self.mods))
-        res = b.handle("[사진 요청 A id=t q=86.3,68.32,11.62,31.42]"); self.assertFalse(res["gate"]["go"]); self.assertFalse(res["gate"]["tilt_check"]["ok"]); self.assertIn("P10 tilt 재확인 실패", res["gate"]["reason"])
+        res = b.handle("[사진 요청 A id=t q=86.3,68.32,12.9,31.42]"); self.assertFalse(res["gate"]["go"]); self.assertFalse(res["gate"]["tilt_check"]["ok"]); self.assertIn("P10 tilt 재확인 실패", res["gate"]["reason"])
         r2 = Rec(); res = B.Bridge({"detect": REF}, r2.snap, r2.status, r2.push, P=PARAMS, say=lambda s: None, tilt=lambda q: B.tilt_recheck(PLAN33, q, self.mods)).handle("[사진 요청 A id=t2 q=86.3,68.32,11.37,31.42]")
         self.assertTrue(res["gate"]["go"]); self.assertTrue(res["gate"]["tilt_check"]["ok"])                    # 양성 대조
         r3 = Rec(); res = B.Bridge({"detect": REF}, r3.snap, r3.status, r3.push, P=PARAMS, say=lambda s: None, tilt=lambda q: B.tilt_recheck(PLAN33, q, self.mods)).handle("[사진 요청 A id=t3]")

@@ -27,7 +27,7 @@ REF = {"run_id": "reg", "started_epoch": 1.5, "elapsed_at_ref_s": 120.0, "maxsec
 
 
 def photos(go=True, epoch_b=1.5, epoch_c=1.5, epoch_a=1.5):
-    return {"A": {"started_epoch": epoch_a, "detect": DET, "gate": {"go": go}}, "B": {"started_epoch": epoch_b, "detect": DET}, "C": {"started_epoch": epoch_c, "detect": DET}}
+    return {"A": {"started_epoch": epoch_a, "detect": DET, "gate": {"go": go, "tilt_check": {"ok": True, "margin": 0.21, "plan_max": 77}}}, "B": {"started_epoch": epoch_b, "detect": DET}, "C": {"started_epoch": epoch_c, "detect": DET}}
 
 
 @unittest.skipIf(vclock is None, "러너·생성기 의존성 없음")
@@ -57,7 +57,7 @@ class LiftHookTest(unittest.TestCase):
         self.assertTrue(L["hold_done"] and L["photo_c_done"]); self.assertEqual(L["ended_reason"], "완료"); self.assertLessEqual(L["elapsed_at_open_s"], 26.8)
         self.assertIsNotNone(L["open_readback"]); self.assertEqual(r["poses"][3]["run2"]["stall_command"], 150); self.assertIsNotNone(r.get("j6_k1_close_readback"))
         self.assertEqual(len(r["steps"]), self.plan33["lift"]["contact_moves_done"])                           # 남은 계획 이동은 건너뜀(상승 자세 없음)
-        self.assertEqual(L["gate"], {"go": True}); self.assertAlmostEqual(L["j6_after_close"], 146)
+        self.assertTrue(L["gate"]["go"]); self.assertEqual(L["gate"]["tilt_check"]["margin"], 0.21); self.assertAlmostEqual(L["j6_after_close"], 146)
 
     def test_no_go_does_not_lift_and_uses_the_existing_release_path(self):
         ch = FakeChannel(REF, photos(go=False)); r = self.run33(ch); rr = r["poses"][3]["run2"]
@@ -169,6 +169,81 @@ class FilePhotoChannelTest(unittest.TestCase):
 
     def test_tokens_are_unique_per_request(self):
         self.assertNotEqual(self.ch.request("C", "r"), self.ch.request("C", "r"))
+
+
+class SagCapMethods:
+    """P10 처짐 cap(사용자 결정 2026-11-18): 읽기 횟수 불변, 이탈 0이면 cap 77, 작은 이탈은 cap, 이른 거부는 이동 0회, 첫 이동 뒤 거부는 그 높이에서 열기 1회 + K1 복귀."""
+    BASE_TOTAL_RAW_SET = 15           # 변경 전 훅의 정상 경로 전체 raw_set 호출 수(변경 전에 측정)
+    BASE_A_TO_FIRST_MOVE = 1          # 사진 A 응답부터 첫 run_move까지(변경 전 측정)
+
+    def instrumented(self, early=(0.0, 0.0), late=(0.0, 0.0), none_at=None, photos_=None):
+        """누름 중(사진 A 응답 뒤)·첫 이동 뒤 읽기에 J3·J4 이탈(도)을 주입한다. 반환 (결과, 카운터)."""
+        n = {"raw": 0, "at_A": None, "first_move": None, "moves": 0, "phase": "pre"}; orig_raw, orig_rm = R.raw_set, R.run_move
+        def raw(arm):
+            n["raw"] += 1; r = orig_raw(arm); d = {"early": early, "late": late}.get(n["phase"])
+            if d:
+                for j, dd in zip((3, 4), d): r[str(j)] = dict(r[str(j)], deg=r[str(j)]["deg"] + dd)
+                if none_at == n["phase"]:
+                    r["3"] = dict(r["3"], deg=None)                                                                          # J3만(J4는 상태 색인 계산이 읽으므로 두 이동 사이에는 None으로 만들지 않는다)
+            return r
+        def rm(*a, **k):
+            if n["first_move"] is None and n["at_A"] is not None: n["first_move"] = n["raw"]
+            n["moves"] += 1; res = orig_rm(*a, **k)
+            if a[2].get("phase") == "L" and n["phase"] == "early": n["phase"] = "late"                  # 첫 들어올림 이동(phase L)이 끝난 뒤부터 late
+            return res
+        class Ch(FakeChannel):
+            def wait(s, name, timeout_s, token):
+                r = super().wait(name, timeout_s, token)
+                if name == "A": n["at_A"] = n["raw"]; n["phase"] = "early"
+                return r
+        R.raw_set, R.run_move = raw, rm
+        try: r = self.run33(Ch(REF, photos_ or photos()))
+        finally: R.raw_set, R.run_move = orig_raw, orig_rm
+        return r, n
+
+    @property
+    def n_plan_moves(self): return len(self.plan33["moves"])
+
+    def test_read_counts_unchanged_and_all_reads_recorded(self):
+        r, n = self.instrumented(); L = self.lift(r)
+        self.assertEqual(n["raw"], self.BASE_TOTAL_RAW_SET); self.assertEqual(n["first_move"] - n["at_A"], self.BASE_A_TO_FIRST_MOVE)     # 읽기를 추가하지 않았다(변경 전 측정 기준선과 같다)
+        labels = [x["label"] for x in L["raw_reads"]]; self.assertEqual(labels[:2], ["누름 중(첫 이동 전)", "첫 이동 뒤"]); self.assertIn("둘째 이동 뒤", labels)
+        self.assertEqual(L["sag"]["early"]["cap"], 77); self.assertEqual(L["sag"]["late"]["cap"], 77); self.assertFalse(L["sag"]["late"]["refuse"])
+        self.assertEqual(len(L["raw_reads"][0]["q"]), 4)
+
+    def test_small_adverse_sag_caps_second_target(self):
+        r, n = self.instrumented(early=(0.25, 0.0), late=(0.25, 0.0)); L = self.lift(r)
+        self.assertEqual(L["sag"]["late"]["cap"], 76); self.assertLessEqual(L["second_j2"]["target"], 76)                                    # margin 0.21 − Δ 0.25 → floor(76.96) = 76
+
+    def test_favourable_sag_does_not_raise_above_plan_max(self):
+        r, n = self.instrumented(early=(-0.5, 0.0), late=(-0.5, 0.0)); self.assertEqual(self.lift(r)["sag"]["late"]["cap"], 77)
+
+    def test_early_refusal_moves_nothing_and_opens_once(self):
+        r, n = self.instrumented(early=(1.5, 0.0)); L = self.lift(r)                                                                          # Δ 1.5 → cap 75 ≤ 75 → 이동 0회 거부
+        self.assertEqual(L["code"], "SAG_EARLY"); self.assertFalse(L["lifted_once"]); self.assertEqual(L["moves"], []); self.assertIn("처짐 과다", L["ended_reason"])
+        run2 = r["poses"][3]["run2"]; self.assertEqual(run2["release_readback"], 100)                                                          # 러너의 기존 열기 1회
+        logs = r["j6_adapter_logs"]; self.assertEqual(sum(1 for l in logs["contact"] if l[0] == "write" and len(l) > 4 and l[4] == "return_to_start"), 1)
+        self.assertNotIn("lift_done", json.dumps(r)); self.assertTrue(r["returned_to_start"])
+
+    def test_late_refusal_opens_once_at_lift1_height_and_returns(self):
+        r, n = self.instrumented(late=(1.5, 0.0)); L = self.lift(r)                                                                          # 첫 이동 뒤 읽기에서 cap 75 → 시계 중단과 같은 경로
+        self.assertEqual(L["code"], "SAG_LATE"); self.assertTrue(L["lifted_once"]); self.assertEqual([m["step"] for m in L["moves"]], ["lift1"]); self.assertIsNotNone(L.get("open_readback"))
+        logs = r["j6_adapter_logs"]; self.assertEqual(sum(1 for l in logs["contact"] if l[0] == "write" and len(l) > 4 and l[4] == "return_to_start"), 1)   # J6 열기 1회
+        self.assertTrue(r["returned_to_start"]); self.assertEqual(r["j6_k1_close_readback"], 178 if r.get("j6_k1_close_readback") else r["j6_k1_close_readback"])
+
+    def test_cap_below_first_target_is_refused_explicitly(self):
+        r, n = self.instrumented(late=(3.5, 0.0)); L = self.lift(r)                                                                          # cap ≤ 73: 첫 이동만으로도 30° 초과 → ValueError가 아니라 같은 거부
+        self.assertEqual(L["code"], "SAG_LATE"); self.assertLess(L["sag"]["late"]["cap"], 74)
+
+    def test_missing_j3_j4_refused_only_at_cap_reads(self):
+        r, n = self.instrumented(none_at="early"); L = self.lift(r); self.assertEqual(L["code"], "SAG_EARLY"); self.assertIn("입력 없음", L["sag"]["early"]["reason"])
+        r, n = self.instrumented(none_at="late"); L = self.lift(r); self.assertEqual(L["code"], "SAG_LATE")
+        g = photos(); g["A"]["gate"]["tilt_check"] = {"ok": True}                                                                              # margin 없음 → 거부(fail-closed)
+        r, n = self.instrumented(photos_=g); self.assertEqual(self.lift(r)["code"], "SAG_EARLY")
+
+
+for _n, _f in list(vars(SagCapMethods).items()):          # 기존 설정(plan33, run33)을 쓰도록 LiftHookTest에 붙인다(상속하면 기존 17건이 중복 실행된다)
+    if _n.startswith(("test_", "instrumented", "n_plan_moves", "BASE_")): setattr(LiftHookTest, _n, _f)
 
 
 if __name__ == "__main__": unittest.main()
