@@ -1,0 +1,911 @@
+{
+ "python": "3.10.12",
+ "precheck": {
+  "ok": true,
+  "why": "",
+  "ref_started_epoch": 1794995024.7069569,
+  "elapsed_at_ref_s": 1.5521130561828613
+ },
+ "trials": [
+  {
+   "label": "cold_first",
+   "name": "A",
+   "req_epoch": 1794995046.9938982,
+   "rx_epoch": 1794995048.3604398,
+   "D_s": 1.3665416240692139,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "4b0def5425ab2202400bee4ef12154b5d028eadf0f96730969d3e92a87b895e9",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.0,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": 0.0,
+    "dx_block_mm": 0.0,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995046.991862,
+    "snap_done": 1794995048.011505,
+    "gate_done": 1794995048.0149179
+   }
+  },
+  {
+   "label": "warm_01",
+   "name": "A",
+   "req_epoch": 1794995053.3679316,
+   "rx_epoch": 1794995054.4323223,
+   "D_s": 1.0643906593322754,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "3d3ed7eb33e32beede35d253a07e1715ce02f6f43cf2079442682082d4832155",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.0,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": 0.0,
+    "dx_block_mm": 0.0,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995053.3661828,
+    "snap_done": 1794995054.38774,
+    "gate_done": 1794995054.390183
+   }
+  },
+  {
+   "label": "warm_02",
+   "name": "A",
+   "req_epoch": 1794995059.4370515,
+   "rx_epoch": 1794995060.5217333,
+   "D_s": 1.084681749343872,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "693e419ac7ed1f1ca1c20960c6decc60510541a51a7e30441f65d878cb159033",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.44660594168777834,
+    "dx_block_mm": -0.008378500240606712,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995059.435649,
+    "snap_done": 1794995060.483718,
+    "gate_done": 1794995060.4861288
+   }
+  },
+  {
+   "label": "warm_03",
+   "name": "A",
+   "req_epoch": 1794995065.525056,
+   "rx_epoch": 1794995066.609472,
+   "D_s": 1.084416151046753,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "942362e1bff1f55d8d62935ef63bcf911a5434c52d1aa20da4b4996607866335",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.44660594168777834,
+    "dx_block_mm": -0.008378500240606712,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995065.523535,
+    "snap_done": 1794995066.556267,
+    "gate_done": 1794995066.55871
+   }
+  },
+  {
+   "label": "warm_04",
+   "name": "A",
+   "req_epoch": 1794995071.61304,
+   "rx_epoch": 1794995072.677873,
+   "D_s": 1.0648329257965088,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "6a64eca809b139d5f58da4d15ee726c0e95676f975f456b9ee5b98f35788d1ad",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.0,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": 0.0,
+    "dx_block_mm": 0.0,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995071.611611,
+    "snap_done": 1794995072.635157,
+    "gate_done": 1794995072.637634
+   }
+  },
+  {
+   "label": "warm_05",
+   "name": "A",
+   "req_epoch": 1794995077.6810377,
+   "rx_epoch": 1794995078.7856696,
+   "D_s": 1.1046319007873535,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "98fc278094727bb4fefe61625ed9f0c8db84a48f6bceaed5bce2010c0d6de4e5",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.0,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": 0.0,
+    "dx_block_mm": 0.0,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995077.6797671,
+    "snap_done": 1794995078.748388,
+    "gate_done": 1794995078.750926
+   }
+  },
+  {
+   "label": "warm_06",
+   "name": "B",
+   "req_epoch": 1794995083.7890437,
+   "rx_epoch": 1794995085.2145624,
+   "D_s": 1.4255187511444092,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "05c801d6945c6dcfecfafe393c61a4dc2aad8416ceddcb4df4ccfba653e88cc9",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995083.7871602,
+    "snap_done": 1794995085.175324,
+    "gate_done": 1794995085.175328
+   }
+  },
+  {
+   "label": "warm_07",
+   "name": "B",
+   "req_epoch": 1794995090.2170396,
+   "rx_epoch": 1794995091.2614207,
+   "D_s": 1.0443811416625977,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "9fa4d3a26a3f53d7ef87a92955e4784c7732640d401c4569add6baef9f5ecdf9",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995090.215123,
+    "snap_done": 1794995091.223639,
+    "gate_done": 1794995091.2236428
+   }
+  },
+  {
+   "label": "warm_08",
+   "name": "B",
+   "req_epoch": 1794995096.2676823,
+   "rx_epoch": 1794995097.3521032,
+   "D_s": 1.084420919418335,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "64102eebe36aa14bb695ddd48a8c4f76223583575c9e4799bd2557037d5b3bf4",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995096.265818,
+    "snap_done": 1794995097.3041332,
+    "gate_done": 1794995097.304136
+   }
+  },
+  {
+   "label": "warm_09",
+   "name": "B",
+   "req_epoch": 1794995102.3570392,
+   "rx_epoch": 1794995103.4616046,
+   "D_s": 1.1045653820037842,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "ecca862e823743dc35d26170ea84ab3c6cf01658b1624fff74c83a909861d426",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995102.3551428,
+    "snap_done": 1794995103.409747,
+    "gate_done": 1794995103.40975
+   }
+  },
+  {
+   "label": "warm_10",
+   "name": "B",
+   "req_epoch": 1794995108.4650404,
+   "rx_epoch": 1794995109.5295565,
+   "D_s": 1.0645160675048828,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "912f337ce03427ab970dca598556f42aea67381ab77247d7c4f4ad684e6834d3",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995108.463375,
+    "snap_done": 1794995109.4811652,
+    "gate_done": 1794995109.481169
+   }
+  },
+  {
+   "label": "warm_11",
+   "name": "A",
+   "req_epoch": 1794995114.5360084,
+   "rx_epoch": 1794995115.6003911,
+   "D_s": 1.064382791519165,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "ed697e1b35282887469edaf6ab1b9d0282c686e34ef6c2beb0bb2a1997a106fc",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.0,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": 0.0,
+    "dx_block_mm": 0.0,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995114.534247,
+    "snap_done": 1794995115.5510669,
+    "gate_done": 1794995115.5539389
+   }
+  },
+  {
+   "label": "warm_12",
+   "name": "B",
+   "req_epoch": 1794995120.6069753,
+   "rx_epoch": 1794995121.711615,
+   "D_s": 1.1046397686004639,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "cfd97d407c1578df211a8dbc5859f87127e42dd8dd4b44176aad9b779031da1e",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995120.605205,
+    "snap_done": 1794995121.662015,
+    "gate_done": 1794995121.662018
+   }
+  },
+  {
+   "label": "warm_13",
+   "name": "A",
+   "req_epoch": 1794995126.717042,
+   "rx_epoch": 1794995127.781477,
+   "D_s": 1.0644350051879883,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "2b2b23f387f2979207acb365ea33ebd38c4bc969d95de62faac77b4ad17f505e",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.0,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": 0.0,
+    "dx_block_mm": 0.0,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995126.7153652,
+    "snap_done": 1794995127.73552,
+    "gate_done": 1794995127.738337
+   }
+  },
+  {
+   "label": "warm_14",
+   "name": "B",
+   "req_epoch": 1794995132.785044,
+   "rx_epoch": 1794995133.8494031,
+   "D_s": 1.064359188079834,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "01c343f56a29bcab251fff33f978c6815fe0fdc9a58d6aac318a8b880044994a",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995132.783315,
+    "snap_done": 1794995133.803499,
+    "gate_done": 1794995133.803502
+   }
+  },
+  {
+   "label": "warm_15",
+   "name": "A",
+   "req_epoch": 1794995138.8530457,
+   "rx_epoch": 1794995140.2587621,
+   "D_s": 1.4057164192199707,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "2bdf95f22e74870b4a8e79abaf393375b648d62d48ddaa352171b9d3bd9d0802",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": 0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.44660594168777834,
+    "dx_block_mm": -0.008378500240606712,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995138.8513489,
+    "snap_done": 1794995140.218488,
+    "gate_done": 1794995140.221139
+   }
+  },
+  {
+   "label": "warm_16",
+   "name": "B",
+   "req_epoch": 1794995145.2656016,
+   "rx_epoch": 1794995146.3700364,
+   "D_s": 1.1044347286224365,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "d7e827b14edaf02b9abe7562dbef08fcdcef7fd745a9878030a662e63facea36",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995145.264111,
+    "snap_done": 1794995146.321884,
+    "gate_done": 1794995146.321887
+   }
+  },
+  {
+   "label": "warm_17",
+   "name": "A",
+   "req_epoch": 1794995151.3730483,
+   "rx_epoch": 1794995152.4776814,
+   "D_s": 1.104633092880249,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "59dbb06fe4205518f6b826d34706a0d7db63cabee2b54da22a944128b7f2ac51",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": -0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.4551341377153335,
+    "dx_block_mm": 0.008382448895350336,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995151.3717608,
+    "snap_done": 1794995152.426477,
+    "gate_done": 1794995152.428921
+   }
+  },
+  {
+   "label": "warm_18",
+   "name": "B",
+   "req_epoch": 1794995157.4810376,
+   "rx_epoch": 1794995158.5856066,
+   "D_s": 1.1045689582824707,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "9c729c2ed73b4a00c7c22267902a07a8f42f9bc70385c49c43547eec4477541a",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995157.47964,
+    "snap_done": 1794995158.540083,
+    "gate_done": 1794995158.540087
+   }
+  },
+  {
+   "label": "warm_19",
+   "name": "A",
+   "req_epoch": 1794995163.5926323,
+   "rx_epoch": 1794995164.6972299,
+   "D_s": 1.104597568511963,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "f9a9d0c649043ce4893eec05c2de0ff57cafa76b40841503304e9bc9fd4fcfc5",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": -0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.4551341377153335,
+    "dx_block_mm": 0.008382448895350336,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995163.5913532,
+    "snap_done": 1794995164.651329,
+    "gate_done": 1794995164.653779
+   }
+  },
+  {
+   "label": "warm_20",
+   "name": "B",
+   "req_epoch": 1794995169.704395,
+   "rx_epoch": 1794995170.7888787,
+   "D_s": 1.0844836235046387,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "cd8e63a91fbfe18e389a0e48c4a67f5a232133f1c303ede90b21cd761eb9631c",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": null,
+   "mac": {
+    "req_seen": 1794995169.703097,
+    "snap_done": 1794995170.752091,
+    "gate_done": 1794995170.752094
+   }
+  },
+  {
+   "label": "idle_130s",
+   "name": "A",
+   "req_epoch": 1794995300.8911688,
+   "rx_epoch": 1794995302.377119,
+   "D_s": 1.485950231552124,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "cade0ae50c4f3868f08294c05fdfa835c4ce7f546095975bb9f79693c21fde22",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": -0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.4551341377153335,
+    "dx_block_mm": 0.008382448895350336,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995300.890128,
+    "snap_done": 1794995302.332176,
+    "gate_done": 1794995302.334684
+   }
+  },
+  {
+   "label": "idle_310s",
+   "name": "A",
+   "req_epoch": 1794995612.4770489,
+   "rx_epoch": 1794995614.2848604,
+   "D_s": 1.8078114986419678,
+   "ok": true,
+   "request_id_match": true,
+   "same_start": true,
+   "image_sha256": true,
+   "sha": "9ebc14a2399654e133716235dacd71e82ffc87c33c390b176a75653566c4d8e4",
+   "detect_present": true,
+   "error_snap": null,
+   "error_status": null,
+   "gate": {
+    "go": true,
+    "g1": true,
+    "g2": true,
+    "g3_dy_px": -0.25,
+    "g4": true,
+    "g5": true,
+    "dyaw_deg": -0.4551341377153335,
+    "dx_block_mm": 0.008382448895350336,
+    "dx_depth_assumed": true,
+    "near": false,
+    "tilt_check": {
+     "ok": true,
+     "margin": 0.21,
+     "plan_max": 77,
+     "cap_at_contact": 77,
+     "recomputed_max": 77,
+     "peak_tilt_deg": 29.79,
+     "slopes": {
+      "t2": 1.0,
+      "J3": 1.0,
+      "J4": 1.0
+     },
+     "selfcheck_tol": 0.01,
+     "q": [
+      86.3,
+      68.32,
+      11.37,
+      31.42
+     ],
+     "reason": ""
+    }
+   },
+   "mac": {
+    "req_seen": 1794995612.476313,
+    "snap_done": 1794995613.968483,
+    "gate_done": 1794995613.9709408
+   }
+  }
+ ],
+ "align_line_epoch": 1794995026.9737623
+}

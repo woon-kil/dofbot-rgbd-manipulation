@@ -1,0 +1,183 @@
+{
+  "window_cap_s": 3.0,
+  "window_met": true,
+  "grade": "통과(창 충족)",
+  "trials": 23,
+  "expected_trials": 23,
+  "warm": {
+    "n": 20,
+    "received": 20,
+    "min": 1.0443811416625977,
+    "median": 1.0845826864242554,
+    "p95": 1.4067065358161925,
+    "max": 1.4255187511444092,
+    "over_cap": 0
+  },
+  "cold": {
+    "cold_first": 1.3665416240692139,
+    "idle_130s": 1.485950231552124,
+    "idle_310s": 1.8078114986419678
+  },
+  "over_cap_labels": [],
+  "bad": {
+    "missing": 0,
+    "request_id_mismatch": 0,
+    "start_mismatch": 0,
+    "no_image_hash": 0,
+    "no_detect_or_error_snap": 0,
+    "duplicate_hash": 0,
+    "a_gate_not_go": 0,
+    "status_error": 0
+  },
+  "precheck": {
+    "ok": true,
+    "why": "",
+    "ref_started_epoch": 1794995024.7069569,
+    "elapsed_at_ref_s": 1.5521130561828613
+  },
+  "python": "3.10.12",
+  "note": "D는 Jetson 시계, Mac 단계 시각은 Mac 시계라 서로 빼지 않는다. 사진 A에 가장 가까운 시험은 310 s 휴지 A.",
+  "mac_stage_seconds_mac_clock": [
+    {
+      "name": "A",
+      "snap": 1.02,
+      "gate": 1.023,
+      "push": 1.399
+    },
+    {
+      "name": "A",
+      "snap": 1.022,
+      "gate": 1.024,
+      "push": 1.055
+    },
+    {
+      "name": "A",
+      "snap": 1.048,
+      "gate": 1.05,
+      "push": 1.082
+    },
+    {
+      "name": "A",
+      "snap": 1.033,
+      "gate": 1.035,
+      "push": 1.067
+    },
+    {
+      "name": "A",
+      "snap": 1.024,
+      "gate": 1.026,
+      "push": 1.057
+    },
+    {
+      "name": "A",
+      "snap": 1.069,
+      "gate": 1.071,
+      "push": 1.103
+    },
+    {
+      "name": "B",
+      "snap": 1.388,
+      "gate": 1.388,
+      "push": 1.43
+    },
+    {
+      "name": "B",
+      "snap": 1.009,
+      "gate": 1.009,
+      "push": 1.039
+    },
+    {
+      "name": "B",
+      "snap": 1.038,
+      "gate": 1.038,
+      "push": 1.07
+    },
+    {
+      "name": "B",
+      "snap": 1.055,
+      "gate": 1.055,
+      "push": 1.086
+    },
+    {
+      "name": "B",
+      "snap": 1.018,
+      "gate": 1.018,
+      "push": 1.05
+    },
+    {
+      "name": "A",
+      "snap": 1.017,
+      "gate": 1.02,
+      "push": 1.051
+    },
+    {
+      "name": "B",
+      "snap": 1.057,
+      "gate": 1.057,
+      "push": 1.089
+    },
+    {
+      "name": "A",
+      "snap": 1.02,
+      "gate": 1.023,
+      "push": 1.054
+    },
+    {
+      "name": "B",
+      "snap": 1.02,
+      "gate": 1.02,
+      "push": 1.051
+    },
+    {
+      "name": "A",
+      "snap": 1.367,
+      "gate": 1.37,
+      "push": 1.402
+    },
+    {
+      "name": "B",
+      "snap": 1.058,
+      "gate": 1.058,
+      "push": 1.089
+    },
+    {
+      "name": "A",
+      "snap": 1.055,
+      "gate": 1.057,
+      "push": 1.089
+    },
+    {
+      "name": "B",
+      "snap": 1.06,
+      "gate": 1.06,
+      "push": 1.092
+    },
+    {
+      "name": "A",
+      "snap": 1.06,
+      "gate": 1.062,
+      "push": 1.094
+    },
+    {
+      "name": "B",
+      "snap": 1.049,
+      "gate": 1.049,
+      "push": 1.08
+    },
+    {
+      "name": "A",
+      "snap": 1.442,
+      "gate": 1.445,
+      "push": 1.476
+    },
+    {
+      "name": "A",
+      "snap": 1.492,
+      "gate": 1.495,
+      "push": 1.797
+    }
+  ],
+  "align_seconds_mac_clock": 1.503,
+  "align_text_present": true,
+  "align_ok_within_15s": true
+}
