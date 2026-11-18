@@ -74,6 +74,12 @@ class R8Test(unittest.TestCase):
         self.lift["moves"] = []; self.lift["code"] = "G2"; j = self.judge(); self.assertEqual(j["verdicts"]["E1"], "판정 불가(들어올림 없음)"); self.assertFalse(j["judged_record"]); self.assertFalse(j["success"])
         self.lift["moves"] = [{"step": "lift1"}]; self.lift["code"] = "SAG_LATE"; j = self.judge(); self.assertEqual(j["verdicts"]["Q3"], "판정 불가(들어올림 중단)"); self.assertEqual(j["state"], "들어올림 중단(첫 이동 뒤 열림)")
 
+    def test_post_return_record_is_record_only(self):
+        self.assertFalse(self.judge()["post_return_record"]["available"])                                                               # 복귀 뒤 스냅 없음
+        (self.pa / ("lift_%s_post.detect.json" % TS)).write_text(json.dumps({"found": True, "center": [675.0, 268.0], "side_px": 29.0, "yaw_deg": -170.0}))
+        j = self.judge(); pr = j["post_return_record"]; self.assertTrue(pr["available"]); self.assertEqual(j["verdicts"], self.judge()["verdicts"]); self.assertIn("yaw_delta_deg", pr); self.assertIn("기록 전용", pr["note"])
+        self.assertEqual(j["verdicts"]["E2"], "합격")                                                                                       # 판정에 영향이 없다
+
     def test_e2_rules(self):
         for rb, cmd, exp in ((146, 150, "합격"), (147, 150, "합격"), (148, 150, "불합격"), (146, 145, "불합격"), (None, 150, "판정 불가")):
             self.r2.update(stall_readback=rb, stall_command=cmd); self.assertEqual(self.judge()["criteria"]["E2"]["verdict"], exp, (rb, cmd))

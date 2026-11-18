@@ -66,6 +66,20 @@ def load_photos(lift, root, ts, ref, bridge, detect_fn=None, P=None):
     return out
 
 
+def _post_return_record(root, ts, ref):
+    """복귀 뒤 P-A 스냅(`lift_<TS>_post`, 기록용 P4)의 블록 마커 yaw·위치를 기준 스냅과 비교해 기록한다(판정 아님). 낙하 뒤 복귀 경로의 블록 yaw 자료: 사용자 결정(2026-11-18)으로 첫 실행은 사람 확인만 쓰고 이 기록을 본 뒤 복귀 경로를 정한다."""
+    p = os.path.join(root, "data", "g04", "pa", "lift_%s_post.detect.json" % ts)
+    if not os.path.exists(p): return {"available": False, "why": "복귀 뒤 스냅 detect.json 없음"}
+    try: d = json.load(open(p, encoding="utf-8"))
+    except Exception as e: return {"available": False, "why": "읽기 실패 %r" % e}
+    out = {"available": True, "found": bool(d.get("found")), "detect": d}
+    rd = (ref or {}).get("detect") or {}
+    if d.get("found") and rd.get("found"):
+        out["yaw_delta_deg"] = round((d["yaw_deg"] - rd["yaw_deg"] + 180.0) % 360.0 - 180.0, 2); out["center_shift_px"] = [round(d["center"][0] - rd["center"][0], 2), round(d["center"][1] - rd["center"][1], 2)]
+    out["note"] = "기록 전용(판정 아님). 마커가 가려지거나 복귀가 안 끝나면 없음. 낙하 뒤 복귀 경로 간격은 블록 yaw 약 5° 이내에서만 2 mm(오프라인 UNVERIFIED)"
+    return out
+
+
 def judge(result, root, ts, ref, bridge=None, detect_fn=None, P=None):
     P = L.PARAMS if P is None else P
     cls = K.classify(result); r2, lift = _run2_lift(result); notes = []
@@ -116,7 +130,8 @@ def judge(result, root, ts, ref, bridge=None, detect_fn=None, P=None):
     except Exception: commit = "unknown"
     notes += ["E1'(가려짐 대체 지표)·E1-R 경로는 구현하지 않는다. E-2a 미실시. 첫 시도가 쥔 상태 마커 가림의 첫 관측일 수 있다.", "E4(사람 입력·영상)는 기록 전용.",
               "사진 다리 로그 " + ("대조함" if bridge is not None else "없음: 러너 기록과 이미지 해시만으로 계산")]
-    return {"ts": ts, "r8_code_commit": commit, "classification": cls, "state": state, "criteria": crit, "verdicts": verdicts, "success": success,
+    post = _post_return_record(root, ts, ref)
+    return {"ts": ts, "r8_code_commit": commit, "post_return_record": post, "classification": cls, "state": state, "criteria": crit, "verdicts": verdicts, "success": success,
             "judged_record": judged, "weak_signal_label": weak, "photos": {n: {k: v for k, v in d.items() if k != "detect"} for n, d in photos.items()},
             "params": L.params_jsonable(P), "notes": notes}
 
@@ -132,6 +147,7 @@ def main():
     print("R8 판정(사전 등록 규칙, 코드 커밋 %s)" % out["r8_code_commit"][:7])
     for k in ("E2", "E1", "E3", "Q3"): print("  %s: %s%s" % (k, out["verdicts"][k], (" — " + (out["criteria"][k].get("note") or out["criteria"][k].get("reason") or out["criteria"][k].get("case") or "")) if out["verdicts"][k] not in ("합격", "불합격") or out["criteria"][k].get("note") else ""))
     print("성공: %s | 판정 기록(네 기준 모두 합격/불합격): %s | E1 신호 약함 가능 라벨: %s" % (out["success"], out["judged_record"], out["weak_signal_label"]))
+    pr = out["post_return_record"]; print("복귀 뒤 블록(기록 전용): " + (("yaw 변화 %s°, 중심 이동 %s px" % (pr.get("yaw_delta_deg"), pr.get("center_shift_px"))) if pr.get("available") and pr.get("found") else "자료 없음 또는 마커 미검출"))
     print("저장:", path)
 
 
