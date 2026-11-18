@@ -39,12 +39,13 @@ class RunnerFailClosedTest(unittest.TestCase):
 
     def test_real_set33_refused_with_zero_hardware_contact(self):
         with self.assertRaises(SystemExit) as c: self.run_main(self.plan({"set": "33"}), "--real")
-        msg = str(c.exception); self.assertIn("세트 33", msg); self.assertIn("q3_box", msg); self.assertIn("lift_j2_max_target", msg)
+        msg = str(c.exception); self.assertIn("세트 33", msg); self.assertIn("lift_j2_max_target", msg)   # P9 등록(2026-11-18) 뒤 남은 UNSET은 계획이 공급하는 두 번째 J2 최대 목표뿐
         self.assertEqual((Rec.created, Rec.writes), (0, 0))
 
-    def test_real_still_refused_when_plan_supplies_target_but_q3_unset(self):
-        with self.assertRaises(SystemExit) as c: self.run_main(self.plan({"set": "33", "lift": {"j2_max_target": 77}}), "--real")
-        self.assertNotIn("lift_j2_max_target", str(c.exception)); self.assertIn("q3_box", str(c.exception)); self.assertEqual((Rec.created, Rec.writes), (0, 0))
+    def test_gate_passes_only_when_plan_supplies_target(self):
+        """P9 등록 뒤에는 코드상 거부 사유가 계획의 최대 목표 공급 여부뿐이다. --real 자체는 사용자 별도 승인 절차가 막는다."""
+        LP.check_real_allowed("real", LP.params_for_plan({"set": "33", "lift": {"j2_max_target": 77}}))
+        with self.assertRaises(LP.ParamsNotFinal): LP.check_real_allowed("real", LP.params_for_plan({"set": "33", "lift": {}}))
 
     def test_non_integer_target_in_plan_stays_unset(self):
         for bad in (None, 77.0, "77", True):
@@ -58,8 +59,8 @@ class RunnerFailClosedTest(unittest.TestCase):
         self.assertEqual(Rec.writes, 0)
 
     def test_lift_clause_without_set33_is_also_gated(self):
-        with self.assertRaises(SystemExit) as c: self.run_main(self.plan({"set": "31", "lift": {"j2_max_target": 77}}), "--real")   # set이 33이 아니어도 lift 절이 있으면 거부(fail-open 방지)
-        self.assertIn("q3_box", str(c.exception)); self.assertEqual((Rec.created, Rec.writes), (0, 0))
+        with self.assertRaises(SystemExit) as c: self.run_main(self.plan({"set": "31", "lift": {}}), "--real")   # set이 33이 아니어도 lift 절이 있으면 게이트 적용(fail-open 방지)
+        self.assertIn("lift_j2_max_target", str(c.exception)); self.assertEqual((Rec.created, Rec.writes), (0, 0))
         self.assertTrue(LP.is_lift_plan({"set": "33"})); self.assertTrue(LP.is_lift_plan({"set": "31", "lift": {}})); self.assertFalse(LP.is_lift_plan({"set": "31"}))
 
     def test_other_sets_are_not_affected(self):
@@ -67,9 +68,10 @@ class RunnerFailClosedTest(unittest.TestCase):
         self.assertNotIsInstance(c.exception, SystemExit)                                             # 세트 33 게이트는 다른 세트에 적용하지 않는다
 
     def test_real_allowed_only_after_every_unset_is_filled(self):
-        p = LP.params_for_plan({"set": "33", "lift": {"j2_max_target": 77}}); p["q3_box"] = (800, 0, 900, 100)
-        with self.assertRaises(LP.ParamsNotFinal): LP.check_real_allowed("real", p)
-        p["q3_zncc_min"] = 0.90; LP.check_real_allowed("real", p)
+        p = LP.params_for_plan({"set": "33", "lift": {"j2_max_target": 77}}); LP.check_real_allowed("real", p)
+        for k in ("q3_box", "q3_zncc_min"):   # 메커니즘 유지: 등록된 값을 UNSET으로 되돌리면 다시 거부
+            q = dict(p); q[k] = LP.UNSET
+            with self.assertRaises(LP.ParamsNotFinal): LP.check_real_allowed("real", q)
 
 
 if __name__ == "__main__": unittest.main()

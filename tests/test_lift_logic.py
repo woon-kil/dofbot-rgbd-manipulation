@@ -127,11 +127,11 @@ class JudgeTest(unittest.TestCase):
 
     def test_params_jsonable_survives_json(self):
         import json
-        d = json.loads(json.dumps(L.params_jsonable())); self.assertEqual(d["q3_box"], "UNSET"); self.assertEqual(d["j2_window"], [66, 110]); self.assertIsNone(d["first_move_min_ms"])
+        d = json.loads(json.dumps(L.params_jsonable())); self.assertEqual(d["q3_box"], [800, 0, 900, 100]); self.assertEqual(d["q3_zncc_min"], 0.90); self.assertEqual(d["lift_j2_max_target"], "UNSET"); self.assertEqual(d["j2_window"], [66, 110]); self.assertIsNone(d["first_move_min_ms"])
 
     def test_q3_verdict_zncc_rule(self):
         z_ok = {"k1_a": 0.97, "k1_b": 0.95, "a_b": 0.96}; rec = {"shift_resp_ok": True, "zncc": z_ok}
-        with self.assertRaises(P.ParamsNotFinal): L.q3_verdict(rec)                                    # 문턱 UNSET → 판정 없음
+        with self.assertRaises(P.ParamsNotFinal): L.q3_verdict(rec, params(q3_zncc_min=P.UNSET))       # 문턱 UNSET → 판정 없음
         pm = params(q3_zncc_min=0.90)
         self.assertEqual(L.q3_verdict(rec, pm)["verdict"], "합격")
         self.assertEqual(L.q3_verdict(dict(rec, zncc=dict(z_ok, k1_b=0.89)), pm)["verdict"], "판정 불가")   # 세 쌍 중 하나만 낮아도
@@ -177,7 +177,7 @@ class Q3Test(unittest.TestCase):
 
     def test_q3_record_fail_closed_then_records_both_boxes(self):
         a, b = self.imgs()
-        with self.assertRaises(P.ParamsNotFinal): L.q3_record(a, b)                                # P9 확정 전(UNSET)
+        with self.assertRaises(P.ParamsNotFinal): L.q3_record(a, b, params(q3_box=P.UNSET))          # 영역 UNSET이면 거부(메커니즘)
         r = L.q3_record(a, b, params(q3_box=(800, 0, 900, 100)))
         self.assertEqual(r["old_box"], [480, 0, 900, 100]); self.assertEqual(r["box"], [800, 0, 900, 100]); self.assertTrue(r["shift_resp_ok"])
         self.assertEqual(r["new"], L.base_shift_fresh(a, b, (800, 0, 900, 100))); self.assertEqual(r["old"], L.base_shift_fresh(a, b, L.OLD_BASE_BOX))

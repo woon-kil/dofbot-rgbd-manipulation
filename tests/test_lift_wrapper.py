@@ -69,7 +69,9 @@ class TestEarlyReject(unittest.TestCase):
     def test_real_with_unset_exits_before_any_write_photo_or_pa(self):
         # 가짜 ssh는 회독 읽기에 빈 값을 주므로 계획 생성 전에 멈춘다 → 회독을 주는 가짜로 교체
         (Path(self.d) / "bin" / "ssh").write_text('#!/bin/bash\necho "ssh $*" >> "%s"\ncase "$*" in *"import Arm_Lib"*) echo Arm_Lib_ok;; *"Arm_serial_servo_read"*) echo %s;; esac\nexit 0\n' % (self.log, START))
-        r = subprocess.run(["bash", str(W33), "--real"], capture_output=True, text=True, env=self.env, cwd=str(ROOT), timeout=120)
+        shim = Path(self.d) / "bin" / "pyshim"          # 거부 검사(check_real_allowed)만 실패시키고 나머지는 venv python 그대로(P9 등록 뒤 실제 UNSET이 없으므로 래퍼의 거부 경로를 이렇게 확인)
+        shim.write_text('#!/bin/bash\ncase "$*" in *check_real_allowed*) echo "q3_box"; exit 1;; esac\nexec "%s" "$@"\n' % VENV_PY); os.chmod(shim, 0o755)
+        r = subprocess.run(["bash", str(W33), "--real"], capture_output=True, text=True, env=dict(self.env, P1_CHECK_PY=str(shim)), cwd=str(ROOT), timeout=120)
         self.assertEqual(r.returncode, 8, r.stdout[-600:] + r.stderr[-600:]); self.assertIn("미확정 상수(UNSET)가 남아 --real을 거부한다", r.stdout)
         calls = self.log.read_text(encoding="utf-8")
         self.assertNotIn("scp ", calls); self.assertNotIn("p620", calls); self.assertNotIn("mkdir", calls); self.assertNotIn("g01_p2k_test.py", calls)   # 배포·P-A·러너 0회
@@ -79,24 +81,28 @@ class TestEarlyReject(unittest.TestCase):
         r = subprocess.run(["bash", str(W33), "--plan-check", "--real", "--start", START], capture_output=True, text=True, env=self.env, cwd=str(ROOT)); self.assertEqual(r.returncode, 2)
         r = subprocess.run(["bash", str(W33), "--plan-check"], capture_output=True, text=True, env=self.env, cwd=str(ROOT)); self.assertEqual(r.returncode, 2)
 
-    def test_dry_run_passes_the_reject_point_and_labels_unset(self):
-        """양성 대조: dry_run은 거부되지 않고 UNSET 목록을 표시하며 간격 검증으로 넘어간다(그 뒤는 느려서 표시를 본 뒤 종료)."""
+    def _until_marker(self, args, marker, tlimit=90):
         (Path(self.d) / "bin" / "ssh").write_text('#!/bin/bash\ncase "$*" in *"import Arm_Lib"*) echo Arm_Lib_ok;; *"Arm_serial_servo_read"*) echo %s;; esac\nexit 0\n' % START)
-        p = subprocess.Popen(["bash", str(W33)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=self.env, cwd=str(ROOT), start_new_session=True)
+        p = subprocess.Popen(["bash", str(W33), *args], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=self.env, cwd=str(ROOT), start_new_session=True)
         seen = ""; t0 = time.time()
         try:
-            while time.time() - t0 < 90:
+            while time.time() - t0 < tlimit:
                 l = p.stdout.readline()
                 if not l: break
                 seen += l
-                if "(--real이면 거부됨)" in l: break
+                if marker in l: break
         finally:
             import signal
             try: os.killpg(p.pid, signal.SIGKILL)
             except (ProcessLookupError, PermissionError): pass
             p.wait()
-        self.assertIn("(--real이면 거부됨)", seen); self.assertIn("q3_box", seen)
+        return seen
 
+    def test_dry_run_and_real_pass_the_reject_point_when_nothing_is_unset(self):
+        """양성 대조: 계획이 최대 목표를 공급하고 P9가 등록되어 UNSET이 없으면 dry_run도 --real도 이 지점에서 거부되지 않는다(이후는 느려서 표시를 본 뒤 종료)."""
+        for args in ((), ("--real",)):
+            seen = self._until_marker(args, "미확정 상수(UNSET):")
+            self.assertIn("미확정 상수(UNSET): 없음", seen); self.assertNotIn("거부한다", seen)
 
 @unittest.skipUnless(os.environ.get("LIFT_SLOW") == "1" and VENV_PY.exists(), "LIFT_SLOW=1일 때만(간격 검증 전체 수 분)")
 class TestSlowPlanCheck(unittest.TestCase):

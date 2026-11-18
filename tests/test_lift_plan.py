@@ -74,7 +74,7 @@ class LiftPlanTest(unittest.TestCase):
         with self.assertRaises(ValueError): PL.make_lift_plan(bad, G, C)
 
     def test_generated_plan_supplies_the_p10_target_to_the_runner_gate(self):
-        self.assertEqual(LP.unset_names(LP.params_for_plan(self.plan)), ["q3_box", "q3_zncc_min"])     # 남은 UNSET은 P9 두 개뿐
+        self.assertEqual(LP.unset_names(LP.params_for_plan(self.plan)), [])     # P9 두 값 등록(2026-11-18) 뒤 계획이 최대 목표까지 공급하면 UNSET 없음
         self.assertTrue(LP.is_lift_plan(self.plan))
 
 
