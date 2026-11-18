@@ -81,4 +81,15 @@ class TestBridge(unittest.TestCase):
             self.assertEqual(out["res"]["request_id"], out["tok"]); self.assertTrue(out["res"]["gate"]["go"])
 
 
+@unittest.skipUnless((ROOT / "data" / "g04" / "p2kpost_261117-153705.png").exists() and (ROOT / ".venv").exists(), "원 사진(gitignore) 또는 venv 없음")
+class TestDxBlockSign(unittest.TestCase):
+    def test_run4_sign_and_value_reproduce(self):
+        try: import cv2
+        except ImportError: self.skipTest("cv2 필요")
+        sys.path.insert(0, str(ROOT / "scripts")); import g01_e0g_analyze as E
+        det = lambda n: dict(E.detect(cv2.imread(str(ROOT / "data" / "g04" / n))).get(7), found=True)
+        v = B.dx_block_mm(det("p2kref_261117-153705.png"), det("p2kpost_261117-153705.png"))
+        self.assertAlmostEqual(v, -1.93, delta=0.01)        # Run 4 보고서의 관측값(음수 = 프로젝트 x 감소)
+
+
 if __name__ == "__main__": unittest.main()

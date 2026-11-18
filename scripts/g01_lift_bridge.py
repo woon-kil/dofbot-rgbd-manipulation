@@ -16,6 +16,20 @@ def parse_request(line):
     return (m.group(1), m.group(2)) if m else None
 
 
+def dx_block_mm(ref_detect, a_detect, root=None):
+    """Δx_block(프로젝트 x, mm) = x(A 마커) − x(기준 마커), 사전 등록 `p2k_analyze_261117.inv_P`(높이 0.030 m 평면 역투영)로 환산.
+    부호 규약 확인(2026-11-18): Run 4 기준·복귀 뒤 사진에서 −1.93 mm가 재현된다(Run 4 보고서 §3의 관측 −1.93과 일치, tests/test_lift_bridge.py). 프로젝트 x는 FK x와 반대 부호지만 이 함수 안에서 일관되게 프로젝트 x만 쓴다."""
+    import importlib.util
+    root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for sub in ("scripts", os.path.join("evidence", "G06"), "src"): sys.path.insert(0, os.path.join(root, sub))
+    cwd = os.getcwd(); os.chdir(root)                                   # 모듈이 상대 경로(data/refs)를 읽는다
+    try:
+        spec = importlib.util.spec_from_file_location("p2k_analyze_261117", os.path.join(root, "evidence", "G06", "p2k_analyze_261117.py")); PA = importlib.util.module_from_spec(spec); spec.loader.exec_module(PA)
+        xr = PA.inv_P(ref_detect["center"][0], ref_detect["center"][1], 0.030)[0]; xa = PA.inv_P(a_detect["center"][0], a_detect["center"][1], 0.030)[0]
+    finally: os.chdir(cwd)
+    return float(xa - xr)
+
+
 def s4_gate_safe(ref_detect, detect, P=None):
     """S4' 관문. 계산 불가(ParamsNotFinal 등)는 go=False와 사유로 돌려준다. G2 배선 전(d_x 미확정)에는 불감대 밖이면 거부 쪽이다."""
     import g01_lift_logic as L
