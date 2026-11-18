@@ -58,6 +58,11 @@ class TestStatic(unittest.TestCase):
         for l in t33.splitlines():
             if 'ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}"' in l: self.assertNotIn("/dev/null", l.split("|", 1)[1].replace(">(beep_watch)", "")); self.assertIn("| tee", l)
 
+    def test_post_snap_only_when_arm_returned(self):
+        """복귀 여부를 결과 JSON에서 읽어 안내를 정한다: 복귀하지 않았으면 K1이라고 말하지 않고 복귀 뒤 스냅을 찍지 않는다."""
+        i = t33.index("RETURNED=$("); self.assertLess(t33.index('scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" 2>/dev/null'), i)
+        blk = t33[i:t33.index("else\n  ssh -t", i)]; self.assertIn('if [ "${RETURNED}" = True ]', blk); self.assertLess(blk.index('= True ]'), blk.index("pa_snap_mac.sh")); self.assertIn("복귀 뒤 사진 생략", blk)
+
     def test_no_wildcard_delete_and_bridge_not_deployed_to_jetson(self):
         self.assertNotRegex(t33, r"rm -[a-z]*f?[^\n]*\*")                                                       # 와일드카드 삭제 금지
         self.assertNotIn("g01_lift_bridge.py\" \"${ROOT}", "".join(l for l in t33.splitlines() if l.startswith("scp")))   # 다리는 Mac 쪽이다

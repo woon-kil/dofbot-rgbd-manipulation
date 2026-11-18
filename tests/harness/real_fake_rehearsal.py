@@ -56,7 +56,8 @@ SHIM = '#!/bin/bash\ncase "$*" in *p1_plan_check.py*|*run2_contact_clearance*) e
 
 
 def main():
-    keep = "--keep" in sys.argv; T = Path(tempfile.mkdtemp(prefix="reh_")); JET = T / "jetson"; JET.mkdir(); bindir = T / "bin"; bindir.mkdir()
+    keep = "--keep" in sys.argv; no_on = [x for x in (sys.argv[sys.argv.index("--no-on") + 1].split(",") if "--no-on" in sys.argv else []) if x]   # --no-on "패턴1,패턴2": 그 질문에 N으로 답한다(N 경로 확인)
+    T = Path(tempfile.mkdtemp(prefix="reh_")); JET = T / "jetson"; JET.mkdir(); bindir = T / "bin"; bindir.mkdir()
     (T / "scripts").mkdir(); (T / "evidence" / "G01" / "raw").mkdir(parents=True); (T / "data" / "g04" / "pa").mkdir(parents=True)
     for f in (ROOT / "scripts").iterdir():
         if f.name in ("p1_m3_gemini_photo.sh", "pa_snap_mac.sh", "g01_lift_run.sh") or f.is_dir(): continue
@@ -85,7 +86,8 @@ def main():
             if not chunk: break
             out += chunk; sys.stdout.write(chunk.decode("utf-8", "replace")); sys.stdout.flush()
             tail = out[-300:].decode("utf-8", "replace")
-            if re.search(r"\[y/N\]\s*$", tail) and out.count(b"[y/N]") > answered: answered = out.count(b"[y/N]"); os.write(fd, b"y\r")
+            if re.search(r"\[y/N\]\s*$", tail) and out.count(b"[y/N]") > answered:
+                answered = out.count(b"[y/N]"); ans = b"n\r" if any(p in out[-1500:].decode("utf-8", "replace") for p in no_on) else b"y\r"; os.write(fd, ans)   # 긴 질문은 마지막 300자 밖에 패턴이 있어 1500자를 본다
         p, st = os.waitpid(pid, os.WNOHANG)
         if p: status = st; break
     if status is None:                                  # pty가 먼저 닫혀 읽기가 끝난 경우: 자식 종료를 잠시 기다린다
@@ -102,6 +104,12 @@ def main():
     checks = {"종료 코드 0": rc == 0, "마커 관문 통과": "관문 <= 1.0" in text and "마커 관문 실패" not in text, "기준 결과 전달": "기준 결과 전달 실패" not in text, "정렬 보고 문구": "[P-A 정렬 보고]" in text,
               "사진 A 전달(관문)": "사진 A 전달" in text, "사진 B 전달": "사진 B 전달" in text, "사진 C 전달": "사진 C 전달" in text, "기록 확인": "기록 확인:" in text, "분류기": "분류: 시도" in text, "R8": "R8 판정" in text,
               "낙하 뒤 질문": "블록이 낙하했습니다" in text, "마지막 확인": "마지막 확인 1회" in text}
+    if no_on:
+        import glob, json; print("\n=== N 경로 요약(--no-on %s) ===" % no_on); print("질문 순서:", [m.group(0)[:36] for m in re.finditer(r"(위 8개를 모두 확인했습니까|정렬 확인이 모두 맞습니까|블록이 낙하했습니다|J6가 시작값[^?]*\?|팔이 시작 자세가 아닐 수[^?]*\?|팔이 K1로 돌아왔습니다\. J6를|마지막 확인 1회|기준 사진 전 확인)", text)])
+        for f in glob.glob(str(T / "evidence" / "G01" / "raw" / "g01_5b4_s4233_result-real-*.json")):
+            j = json.load(open(f)); print("ended", j.get("ended"), "| returned_to_start", j.get("returned_to_start"), "| abort", (j.get("abort_reason") or "")[:60], "| J6 로그", {k: [(l[1], l[4] if len(l) > 4 else "") for l in v if l[0] == "write"] for k, v in (j.get("j6_adapter_logs") or {}).items()})
+        print("복귀 안내 줄:", [l for l in text.splitlines() if "복귀 뒤 사진" in l])
+        print("임시 루트:", T); sys.exit(0)
     print("\n=== 리허설 점검 ===")
     for k, v in checks.items(): print(("통과 " if v else "실패 ") + k)
     print("임시 루트:", T, "(--keep이면 보존)"); ok = all(checks.values())

@@ -92,8 +92,14 @@ RUNNER="cd ~/${RD} && python3 g01_p2k_test.py --plan plan.json ${ARGS} --run-id 
 if [ "${MODE}" = real ]; then
   ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") "${RLOG}" || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
   for _ in $(seq 1 20); do grep -q '"results"' "${BLOG}" 2>/dev/null && break; sleep 0.5; done   # 다리가 EOF를 받아 결과를 적을 때까지 잠시 기다린다
-  echo "[복귀 뒤 사진] 팔이 K1로 돌아왔습니다. 화면 밖에 계세요. P-A 스냅 1장(기록용, P4)."
-  bash "${ROOT}/scripts/pa_snap_mac.sh" "lift_${TS}_post" || echo "(복귀 뒤 P-A 스냅 실패: 기록 없음)"
+  scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" 2>/dev/null || true   # 먼저 가져와 복귀 여부로 안내를 정한다(복귀하지 않았는데 K1이라고 말하지 않는다)
+  RETURNED=$("${VPY}" -I -c "import json,sys;print(json.load(open(sys.argv[1])).get('returned_to_start'))" "${OUT}" 2>/dev/null || echo 알수없음)
+  if [ "${RETURNED}" = True ]; then
+    echo "[복귀 뒤 사진] 팔이 K1로 돌아왔습니다. 화면 밖에 계세요. P-A 스냅 1장(기록용, P4)."
+    bash "${ROOT}/scripts/pa_snap_mac.sh" "lift_${TS}_post" || echo "(복귀 뒤 P-A 스냅 실패: 기록 없음)"
+  else
+    echo "[복귀 뒤 사진 생략] 팔이 K1로 돌아오지 않았습니다(returned_to_start=${RETURNED}). 팔·블록 상태를 눈으로 확인하고 필요하면 담당자가 전원을 판단하세요. 복귀 뒤 P-A 스냅은 찍지 않습니다(팔이 가린 장면으로 블록 yaw 기록을 만들지 않기 위해)."
+  fi
   pa_stop
 else
   ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) "${RLOG}" || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"   # dry_run: 쓰기 0, 사진·P-A 없음
