@@ -1,0 +1,491 @@
+{
+  "run_id": "261118-193430",
+  "mode": "dry_run",
+  "kind": "s42_33",
+  "plan_set": "33",
+  "plan_gate": {
+    "pose_min_required": 32.0,
+    "base_min_required": 70.0,
+    "base_z": 79.3,
+    "pose_z": {
+      "3101": 71.3,
+      "3102": 61.6,
+      "3103": 52.9,
+      "3104": 32.9,
+      "3105": 71.3
+    },
+    "transition_min": {
+      "3101": 71.3,
+      "3102": 61.6,
+      "3103": 52.9,
+      "3104": 32.9,
+      "3105": 32.9
+    },
+    "return_j12_min": 32.9,
+    "return_full_min": 32.9
+  },
+  "started_at": "2026-11-18T18:43:47",
+  "state0": {
+    "1": 88,
+    "2": 92,
+    "3": 92,
+    "4": 91,
+    "5": 90,
+    "6": 177
+  },
+  "steps": [
+    {
+      "n": 1,
+      "joint": 3,
+      "target": 72,
+      "time_ms": 8000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 92,
+        "4": 91
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 2,
+      "joint": 4,
+      "target": 71,
+      "time_ms": 8000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 72,
+        "4": 91
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 3,
+      "joint": 3,
+      "target": 52,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 72,
+        "4": 71
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 4,
+      "joint": 4,
+      "target": 51,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 52,
+        "4": 71
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 5,
+      "joint": 3,
+      "target": 32,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 52,
+        "4": 51
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 6,
+      "joint": 4,
+      "target": 31,
+      "time_ms": 1500,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 32,
+        "4": 51
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 7,
+      "joint": 3,
+      "target": 14,
+      "time_ms": 3000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 32,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 8,
+      "joint": 4,
+      "target": 11,
+      "time_ms": 3000,
+      "phase": "A",
+      "role": null,
+      "pose_id": null,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 14,
+        "4": 31
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 9,
+      "joint": 1,
+      "target": 86,
+      "time_ms": 8000,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3101,
+      "cmd_before": {
+        "1": 88,
+        "2": 92,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 10,
+      "joint": 3,
+      "target": 18,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3101,
+      "cmd_before": {
+        "1": 86,
+        "2": 92,
+        "3": 14,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 11,
+      "joint": 4,
+      "target": 20,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3101,
+      "cmd_before": {
+        "1": 86,
+        "2": 92,
+        "3": 18,
+        "4": 11
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 12,
+      "joint": 2,
+      "target": 81,
+      "time_ms": 8000,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3101,
+      "cmd_before": {
+        "1": 86,
+        "2": 92,
+        "3": 18,
+        "4": 20
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 13,
+      "joint": 4,
+      "target": 22,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3102,
+      "cmd_before": {
+        "1": 86,
+        "2": 81,
+        "3": 18,
+        "4": 20
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 14,
+      "joint": 2,
+      "target": 77,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3102,
+      "cmd_before": {
+        "1": 86,
+        "2": 81,
+        "3": 18,
+        "4": 22
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 15,
+      "joint": 4,
+      "target": 28,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3103,
+      "cmd_before": {
+        "1": 86,
+        "2": 77,
+        "3": 18,
+        "4": 22
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 16,
+      "joint": 3,
+      "target": 12,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3103,
+      "cmd_before": {
+        "1": 86,
+        "2": 77,
+        "3": 18,
+        "4": 28
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 17,
+      "joint": 4,
+      "target": 32,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3104,
+      "cmd_before": {
+        "1": 86,
+        "2": 77,
+        "3": 12,
+        "4": 28
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 18,
+      "joint": 2,
+      "target": 69,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3104,
+      "cmd_before": {
+        "1": 86,
+        "2": 77,
+        "3": 12,
+        "4": 32
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 19,
+      "joint": 2,
+      "target": 81,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3105,
+      "cmd_before": {
+        "1": 86,
+        "2": 69,
+        "3": 12,
+        "4": 32
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 20,
+      "joint": 3,
+      "target": 18,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3105,
+      "cmd_before": {
+        "1": 86,
+        "2": 81,
+        "3": 12,
+        "4": 32
+      },
+      "point": "dry_run_move"
+    },
+    {
+      "n": 21,
+      "joint": 4,
+      "target": 20,
+      "time_ms": 1500,
+      "phase": "B",
+      "role": null,
+      "pose_id": 3105,
+      "cmd_before": {
+        "1": 86,
+        "2": 81,
+        "3": 18,
+        "4": 32
+      },
+      "point": "dry_run_move"
+    }
+  ],
+  "poses": [],
+  "ended": "completed",
+  "return_steps": [],
+  "adapter_log": {
+    "1": [
+      [
+        "read",
+        88
+      ]
+    ],
+    "2": [
+      [
+        "read",
+        92
+      ]
+    ],
+    "3": [
+      [
+        "read",
+        92
+      ]
+    ],
+    "4": [
+      [
+        "read",
+        91
+      ]
+    ]
+  },
+  "j6_adapter_log": [
+    [
+      "read",
+      177
+    ],
+    [
+      "write",
+      140,
+      3000,
+      "dry_run"
+    ],
+    [
+      "write",
+      100,
+      3000,
+      "dry_run"
+    ]
+  ],
+  "j6_adapter_logs": {
+    "open": [
+      [
+        "read",
+        177
+      ],
+      [
+        "write",
+        140,
+        3000,
+        "dry_run"
+      ],
+      [
+        "write",
+        100,
+        3000,
+        "dry_run"
+      ]
+    ],
+    "contact": [
+      [
+        "read",
+        100
+      ],
+      [
+        "write",
+        120,
+        1500,
+        "dry_run"
+      ],
+      [
+        "write",
+        130,
+        1500,
+        "dry_run"
+      ],
+      [
+        "write",
+        135,
+        1500,
+        "dry_run"
+      ],
+      [
+        "write",
+        140,
+        1500,
+        "dry_run"
+      ],
+      [
+        "write",
+        145,
+        1500,
+        "dry_run"
+      ],
+      [
+        "write",
+        150,
+        1500,
+        "dry_run"
+      ],
+      [
+        "write",
+        100,
+        3000,
+        "dry_run",
+        "return_to_start"
+      ]
+    ]
+  },
+  "finished_at": "2026-11-18T18:44:27"
+}
