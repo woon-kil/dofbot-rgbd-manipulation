@@ -45,23 +45,21 @@ class ClockTest(unittest.TestCase):
 
 
 class LiftMathTest(unittest.TestCase):
-    def test_second_j2_command_adds_to_actual_angle_and_caps_total(self):
-        pp = params(lift_j2_total_cap_deg=8.5)
-        # 시작 69.0, 첫 명령 74. 목표는 '실제 + inc'를 시작 + cap(=77.5→77)으로 자른다
-        self.assertEqual(L.second_j2_command(74, 69.0, 72.5, pp)[0], 77)          # 실제 72.5(올라간 3.5°): 공식 72.5+6.0=78.5→79 → 상한 77 (이전 결함: 79 = 총 +10° → tilt 31.1°)
-        self.assertEqual(L.second_j2_command(74, 69.0, 74.0, pp)[0], 77)          # 부족 없음: 공식 74+4.5=78.5→79 → 상한 77
-        self.assertEqual(L.second_j2_command(74, 69.0, 76.0, pp)[0], 77)          # 실제 76: 공식 76+3=79 → 상한 77
-        self.assertIsNone(L.second_j2_command(74, 69.0, 76.5, pp)[0])             # 77 − 76.5 < 1° → 두 번째 이동 없음
-        self.assertEqual(L.second_j2_command(74, 69.0, 70.0, pp)[0], 76)          # 첫 이동이 거의 안 감: 공식 70+6.0=76 < 상한 77 → 76
-        pw = params(lift_j2_total_cap_deg=20.0)
-        self.assertEqual(L.second_j2_command(74, 69.0, 72.5, pw)[0], 79)          # cap이 넉넉하면 공식만(72.5+6.0=78.5, half-up 79)
-        with self.assertRaises(ValueError): L.second_j2_command(78, 69.0, 72.5, pp)   # 첫 명령이 이미 상한 초과
+    def test_second_j2_command_adds_to_actual_angle_and_clips_to_max_target(self):
+        pp = params(lift_j2_max_target=77)
+        self.assertEqual(L.second_j2_command(74, 68.32, 72.5, pp)[0], 77)         # 실제 72.5(올라간 4.18°): 공식 → 78 → 최대 목표 77 (이전 결함: 첫 명령값에 더하면 총 +10°·tilt 31.1°)
+        self.assertEqual(L.second_j2_command(74, 68.32, 73.0, pp)[0], 77)         # 부족 없음 근처: 공식 73+4.5→78 → 77
+        self.assertIsNone(L.second_j2_command(74, 68.32, 76.5, pp)[0])            # 77 − 76.5 < 1° → 두 번째 이동 없음
+        self.assertEqual(L.second_j2_command(74, 68.32, 70.0, pp)[0], 76)         # 공식 70+6.0=76 < 77 → 76
+        self.assertEqual(L.second_j2_command(74, 68.32, 72.5, params(lift_j2_max_target=76))[0], 76)
+        self.assertEqual(L.second_j2_command(74, 68.32, 72.5, params(lift_j2_max_target=99))[0], 78)   # 최대 목표가 넉넉하면 공식만(시작 68.32: 올라간 4.18° → inc 5.32 → 72.5+5.32=77.8 → half-up 78)
+        with self.assertRaises(ValueError): L.second_j2_command(78, 68.32, 72.5, pp)        # 첫 명령이 최대 목표 초과
 
-    def test_total_up_never_exceeds_cap_over_a_grid(self):
-        pp = params(lift_j2_total_cap_deg=8.5)
+    def test_target_never_exceeds_max_over_a_grid(self):
+        pp = params(lift_j2_max_target=77)
         for k in range(0, 21):
-            actual = 69.0 + k * 0.5 - 1.0; t, d = L.second_j2_command(74, 69.0, actual, pp)
-            if t is not None: self.assertLessEqual(t - 69.0, 8.5 + 1e-9, (actual, t))
+            actual = 68.32 + k * 0.5 - 1.0; t, d = L.second_j2_command(74, 68.32, actual, pp)
+            if t is not None: self.assertLessEqual(t, 77, (actual, t))
 
     def test_second_j2_cap_unset_is_fail_closed(self):
         with self.assertRaises(P.ParamsNotFinal): L.second_j2_command(74, 69.0, 72.5)
@@ -104,9 +102,14 @@ class JudgeTest(unittest.TestCase):
         self.assertTrue(L.s4_gate(ref, big, dx_block_mm=-1.2, dx_depth_mm=-2.0, P=px)["g2"])
         self.assertTrue(L.s4_gate(ref, big, dx_block_mm=+1.2, dx_depth_mm=1.0, P=px)["g2"])      # 예상 구간 (−0.26,0.23)이 0을 걸치면 방향 판정 생략
         self.assertFalse(L.s4_gate(ref, big, dx_block_mm=+4.0, dx_depth_mm=1.0, P=px)["g2"])     # 4 mm > 3.0
+        # y만 1.2 px 이동 + 잡음 수준 dx_block(±0.1 mm): 어느 지표든, 어느 예상 부호든 go (2D 지표도 x가 불감대 안이면 부호 판정을 하지 않는다)
+        yonly = dict(self.A, center=[673.0, 268.2])
+        for pm in (px, pd):
+            for depth in (2.0, -2.0):
+                for dxb in (0.1, -0.1): self.assertTrue(L.s4_gate(ref, yonly, dx_block_mm=dxb, dx_depth_mm=depth, P=pm)["go"], (pm["g2_deadzone_metric"], depth, dxb))
         ydrift = dict(self.A, center=[673.0, 268.0])                                      # y만 1 px 이동
         self.assertTrue(L.s4_gate(ref, ydrift, P=px)["go"])                               # x 지표면 불감대 안
-        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, ydrift, P=pd)            # 2D 지표면 불감대 밖(입력 없음 → 거부)
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, ydrift, P=pd)            # 2D 지표면 불감대 밖인데 입력 없음 → 거부
         self.assertFalse(L.s4_gate(ref, dict(small, side_px=30.0), P=px)["go"]); self.assertFalse(L.s4_gate(ref, dict(small, yaw_deg=-175.0), P=px)["go"])
         self.assertFalse(L.s4_gate(ref, {"found": False}, P=px)["go"])
 

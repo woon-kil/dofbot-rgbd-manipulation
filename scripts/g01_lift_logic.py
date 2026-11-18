@@ -46,16 +46,16 @@ def simulate(actuals, P=None):
 # ---------- 두 번째 J2 명령(R1, E-2b §9-1) ----------
 def second_j2_command(first_target, j2_start_deg, j2_after_first_deg, P=None):
     """두 번째 J2 절대 명령(SDK 정수 각도). 승인 공식 inc = clip(8 − 실제 올라간 각도 + 1.5, 3, 6)을 **첫 이동 뒤 실제 각도에 더하고**(FK `follow()` 모델,
-    E-2b `:117` '원시 각도를 읽어 남은 몫'), 최악(부족 0) tilt ≤ 30°를 지키는 총 상승량 상한을 절대 목표에 적용한다:
-    target = min(half_up(실제 + inc), floor(시작 + lift_j2_total_cap_deg)). 상한 UNSET이면 ParamsNotFinal. 첫 명령이 이미 상한을 넘으면 ValueError.
-    target이 첫 이동 뒤 실제 각도보다 1° 이상 높지 않으면 두 번째 이동을 하지 않는다(None). 각도는 원시 읽기(실수)."""
-    import math
+    E-2b `:117`), 접촉 자세마다 생성기가 계산한 최대 정수 목표 lift_j2_max_target(최악 tilt ≤ 30°, UNSET이면 ParamsNotFinal)으로 자른다:
+    target = min(half_up(실제 + inc), max_target). 첫 명령이 이미 max_target을 넘으면 ValueError. target이 첫 이동 뒤 실제 각도보다 1° 이상 높지 않으면
+    None(두 번째 이동 없음; 처리 명세는 M2). 서보 최소 유효 폭(세트 16: 증가 방향 +2° 불발 이력)은 이 함수가 아니라 도착 검사(run_move TOL)가 잡는다.
+    각도는 원시 읽기(실수)."""
     P = PARAMS if P is None else P
-    cap = P["lift_j2_total_cap_deg"]                       # UNSET이면 여기서 ParamsNotFinal
-    if first_target - j2_start_deg > cap + EPS: raise ValueError("첫 J2 명령이 총 상승량 상한을 넘는다")
+    mx = P["lift_j2_max_target"]                           # UNSET이면 여기서 ParamsNotFinal
+    if first_target > mx: raise ValueError("첫 J2 명령이 최대 목표(lift_j2_max_target)를 넘는다")
     up = j2_after_first_deg - j2_start_deg; inc_f = min(6.0, max(3.0, 8.0 - up + 1.5))
-    target = min(int(j2_after_first_deg + inc_f + 0.5), int(math.floor(j2_start_deg + cap + EPS)))
-    return (target if target - j2_after_first_deg >= 1.0 - EPS else None), {"up_actual": up, "inc_formula": inc_f, "target_formula": int(j2_after_first_deg + inc_f + 0.5), "target_cap": int(math.floor(j2_start_deg + cap + EPS))}
+    t_f = int(j2_after_first_deg + inc_f + 0.5); target = min(t_f, int(mx))
+    return (target if target - j2_after_first_deg >= 1.0 - EPS else None), {"up_actual": up, "inc_formula": inc_f, "target_formula": t_f, "target_max": int(mx)}
 
 
 def shortfall_abort(commanded, readback_int, tol=3):
@@ -117,7 +117,8 @@ def s4_gate(ref, a, dx_block_mm=None, dx_depth_mm=None, P=None):
     else:
         if dx_block_mm is None or dx_depth_mm is None: raise ParamsNotFinal("G2 불감대 밖인데 Δx_block 또는 d_x(깊이) 입력이 없다(조용한 생략 금지)")
         lo, hi = dx_depth_mm + P["g2_s_range_mm"][0], dx_depth_mm + P["g2_s_range_mm"][1]
-        sign_ok = True if lo * hi <= 0 else ((dx_block_mm > 0) == (lo > 0))   # 예상 구간이 0을 걸칠 때만 방향 판정 생략
+        x_out = abs(dxp) > P["g2_deadzone_px"] + EPS           # 2D 지표에서 y 이동만으로 불감대를 벗어나면 x 부호는 잡음이라 방향 판정을 하지 않는다(S4' G3: y는 기록만)
+        sign_ok = True if (lo * hi <= 0 or not x_out) else ((dx_block_mm > 0) == (lo > 0))   # 예상 구간이 0을 걸치거나 x가 불감대 안이면 방향 판정 생략
         g2 = sign_ok and abs(dx_block_mm) <= P["g2_magnitude_mm"] + EPS
     return {"go": bool(g2 and g4 and g5), "g1": True, "g2": g2, "g3_dy_px": dyp, "g4": g4, "g5": g5, "dyaw_deg": dyaw}
 
