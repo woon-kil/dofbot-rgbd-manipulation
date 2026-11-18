@@ -94,18 +94,20 @@ class Bridge:
     """의존 주입: snap(이름) → detect dict, status() → started_epoch(float), push(이름, 결과 dict) → None, now() → epoch."""
     def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print, align=None, tilt=None, imghash=None):
         self.ref, self.snap, self.status, self.push, self.now, self.P, self.say, self.align, self.tilt, self.imghash = ref, snap, status, push, now, P, say, align, tilt, imghash
-        self.done = {}
+        self.done = {}; self.done_ids = set(); self.history = []
 
     def handle(self, line):
         if ALIGN_MARK in line:                                       # 정렬 자세의 러너 질문 직전 줄: 정렬 보고를 화면에 띄운다(한 번만, Jetson 전달 없음)
             if self.align is None or "align" in self.done: return None
+            t_a = self.now()
             try: text = self.align()
             except Exception as e: text = ALIGN_FAIL % repr(e)
-            self.done["align"] = text; self.say(text); return None
+            self.done["align"] = text; self.done["align_seconds"] = round(self.now() - t_a, 3); self.say(text); self.say("[다리] 정렬 보고 %.2f s" % self.done["align_seconds"]); return None
         req = parse_request(line)
         if req is None: return None
         name, tok = req
-        if name in self.done: self.say("[다리] 사진 %s 요청이 다시 왔다(무시, 이미 처리)" % name); return None
+        if (name, tok) in self.done_ids: self.say("[다리] 사진 %s 요청이 다시 왔다(무시, 같은 토큰)" % name); return None   # 토큰이 같을 때만 중복(dry run은 같은 이름을 반복 요청한다)
+        self.done_ids.add((name, tok))
         t0 = self.now()
         with ThreadPoolExecutor(max_workers=2) as ex:               # 기동 시각 읽기는 스냅과 동시에(시간 한도 3.0 s 안에서 직렬로 더하지 않는다)
             fs, ft = ex.submit(self.status), ex.submit(self.snap, name)
@@ -129,7 +131,7 @@ class Bridge:
         res["mac"]["gate_done"] = self.now()
         try: self.push(name, res); res["mac"]["push_done"] = self.now()
         except Exception as e: self.say("[다리] 사진 %s 전달 실패: %r" % (name, e)); self.done[name] = None; return None
-        self.done[name] = res; self.say("[다리] 사진 %s 전달 %.2f s%s" % (name, self.now() - t0, " gate=%s" % res["gate"].get("go") if "gate" in res else "")); return res
+        self.done[name] = res; self.history.append(res); self.say("[다리] 사진 %s 전달 %.2f s%s" % (name, self.now() - t0, " gate=%s" % res["gate"].get("go") if "gate" in res else "")); return res
 
 
 def make_ref(run_id, detect, started_epoch, maxsec, now_epoch, image_sha256=None):
@@ -217,7 +219,7 @@ def main():
     snap = real_snap(root, a.name_prefix)
     b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods), imghash=real_imghash(root, a.name_prefix))
     for line in sys.stdin: b.handle(line)
-    if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}}, ensure_ascii=False) + "\n"); logf.close()
+    if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}, "history": b.history}, ensure_ascii=False, default=str) + "\n"); logf.close()
 
 
 if __name__ == "__main__": main()
