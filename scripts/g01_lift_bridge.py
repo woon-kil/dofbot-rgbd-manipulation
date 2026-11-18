@@ -157,12 +157,17 @@ def marker_line(label, path):
 SO = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "-o", "ControlMaster=auto", "-o", "ControlPath=/tmp/lift-ssh-%C", "-o", "ControlPersist=300"]
 
 
-def real_snap(root, prefix):
+def real_snap(root, prefix, run=subprocess.run):
+    """P-A 스냅. 같은 이름의 첫 사용은 `<prefix>_<이름>`(운영·R8 이름 그대로), 반복 요청(dry run)은 `_r<k>` 접미사를 붙인다(pa_snap_mac.sh는 이미 있는 이름을 거부한다).
+    성공한 스냅이 실제로 쓴 파일 이름만 `snap.last[이름]`에 남기고(실패하면 None), 해시는 그 파일에서만 계산한다(옛 이미지를 해시하지 않는다)."""
+    count = {}; last = {}
     def snap(name):
-        n = "%s_%s" % (prefix, name); r = subprocess.run(["bash", os.path.join(root, "scripts", "pa_snap_mac.sh"), n], capture_output=True, text=True, timeout=30)
+        k = count.get(name, 0); count[name] = k + 1; last[name] = None
+        n = "%s_%s" % (prefix, name) + ("" if k == 0 else "_r%d" % k)
+        r = run(["bash", os.path.join(root, "scripts", "pa_snap_mac.sh"), n], capture_output=True, text=True, timeout=30)
         if r.returncode != 0: raise RuntimeError("스냅 실패: " + (r.stdout + r.stderr).strip()[-200:])
-        return json.load(open(os.path.join(root, "data", "g04", "pa", n + ".detect.json"), encoding="utf-8"))
-    return snap
+        d = json.load(open(os.path.join(root, "data", "g04", "pa", n + ".detect.json"), encoding="utf-8")); last[name] = n; return d
+    snap.last = last; return snap
 
 
 def real_align(root, ts, prefix, snap):
@@ -181,9 +186,12 @@ def real_align(root, ts, prefix, snap):
     return align
 
 
-def real_imghash(root, prefix):
+def real_imghash(root, snap):
     import hashlib
-    def h(name): return hashlib.sha256(open(os.path.join(root, "data", "g04", "pa", "%s_%s.color.png" % (prefix, name)), "rb").read()).hexdigest()
+    def h(name):
+        n = snap.last.get(name)
+        if n is None: raise RuntimeError("이번 스냅이 실패해 해시할 파일이 없다")
+        return hashlib.sha256(open(os.path.join(root, "data", "g04", "pa", "%s.color.png" % n), "rb").read()).hexdigest()
     return h
 
 
@@ -217,7 +225,7 @@ def main():
     t0 = time.time(); load_pa(root); say("[다리] 분석 모듈 적재 %.2f s(사진 요청 경로 밖)" % (time.time() - t0))
     plan = json.load(open(a.plan, encoding="utf-8")); import g01_s42_plan_lift as PL; mods = PL._load_modules()   # chdir root(생성기 모듈이 상대 경로를 읽음)
     snap = real_snap(root, a.name_prefix)
-    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods), imghash=real_imghash(root, a.name_prefix))
+    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods), imghash=real_imghash(root, snap))
     for line in sys.stdin: b.handle(line)
     if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}, "history": b.history}, ensure_ascii=False, default=str) + "\n"); logf.close()
 

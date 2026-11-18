@@ -32,7 +32,8 @@ def main():
     for label, name, wait in schedule(a.n_warm, a.idle1, a.idle2, a.gap):
         time.sleep(wait); t_req = time.time(); tok = ch.request(name, a.run_id, extra if name == "A" else ""); r = ch.wait(name, a.wait_cap, tok); t_rx = time.time()
         t = {"label": label, "name": name, "req_epoch": t_req, "rx_epoch": t_rx, "D_s": (t_rx - t_req) if r else None, "ok": r is not None, "request_id_match": bool(r) and r.get("request_id") == tok,
-             "same_start": bool(r) and L.same_start([ref.get("started_epoch"), r.get("started_epoch")]), "image_sha256": bool(r and r.get("image_sha256")), "gate": (r or {}).get("gate"), "mac": (r or {}).get("mac")}
+             "same_start": bool(r) and L.same_start([ref.get("started_epoch"), r.get("started_epoch")]), "image_sha256": bool(r and r.get("image_sha256")), "sha": (r or {}).get("image_sha256"),
+             "detect_present": bool(r and r.get("detect")), "error_snap": (r or {}).get("error_snap"), "error_status": (r or {}).get("error_status"), "gate": (r or {}).get("gate"), "mac": (r or {}).get("mac")}
         rec["trials"].append(t); say("[D] " + json.dumps({k: t[k] for k in ("label", "name", "D_s", "ok", "request_id_match", "same_start")}, ensure_ascii=False))
         json.dump(rec, open(a.out, "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=str)
     say("[스텁 완료] 시험 %d회" % len(rec["trials"]))
