@@ -95,8 +95,10 @@ def e3_verdict(j6_after_close, j6_after_lift, hold_done, photo_c_done, gemini_pa
     if not photo_c_done: return {"verdict": "합격" if j6_ok else "불합격", "rule": "사진 C 생략: J6 회독판만", "j6_ok": j6_ok, "gemini": "생략"}
     b, c = gemini_pair
     if not (b.get("found") and c.get("found")): return {"verdict": "판정 불가", "counts_as": "실패", "rule": "사진 C 마커 미검출", "j6_ok": j6_ok}
-    import math   # 중심은 2D 거리 ≤ 1 px(축별 아님, 더 엄격한 해석 — 플랜 열린 항목), 변 길이는 |Δ| ≤ 1 px
-    g_ok = math.hypot(c["center"][0] - b["center"][0], c["center"][1] - b["center"][1]) <= 1 + EPS and abs(c["side_px"] - b["side_px"]) <= 1 + EPS
+    import math   # P11 ②(확정): 중심은 2D 거리 ≤ 1 px, 변 길이는 |Δ| ≤ 1 px
+    dxc, dyc = c["center"][0] - b["center"][0], c["center"][1] - b["center"][1]
+    cen = math.hypot(dxc, dyc) if P["e3_gemini_center_metric"] == "dist" else max(abs(dxc), abs(dyc))
+    g_ok = cen <= 1 + EPS and abs(c["side_px"] - b["side_px"]) <= 1 + EPS
     return {"verdict": "합격" if (j6_ok and g_ok) else "불합격", "rule": "J6 회독판 + Gemini판", "j6_ok": j6_ok, "gemini_ok": g_ok}
 
 

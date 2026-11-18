@@ -84,6 +84,11 @@ class JudgeTest(unittest.TestCase):
         self.assertEqual(L.e1_decide(self.A, self.b(side=0.1))["verdict"], "불합격")             # 슬라이드: (i)는 통과, (ii)가 판별
         self.assertEqual(L.e1_decide(self.A, {"found": False})["verdict"], "판정 불가")
 
+    def test_e3_gemini_center_is_2d_distance(self):
+        b = {"found": True, "center": [10.0, 10.0], "side_px": 30.0}; diag = {"found": True, "center": [10.8, 10.8], "side_px": 30.0}   # 축별 0.8, 2D 1.13
+        self.assertEqual(L.e3_verdict(146, 146, True, True, (b, diag))["verdict"], "불합격")
+        self.assertEqual(L.e3_verdict(146, 146, True, True, (b, diag), params(e3_gemini_center_metric="axis"))["verdict"], "합격")
+
     def test_e3_p5_rules(self):
         self.assertEqual(L.e3_verdict(146, 146, hold_done=False, photo_c_done=False)["counts_as"], "실패")          # 유지 생략: E-2 원래 규칙
         self.assertEqual(L.e3_verdict(146, 147, True, False)["verdict"], "합격"); self.assertEqual(L.e3_verdict(146, 148, True, False)["verdict"], "불합격")
@@ -93,7 +98,7 @@ class JudgeTest(unittest.TestCase):
 
     def test_s4_gate_g2(self):
         ref = dict(self.A); small = dict(self.A, center=[673.5, 267.0]); big = dict(self.A, center=[675.0, 267.0])
-        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, small)                 # 이동 지표(x/2D)가 UNSET이면 모든 경우 거부
+        self.assertTrue(L.s4_gate(ref, small)["go"])                                    # 기본 PARAMS: G2 불감대 = x(P11 ① 확정)
         px = params(g2_deadzone_metric="x"); pd = params(g2_deadzone_metric="dist")
         self.assertTrue(L.s4_gate(ref, small, P=px)["go"])                               # 불감대 안: 입력 불필요
         with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, P=px)              # 불감대 밖인데 Δx_block·d_x 없음 → 조용한 생략 금지
