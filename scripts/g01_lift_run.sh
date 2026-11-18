@@ -20,7 +20,7 @@ done
 [ "${PLANCHECK}" = 1 ] && [ -z "${START_ARG}" ] && { echo "--plan-check는 --start J1,J2,J3,J4,J5,J6이 필요하다(Jetson을 읽지 않는다)"; exit 2; }
 SET=33; BASE=31   # 세트 33 = 세트 31 계획 + 들어올림 후처리. 간격 검증은 세트 31과 같은 명령·같은 상수를 쓴다
 TS="$(date +%y%m%d-%H%M%S)"; KIND="s42${SET}"; OUT="${ROOT}/evidence/G01/raw/g01_5b4_${KIND}_result-${MODE}-${TS}.json"
-for f in scripts/g01_p2k_test.py scripts/g01_5a_gripper_test.py scripts/g01_s42_plan_p2k.py scripts/g01_s4_2_path.py scripts/g01_s3_path.py scripts/g01_pose_generator.py scripts/g01_5b4_joint_test.py scripts/gripper_adapter.py scripts/g01_lift_params.py scripts/g01_lift_logic.py scripts/g01_lift_hook.py scripts/g01_s42_plan_lift.py scripts/g01_lift_bridge.py scripts/g01_lift_classify.py scripts/g01_lift_marker_ref.py scripts/pa_driver.sh scripts/pa_snap_mac.sh scripts/pa_snap.py scripts/pa_detect.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
+for f in scripts/g01_p2k_test.py scripts/g01_5a_gripper_test.py scripts/g01_s42_plan_p2k.py scripts/g01_s4_2_path.py scripts/g01_s3_path.py scripts/g01_pose_generator.py scripts/g01_5b4_joint_test.py scripts/gripper_adapter.py scripts/g01_lift_params.py scripts/g01_lift_logic.py scripts/g01_lift_hook.py scripts/g01_s42_plan_lift.py scripts/g01_lift_bridge.py scripts/g01_lift_classify.py scripts/g01_lift_r8.py scripts/g01_lift_marker_ref.py scripts/pa_driver.sh scripts/pa_snap_mac.sh scripts/pa_snap.py scripts/pa_detect.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
 cmp -s "${ROOT}/src/control/gripper_adapter.py" "${ROOT}/scripts/gripper_adapter.py" || { echo "scripts/gripper_adapter.py가 src/control/gripper_adapter.py와 다르다. 복사 후 재실행"; exit 2; }
 VPY="${P1_CHECK_PY:-${ROOT}/.venv/bin/python}"
 if [ "${PLANCHECK}" = 0 ]; then
@@ -82,7 +82,8 @@ REF="${ROOT}/data/g04/pa/lift_${TS}_ref.lift_photo_ref.json"
 r=subprocess.run(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=8','p620','ACTION=status bash -s'],stdin=open('${ROOT}/scripts/pa_driver.sh'),capture_output=True,text=True,timeout=20)
 m=re.search(r'started_epoch\s+([0-9.]+)',r.stdout); assert m, 'P-A 기동 시각을 읽지 못했다'
 det=json.load(open('${ROOT}/data/g04/pa/lift_${TS}_ref.detect.json',encoding='utf-8')); assert det.get('found'), 'P-A 기준 스냅에서 마커 미검출'
-json.dump(B.make_ref('${TS}', det, float(m.group(1)), ${PA_MAXSEC}, time.time()), open('${REF}','w',encoding='utf-8'), ensure_ascii=False)" || { echo "P-A 기준 결과 생성 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
+import hashlib; sha=hashlib.sha256(open('${ROOT}/data/g04/pa/lift_${TS}_ref.color.png','rb').read()).hexdigest()
+json.dump(B.make_ref('${TS}', det, float(m.group(1)), ${PA_MAXSEC}, time.time(), sha), open('${REF}','w',encoding='utf-8'), ensure_ascii=False)" || { echo "P-A 기준 결과 생성 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
 # 기준 결과를 Jetson에 원자적으로 둔다(러너 기동 직전: 러너는 이 파일의 elapsed_at_ref_s에 자기 경과를 더해 P-A 경과를 판단한다)
 scp -q -o BatchMode=yes "${REF}" "${H}:${RD}/.lift_photo_ref.json.tmp" && "${SSH[@]}" "mv ~/${RD}/.lift_photo_ref.json.tmp ~/${RD}/lift_photo_ref.json" || { echo "기준 결과 전달 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
 fi
@@ -100,6 +101,7 @@ fi
 scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
 python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'returned_to_start=',j.get('returned_to_start'),'lift=',(j.get('lift') or {}).get('ended_reason'))" "${OUT}" "${TS}" "${MODE}"
 echo "저장: ${OUT}"
-"${VPY}" -I "${ROOT}/scripts/g01_lift_classify.py" "${OUT}" || echo "(분류 실패: 결과 JSON을 직접 확인)"   # 시도 분류(접촉 어댑터 쓰기 로그 기준, 판정 기록 수는 R8 뒤)
+"${VPY}" -I "${ROOT}/scripts/g01_lift_classify.py" "${OUT}" || echo "(분류 실패: 결과 JSON을 직접 확인)"
+[ "${MODE}" = real ] && { "${VPY}" -I "${ROOT}/scripts/g01_lift_r8.py" "${OUT}" --ts "${TS}" --log "${BLOG}" || echo "(R8 사후 계산 실패: 결과 JSON·이미지로 직접 계산)"; }   # R8: E1·E2·E3·Q3(사전 등록 규칙, 판정 기록 수는 네 기준이 모두 합격/불합격인 기록)   # 시도 분류(접촉 어댑터 쓰기 로그 기준, 판정 기록 수는 R8 뒤)
 echo "비상 절차: 시험은 마지막에 시작값 S로 복귀한다. 복귀 없이 끝났거나 관절에서 소리·발열·처짐이 있으면 손부터 빼고, 팔 주변(넘어질 수 있는 범위, 낙하 받침 없음)을 확인한 뒤 담당자가 전원을 차단한다."
 echo "이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽으므로 원래 위치로 돌아가지 않는다. 원래 시작 자세는 기록(JSON)의 state0(J1~J6 시작 회독)에 있다."

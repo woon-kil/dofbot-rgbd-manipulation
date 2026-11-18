@@ -49,6 +49,10 @@ class TestStatic(unittest.TestCase):
         src = (ROOT / "evidence" / "G06" / "run2_contact_clearance_261117.py").read_text(encoding="utf-8")
         self.assertIn("in ('31', '33') else 87.4", src)
 
+    def test_r8_and_classifier_called_and_listed(self):
+        for f in ("g01_lift_r8.py", "g01_lift_classify.py"): self.assertIn("scripts/" + f, t33)
+        self.assertIn('g01_lift_r8.py" "${OUT}" --ts "${TS}" --log "${BLOG}"', t33); self.assertIn("sha=hashlib.sha256", t33)                    # 기준 사진 해시를 기준 JSON에 싣는다
+
     def test_no_wildcard_delete_and_bridge_not_deployed_to_jetson(self):
         self.assertNotRegex(t33, r"rm -[a-z]*f?[^\n]*\*")                                                       # 와일드카드 삭제 금지
         self.assertNotIn("g01_lift_bridge.py\" \"${ROOT}", "".join(l for l in t33.splitlines() if l.startswith("scp")))   # 다리는 Mac 쪽이다

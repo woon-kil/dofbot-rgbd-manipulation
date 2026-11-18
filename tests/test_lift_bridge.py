@@ -56,6 +56,13 @@ class TestBridge(unittest.TestCase):
         res = bridge(Rec(detect=dict(REF, center=[679.0, 267.0]))).handle("[사진 요청 A id=t2]")           # 약 4.8 px ≈ 3.6 mm > 3 → no-go, 원값은 남는다
         self.assertFalse(res["gate"]["go"]); self.assertIn("dx_block_mm", res["gate"])
 
+    def test_result_carries_image_sha256_and_failure_gives_none(self):
+        r = Rec(); res = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=PARAMS, say=lambda s: None, imghash=lambda n: "sha-" + n).handle("[사진 요청 B id=t]")
+        self.assertEqual(res["image_sha256"], "sha-B")
+        def bad(n): raise OSError("없음")
+        res = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=PARAMS, say=lambda s: None, imghash=bad).handle("[사진 요청 C id=t2]"); self.assertIsNone(res["image_sha256"])   # 해시 실패는 R8이 판정 없음으로 처리
+        self.assertEqual(B.make_ref("rid", REF, 1000.0, 1800, 1042.5, "abc")["image_sha256"], "abc")
+
     def test_snap_failure_still_pushes_with_reason(self):
         r = Rec(snap_exc=RuntimeError("프레임 없음")); res = bridge(r).handle("[사진 요청 A id=t]")
         self.assertIsNone(res["detect"]); self.assertFalse(res["gate"]["go"]); self.assertIn("프레임 없음", res["error_snap"]); self.assertEqual(len(r.pushed), 1)

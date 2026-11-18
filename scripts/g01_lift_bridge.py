@@ -92,8 +92,8 @@ def s4_gate_safe(ref_detect, detect, P=None):
 
 class Bridge:
     """의존 주입: snap(이름) → detect dict, status() → started_epoch(float), push(이름, 결과 dict) → None, now() → epoch."""
-    def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print, align=None, tilt=None):
-        self.ref, self.snap, self.status, self.push, self.now, self.P, self.say, self.align, self.tilt = ref, snap, status, push, now, P, say, align, tilt
+    def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print, align=None, tilt=None, imghash=None):
+        self.ref, self.snap, self.status, self.push, self.now, self.P, self.say, self.align, self.tilt, self.imghash = ref, snap, status, push, now, P, say, align, tilt, imghash
         self.done = {}
 
     def handle(self, line):
@@ -113,8 +113,12 @@ class Bridge:
             except Exception as e: started = None; err_s = repr(e)
             try: detect = ft.result()
             except Exception as e: detect = None; err_d = repr(e)
+        sha = None
+        if self.imghash is not None:                                   # R8이 같은 사진임을 내용으로 확인하도록 이미지 해시를 결과에 싣는다(정지 장면은 검출값만으로 사진을 구별할 수 없다)
+            try: sha = self.imghash(name)
+            except Exception as e: sha = None
         t1 = self.now()
-        res = {"request_id": tok, "name": name, "started_epoch": started, "detect": detect, "mac": {"req_seen": t0, "snap_done": t1}}
+        res = {"request_id": tok, "name": name, "started_epoch": started, "detect": detect, "image_sha256": sha, "mac": {"req_seen": t0, "snap_done": t1}}
         if started is None: res["error_status"] = err_s
         if detect is None: res["error_snap"] = err_d
         if name == "A":
@@ -128,9 +132,9 @@ class Bridge:
         self.done[name] = res; self.say("[다리] 사진 %s 전달 %.2f s%s" % (name, self.now() - t0, " gate=%s" % res["gate"].get("go") if "gate" in res else "")); return res
 
 
-def make_ref(run_id, detect, started_epoch, maxsec, now_epoch):
+def make_ref(run_id, detect, started_epoch, maxsec, now_epoch, image_sha256=None):
     """기준 사진 결과(lift_photo_ref.json). elapsed_at_ref_s = 이 파일을 쓰기 직전의 P-A 경과 — 러너 기동까지의 몇 초는 포함하지 않는다(여유 300 s 대비 무시 가능, 플랜 §3-2에 기록)."""
-    return {"run_id": run_id, "started_epoch": started_epoch, "elapsed_at_ref_s": now_epoch - started_epoch, "maxsec": maxsec, "detect": detect, "ref_written_epoch": now_epoch}
+    return {"run_id": run_id, "started_epoch": started_epoch, "elapsed_at_ref_s": now_epoch - started_epoch, "maxsec": maxsec, "detect": detect, "image_sha256": image_sha256, "ref_written_epoch": now_epoch}
 
 
 def align_report(root, img, ref, python=None, timeout=ALIGN_TIMEOUT_S, run=subprocess.run, set_arg="33"):
@@ -175,6 +179,12 @@ def real_align(root, ts, prefix, snap):
     return align
 
 
+def real_imghash(root, prefix):
+    import hashlib
+    def h(name): return hashlib.sha256(open(os.path.join(root, "data", "g04", "pa", "%s_%s.color.png" % (prefix, name)), "rb").read()).hexdigest()
+    return h
+
+
 def real_status(root):
     def status():
         r = subprocess.run(["ssh"] + SO + ["p620", "ACTION=status bash -s"], stdin=open(os.path.join(root, "scripts", "pa_driver.sh")), capture_output=True, text=True, timeout=15)
@@ -205,7 +215,7 @@ def main():
     t0 = time.time(); load_pa(root); say("[다리] 분석 모듈 적재 %.2f s(사진 요청 경로 밖)" % (time.time() - t0))
     plan = json.load(open(a.plan, encoding="utf-8")); import g01_s42_plan_lift as PL; mods = PL._load_modules()   # chdir root(생성기 모듈이 상대 경로를 읽음)
     snap = real_snap(root, a.name_prefix)
-    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods))
+    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods), imghash=real_imghash(root, a.name_prefix))
     for line in sys.stdin: b.handle(line)
     if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}}, ensure_ascii=False) + "\n"); logf.close()
 
