@@ -145,22 +145,37 @@ def base_shift_fresh(a_bgr, b_bgr, box):
 OLD_BASE_BOX = (480, 0, 900, 100)   # E-0G 사전 등록 BASE_BOX(g01_e0g_analyze.py:18), P9 조건 ②: 원값 기록용
 
 
-def q3_record(a_bgr, b_bgr, P=None):
+def region_zncc(a_bgr, b_bgr, box):
+    """영역(box) 안 회색조 ZNCC(제로평균 정규화 상관). 한쪽이 상수 영상이면 0.0(상관 정의 불가 → 판정 불가 쪽으로 보수적). 읽기 전용 복사본만 쓴다."""
+    import cv2, numpy as np
+    x0, y0, x1, y1 = box
+    a = cv2.cvtColor(a_bgr, cv2.COLOR_BGR2GRAY).astype(np.float64)[y0:y1, x0:x1].ravel(); b = cv2.cvtColor(b_bgr, cv2.COLOR_BGR2GRAY).astype(np.float64)[y0:y1, x0:x1].ravel()
+    a = a - a.mean(); b = b - b.mean(); d = float(np.sqrt((a * a).sum() * (b * b).sum()))
+    return 0.0 if d < 1e-12 else float((a * b).sum() / d)
+
+
+def q3_record(a_bgr, b_bgr, P=None, k1_bgr=None):
     """사진 A·B에서 현행 BASE_BOX와 확정 영역의 이동·응답 원값을 모두 기록한다(P9 조건 ②). 확정 영역이 UNSET이면 ParamsNotFinal.
-    shift_resp_ok는 원값 판정일 뿐 Q3 판정이 아니다(P9 조건 ③은 q3_verdict)."""
+    k1_bgr(S4' 기준 사진)이 있으면 확정 영역의 ZNCC(K1–A, K1–B, A–B) 원값도 기록한다(P9 조건 ③, 없으면 zncc=None).
+    shift_resp_ok는 원값 판정일 뿐 Q3 판정이 아니다(조건 ③은 q3_verdict)."""
     P = PARAMS if P is None else P
     box = tuple(P["q3_box"])                               # UNSET이면 여기서 ParamsNotFinal
     old = base_shift_fresh(a_bgr, b_bgr, OLD_BASE_BOX); new = base_shift_fresh(a_bgr, b_bgr, box)
-    return {"old_box": list(OLD_BASE_BOX), "old": old, "box": list(box), "new": new,
+    z = None if k1_bgr is None else {"k1_a": region_zncc(k1_bgr, a_bgr, box), "k1_b": region_zncc(k1_bgr, b_bgr, box), "a_b": region_zncc(a_bgr, b_bgr, box)}
+    return {"old_box": list(OLD_BASE_BOX), "old": old, "box": list(box), "new": new, "zncc": z,
             "shift_resp_ok": new[2] >= P["q3_response_min"] - EPS and abs(new[0]) <= P["q3_shift_max_px"] + EPS and abs(new[1]) <= P["q3_shift_max_px"] + EPS}
 
 
 def q3_verdict(record, P=None):
-    """Q3 판정: P9 조건 ③(들어올림 자세에서 팔이 영역에 들어오면 판정 불가). 기준(q3_arm_in_box_criterion: record → bool)이 UNSET이면 ParamsNotFinal."""
+    """Q3 판정(P9 조건 ③, 사용자 2026-11-18): 영역 ZNCC 세 쌍의 최솟값 < q3_zncc_min이면 '판정 불가'(실패로 셈, 원값은 record에 남음).
+    ZNCC 원값이 없으면(K1 사진 없음) 팔 진입을 배제할 수 없으므로 판정 불가. 아니면 기존 이동·응답 규칙. 문턱이 UNSET이면 ParamsNotFinal."""
     P = PARAMS if P is None else P
-    crit = P["q3_arm_in_box_criterion"]                    # UNSET이면 여기서 ParamsNotFinal
-    if crit(record): return {"verdict": "판정 불가", "counts_as": "실패(E-2 규칙)", "reason": "팔이 Q3 영역에 들어옴(P9 ③)"}
-    return {"verdict": "합격" if record["shift_resp_ok"] else "불합격"}
+    thr = P["q3_zncc_min"]                                 # UNSET이면 여기서 ParamsNotFinal
+    z = record.get("zncc")
+    if z is None: return {"verdict": "판정 불가", "counts_as": "실패(E-2 규칙)", "reason": "영역 ZNCC 원값 없음(K1 사진 없음)"}
+    mn = min(z.values())
+    if mn < thr - EPS: return {"verdict": "판정 불가", "counts_as": "실패(E-2 규칙)", "reason": "영역 ZNCC 최솟값 %.3f < %.3f (P9 ③)" % (mn, thr), "zncc_min": mn}
+    return {"verdict": "합격" if record["shift_resp_ok"] else "불합격", "zncc_min": mn}
 
 
 # ---------- 기록 직렬화 ----------

@@ -69,7 +69,7 @@ class RunnerFailClosedTest(unittest.TestCase):
     def test_real_allowed_only_after_every_unset_is_filled(self):
         p = LP.params_for_plan({"set": "33", "lift": {"j2_max_target": 77}}); p["q3_box"] = (800, 0, 900, 100)
         with self.assertRaises(LP.ParamsNotFinal): LP.check_real_allowed("real", p)
-        p["q3_arm_in_box_criterion"] = lambda r: False; LP.check_real_allowed("real", p)
+        p["q3_zncc_min"] = 0.90; LP.check_real_allowed("real", p)
 
 
 if __name__ == "__main__": unittest.main()

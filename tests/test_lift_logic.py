@@ -129,13 +129,29 @@ class JudgeTest(unittest.TestCase):
         import json
         d = json.loads(json.dumps(L.params_jsonable())); self.assertEqual(d["q3_box"], "UNSET"); self.assertEqual(d["j2_window"], [66, 110]); self.assertIsNone(d["first_move_min_ms"])
 
-    def test_q3_verdict_needs_the_arm_in_box_criterion(self):
-        rec = {"shift_resp_ok": True}
-        with self.assertRaises(P.ParamsNotFinal): L.q3_verdict(rec)                                    # 기준 UNSET → 판정 없음
-        self.assertEqual(L.q3_verdict(rec, params(q3_arm_in_box_criterion=lambda r: True))["verdict"], "판정 불가")
-        self.assertEqual(L.q3_verdict(rec, params(q3_arm_in_box_criterion=lambda r: False))["verdict"], "합격")
-        self.assertEqual(L.q3_verdict({"shift_resp_ok": False}, params(q3_arm_in_box_criterion=lambda r: False))["verdict"], "불합격")
+    def test_q3_verdict_zncc_rule(self):
+        z_ok = {"k1_a": 0.97, "k1_b": 0.95, "a_b": 0.96}; rec = {"shift_resp_ok": True, "zncc": z_ok}
+        with self.assertRaises(P.ParamsNotFinal): L.q3_verdict(rec)                                    # 문턱 UNSET → 판정 없음
+        pm = params(q3_zncc_min=0.90)
+        self.assertEqual(L.q3_verdict(rec, pm)["verdict"], "합격")
+        self.assertEqual(L.q3_verdict(dict(rec, zncc=dict(z_ok, k1_b=0.89)), pm)["verdict"], "판정 불가")   # 세 쌍 중 하나만 낮아도
+        self.assertEqual(L.q3_verdict(dict(rec, zncc=dict(z_ok, a_b=0.90)), pm)["verdict"], "합격")         # 경계 0.90은 통과(< 문턱만 불가)
+        self.assertEqual(L.q3_verdict(dict(rec, zncc=None), pm)["verdict"], "판정 불가")                   # 원값 없음 → 배제 못 함
+        self.assertEqual(L.q3_verdict({"shift_resp_ok": False, "zncc": z_ok}, pm)["verdict"], "불합격")
+        self.assertIn("실패", L.q3_verdict(dict(rec, zncc=None), pm)["counts_as"])
 
+    def test_region_zncc_positive_and_negative_control(self):
+        import numpy as np
+        rng = np.random.RandomState(0); base = (rng.rand(120, 960) * 200 + 20).astype(np.uint8); k1 = np.dstack([base] * 3)
+        box = (800, 0, 900, 100)
+        same = k1.copy(); same[:, :, :] = np.clip(same.astype(int) + 3, 0, 255).astype(np.uint8)          # 밝기만 약간 변함
+        arm = k1.copy(); arm[10:90, 820:880] = 255                                                          # 팔이 영역에 들어옴(양성 대조)
+        self.assertGreater(L.region_zncc(k1, same, box), 0.99)
+        self.assertLess(L.region_zncc(k1, arm, box), 0.90)
+        self.assertEqual(L.region_zncc(k1, np.full_like(k1, 7), box), 0.0)                                  # 상수 영상 → 0.0
+        pm = params(q3_box=box, q3_zncc_min=0.90); r_ok = L.q3_record(k1, same, pm, k1_bgr=k1); r_arm = L.q3_record(k1, arm, pm, k1_bgr=k1)
+        self.assertEqual(L.q3_verdict(r_ok, pm)["verdict"], "합격"); self.assertEqual(L.q3_verdict(r_arm, pm)["verdict"], "판정 불가")
+        self.assertIsNone(L.q3_record(k1, same, pm)["zncc"])
 
 try:
     import cv2, numpy as np
