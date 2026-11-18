@@ -7,7 +7,7 @@ G = 'data/g04/'; P = 'data/g04/pa/pa_261118-090521_'
 rd = lambda n, d=G: cv2.imread(d + n + ('.png' if d == G else ''))
 OLD = (480, 0, 900, 100); NEW = (800, 0, 900, 100)
 def bs(a, b, box=OLD):
-    x0, y0, x1, y1 = box; g = lambda i: np.ascontiguousarray(cv2.cvtColor(i, cv2.COLOR_BGR2GRAY).astype(np.float32)[y0:y1, x0:x1])   # 연속 복사 필수: 슬라이스 뷰를 넘기면 100×100 영역에서 phaseCorrelate 결과가 호출마다 달라진다(2026-11-18 확인)
+    x0, y0, x1, y1 = box; g = lambda i: np.ascontiguousarray(cv2.cvtColor(i, cv2.COLOR_BGR2GRAY).astype(np.float32)[y0:y1, x0:x1])   # 호출마다 새 배열 필수: phaseCorrelate는 입력 배열을 제자리에서 수정한다(뷰든 복사본이든, 영역 크기와 무관, 2026-11-18 확인)
     (dx, dy), r = cv2.phaseCorrelate(g(a), g(b), cv2.createHanningWindow((x1 - x0, y1 - y0), cv2.CV_32F)); return dx, dy, r
 # (1) 3회차 P-A 정지 사진: 현행 영역(m.base_shift = BASE_BOX)
 ref = cv2.imread(P + 'snap01.color.png')
