@@ -54,7 +54,8 @@ class RealFakeRunTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         import os, tempfile
-        cwd = os.getcwd(); os.chdir(ROOT); G, C = PL._load_modules(); os.chdir(cwd)
+        try: cwd = os.getcwd(); os.chdir(ROOT); G, C = PL._load_modules(); os.chdir(cwd)
+        except ImportError as e: raise unittest.SkipTest("venv 전용(cv2·scipy): %r" % e)
         plan31 = json.load(open(ROOT / "tests" / "fixtures" / "s4_2_plan_31_fixture.json", encoding="utf-8")); plan33, _ = PL.make_lift_plan(plan31, G, C)
         cls.td = tempfile.TemporaryDirectory(); cls.path = Path(cls.td.name) / "p.json"; cls.path.write_text(json.dumps(plan33), encoding="utf-8")
     @classmethod
