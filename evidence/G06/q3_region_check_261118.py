@@ -37,3 +37,17 @@ for pn, (a, b) in {'팔정지 31040→31041': (R + '31040', R + '31041'), '팔�
         for s in (1, 2, 3):
             dx, dy, r = bs(A, shift(B, s, 0), box); e.append(abs(dx - bs(A, B, box)[0] - s)); rr.append(r)
         print('(4) %s %-4s 주입 1/2/3 px 오차(기준 대비) %s, 응답 %.2f~%.2f, 무주입 응답 %.2f 이동 (%.2f,%.2f)' % (pn, nm, ['%.2f' % x for x in e], min(rr), max(rr), bs(A, B, box)[2], bs(A, B, box)[0], bs(A, B, box)[1]))
+# (5) P9 조건 ③ ZNCC 규칙의 실사진 대조(참고용 사후 분석, 결정 근거 아님; 문턱 0.90은 사전 등록 전). scripts/g01_lift_logic.region_zncc를 그대로 쓴다.
+import sys; sys.path.insert(0, 'scripts'); import g01_lift_logic as LL
+allp = [(r, i, j, L[i], L[j]) for r, L in im.items() for i, j in itertools.combinations(range(len(L)), 2)]
+old_resp = [bs(a, b, OLD)[2] for *_, a, b in allp]
+arm_in = [k for k, r in enumerate(old_resp) if r < 0.5]                      # '팔이 현행 영역에 들어온 쌍'의 데이터 정의(응답 < 0.5, 사후 정의)
+zo = [LL.region_zncc(allp[k][3], allp[k][4], OLD) for k in arm_in]
+print('(5a) 양성 대조: 현행 영역 응답<0.5 쌍 %d개의 현행 영역 ZNCC 최소 %.3f 중앙 %.3f 최대 %.3f, 0.90 미만 %d/%d' % (len(arm_in), min(zo), float(np.median(zo)), max(zo), sum(z < 0.90 for z in zo), len(zo)))
+zn = [LL.region_zncc(a, b, NEW) for *_, a, b in allp]
+print('(5b) 음성 대조: (800,0,900,100) 42쌍 ZNCC 최소 %.3f 중앙 %.3f, 0.90 미만 %d/%d' % (min(zn), float(np.median(zn)), sum(z < 0.90 for z in zn), len(zn)))
+kc = [(allp[k][0], allp[k][1], allp[k][2], zn[k]) for k in range(len(allp)) if allp[k][1] == 0]   # 각 실행의 K1(전) 대 하강·접촉·K1(후) 쌍
+print('(5c) K1(전) 대 나머지 쌍(새 영역) ZNCC:', ['%s %d-%d %.3f' % t for t in kc])
+# 팔 정지 쌍과 3회차 P-A 정지 쌍(참고)
+zs = [LL.region_zncc(ref, cv2.imread(P + n + '.color.png'), NEW) for n in ('snap02', 'snap10', 'snap11', 'snap20', 'base_a1', 'base_b2')]
+print('(5d) 3회차 P-A 정지 쌍(새 영역) ZNCC 최소 %.3f 최대 %.3f' % (min(zs), max(zs)))

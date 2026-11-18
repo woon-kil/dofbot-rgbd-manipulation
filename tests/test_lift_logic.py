@@ -141,7 +141,8 @@ class JudgeTest(unittest.TestCase):
         self.assertIn("실패", L.q3_verdict(dict(rec, zncc=None), pm)["counts_as"])
 
     def test_region_zncc_positive_and_negative_control(self):
-        import numpy as np
+        try: import cv2, numpy as np
+        except ImportError: self.skipTest("cv2·numpy 필요(venv 전용)")
         rng = np.random.RandomState(0); base = (rng.rand(120, 960) * 200 + 20).astype(np.uint8); k1 = np.dstack([base] * 3)
         box = (800, 0, 900, 100)
         same = k1.copy(); same[:, :, :] = np.clip(same.astype(int) + 3, 0, 255).astype(np.uint8)          # 밝기만 약간 변함

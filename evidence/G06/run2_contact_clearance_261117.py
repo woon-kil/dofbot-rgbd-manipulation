@@ -52,7 +52,7 @@ last_route = plan['return_routes'][-1]
 cur2 = list(map(float, plan['return_routes'][-1]['state']))
 import os as _os
 half = np.array([15.0 + float(_os.environ.get('RUN2_BOX_XPAD_MM', '0')), 30.0, 15.0])   # RUN2_BOX_XPAD_MM: 블록 yaw 불확실(±2° 해상도, 손가락 y 어긋남 ≤ 8 mm → 약 0.3 mm)을 덮는 x 방향 상자 확장(기본 0)
-_J1A = 86.4 if str(plan.get('set')) == '31' else 87.4   # 세트 31(Run 4)은 J1 86(원시 86.4 예상)
+_J1A = 86.4 if str(plan.get('set')) in ('31', '33') else 87.4   # 세트 31(Run 4)은 J1 86(원시 86.4 예상). 세트 33(들어올림)은 세트 31 계획의 후처리라 같은 J1(2026-11-18 수정: '33'이 빠져 87.4로 계산되어 거짓 미달 -0.3 mm이 나왔다)
 xa = PA.caps_world([_J1A,81.0,16.28,19.31], 100)[0]   # A50 자세 J6 100 캡 중점 x(프로젝트)
 # 중단 복귀 경로(열린 손가락 상태로 하강 중 중단): 상태 J1 ≤ 88(J1 보정 뒤)인 복귀 경로를 모두 평가
 abort_states = []
