@@ -1,0 +1,26 @@
+{
+  "session": "pa_261118-090521",
+  "start_rc_start1": 0,
+  "status_alive_start1": true,
+  "start_rc_start2": 0,
+  "status_alive_start2": true,
+  "snap_after_stop_failed": true,
+  "start_rc_autoexit": 0,
+  "status_alive_autoexit": true,
+  "auto_exit_first_poll_after_start_s": 35.3,
+  "auto_exit_poll_bound_after_start_s": 60,
+  "auto_exit_polled_s": 35.5,
+  "auto_exit_status": "컨테이너 실행 중\n드라이버 프로세스 없음\nstarted_epoch 1794961805.217845471\nwarmup_sec 12\nmax_sec 45\n경과 35 s\n",
+  "auto_exit_driver_gone": true,
+  "auto_exit_snap_failed": true,
+  "containers_left_after_stop": [
+    0,
+    0,
+    0
+  ],
+  "usb_counts": {
+    "driver_1794960398.log": 0,
+    "driver_1794961643.log": 0,
+    "driver_1794961789.log": 0
+  }
+}
