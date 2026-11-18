@@ -78,18 +78,28 @@ def main():
     if pid == 0:
         os.chdir(T); os.execvpe("bash", ["bash", "scripts/g01_lift_run.sh", "--real"], env)
     out = b""; t0 = time.time(); answered = 0; status = None
+    hang = sys.argv[sys.argv.index("--hangup-at") + 1].encode() if "--hangup-at" in sys.argv else None   # --hangup-at "패턴": 그 출력이 보이면 pty master를 닫는다(실제 SIGHUP 재현, 누름 중 터미널 끊김)
+    hang_at_len = None
     while time.time() - t0 < 1500:
         r, _, _ = select.select([fd], [], [], 1.0)
         if r:
             try: chunk = os.read(fd, 65536)
             except OSError: break
             if not chunk: break
-            out += chunk; sys.stdout.write(chunk.decode("utf-8", "replace")); sys.stdout.flush()
+            out += chunk
+            if hang and hang_at_len is None and hang in out: hang_at_len = len(out); os.close(fd); print("\n[재현] pty master 닫음(출력 %d바이트 뒤)" % hang_at_len); break
+            sys.stdout.write(chunk.decode("utf-8", "replace")); sys.stdout.flush()
             tail = out[-300:].decode("utf-8", "replace")
             if re.search(r"\[y/N\]\s*$", tail) and out.count(b"[y/N]") > answered:
                 answered = out.count(b"[y/N]"); ans = b"n\r" if any(p in out[-1500:].decode("utf-8", "replace") for p in no_on) else b"y\r"; os.write(fd, ans)   # 긴 질문은 마지막 300자 밖에 패턴이 있어 1500자를 본다
         p, st = os.waitpid(pid, os.WNOHANG)
         if p: status = st; break
+    if hang_at_len is not None:
+        import glob, json; time.sleep(10); res = glob.glob(str(T / "jetson" / "result.json")) + glob.glob(str(T / "evidence" / "G01" / "raw" / "*result-real-*.json"))
+        print("[재현] 결과 파일:", res)
+        for f in res:
+            j = json.load(open(f)); print("ended", j.get("ended"), "| returned_to_start", j.get("returned_to_start"), "| J6 로그", {k: [(l[1], l[4] if len(l) > 4 else "") for l in v if l[0] == "write"] for k, v in (j.get("j6_adapter_logs") or {}).items()})
+        print("임시 루트:", T); sys.exit(0 if res else 1)
     if status is None:                                  # pty가 먼저 닫혀 읽기가 끝난 경우: 자식 종료를 잠시 기다린다
         for _ in range(100):
             p, st = os.waitpid(pid, os.WNOHANG)
