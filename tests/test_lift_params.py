@@ -7,7 +7,7 @@ import g01_lift_params as P
 
 class LiftParamsTest(unittest.TestCase):
     def test_current_block_has_exactly_the_p9_unset_values(self):
-        self.assertEqual(P.unset_names(), ["g2_mm_per_px", "g2_x_sign", "q3_arm_in_box_criterion", "q3_box"])
+        self.assertEqual(P.unset_names(), ["g2_deadzone_metric", "lift_j2_total_cap_deg", "q3_arm_in_box_criterion", "q3_box"])
 
     def test_real_refused_while_unset(self):
         with self.assertRaises(P.ParamsNotFinal) as c: P.check_real_allowed("real")
@@ -19,9 +19,9 @@ class LiftParamsTest(unittest.TestCase):
     def test_real_allowed_only_when_every_unset_is_filled(self):
         p = copy.deepcopy(P.PARAMS); p["q3_box"] = (800, 0, 900, 100)
         with self.assertRaises(P.ParamsNotFinal): P.check_real_allowed("real", p)      # 하나만 채우면 아직 거부
-        for k in ("q3_arm_in_box_criterion", "g2_mm_per_px"): p[k] = 1
+        for k in ("q3_arm_in_box_criterion", "g2_deadzone_metric"): p[k] = 1
         with self.assertRaises(P.ParamsNotFinal): P.check_real_allowed("real", p)      # 하나가 남으면 여전히 거부
-        p["g2_x_sign"] = 1; P.check_real_allowed("real", p)
+        p["lift_j2_total_cap_deg"] = 1; P.check_real_allowed("real", p)
 
     def test_none_is_a_legit_value_not_unset(self):
         self.assertIsNone(P.PARAMS["first_move_min_ms"]); self.assertNotIn("first_move_min_ms", P.unset_names())   # P7: 명시적 None
@@ -40,7 +40,7 @@ class LiftParamsTest(unittest.TestCase):
 
     def test_unset_cannot_be_used_as_a_value(self):
         U = P.UNSET
-        for f in (lambda: U or (480, 0, 900, 100), lambda: bool(U), lambda: U == 1, lambda: U + 1, lambda: U[0], lambda: list(U), lambda: len(U), lambda: float(U), lambda: U < 2, lambda: 1 in U):
+        for f in (lambda: U or (480, 0, 900, 100), lambda: bool(U), lambda: U == 1, lambda: U + 1, lambda: U[0], lambda: list(U), lambda: len(U), lambda: float(U), lambda: U < 2, lambda: 1 in U, lambda: U(1)):
             with self.assertRaises(P.ParamsNotFinal): f()
         self.assertEqual(repr(U), "UNSET")
 

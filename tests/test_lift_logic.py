@@ -45,11 +45,24 @@ class ClockTest(unittest.TestCase):
 
 
 class LiftMathTest(unittest.TestCase):
-    def test_second_j2_command_clip_and_half_up(self):
-        self.assertEqual(L.second_j2_command(74, 69.0, 72.5)[0], 74 + 6)      # 올라간 3.5° → inc 6.0
-        self.assertEqual(L.second_j2_command(74, 69.0, 74.0)[0], 74 + 5)      # 올라간 5° → inc 4.5 → half-up 5
-        self.assertEqual(L.second_j2_command(74, 69.0, 66.0)[0], 74 + 6)      # 거꾸로 움직임 → 상한 6으로 클립
-        self.assertEqual(L.second_j2_command(74, 69.0, 80.0)[0], 74 + 3)      # 많이 올라감 → 하한 3으로 클립
+    def test_second_j2_command_applies_cap_and_formula(self):
+        pp = params(lift_j2_total_cap_deg=8.5)
+        self.assertEqual(L.second_j2_command(74, 69.0, 72.5, pp)[0], 74 + 5)      # 올라간 3.5°: 공식 6.0 → 상한 floor(8.5−3.5)=5
+        self.assertEqual(L.second_j2_command(74, 69.0, 74.0, pp)[0], 74 + 3)      # 부족 없음(5°): 공식 4.5→5, 상한 floor(3.5)=3 (tilt 31.1° 경로를 막음)
+        self.assertEqual(L.second_j2_command(74, 69.0, 66.0, pp)[0], 74 + 6)      # 거꾸로 움직임: 공식 상한 6, cap은 넉넉
+        self.assertIsNone(L.second_j2_command(74, 69.0, 77.6, pp)[0])             # 이미 cap 이상 올라감: 두 번째 이동 없음
+        pw = params(lift_j2_total_cap_deg=20.0)
+        self.assertEqual(L.second_j2_command(74, 69.0, 74.0, pw)[0], 74 + 5)      # cap이 넉넉하면 공식만(half-up 4.5→5)
+        self.assertEqual(L.second_j2_command(74, 69.0, 80.0, pw)[0], 74 + 3)      # 하한 3
+
+    def test_total_up_never_exceeds_cap_over_a_grid(self):
+        pp = params(lift_j2_total_cap_deg=8.5)
+        for k in range(0, 21):
+            up = k * 0.5 - 1.0; t, d = L.second_j2_command(74, 69.0, 69.0 + up, pp)
+            if t is not None: self.assertLessEqual(up + (t - 74), 8.5 + 1e-9, (up, t))
+
+    def test_second_j2_cap_unset_is_fail_closed(self):
+        with self.assertRaises(P.ParamsNotFinal): L.second_j2_command(74, 69.0, 72.5)
 
     def test_shortfall_abort_follows_tol_3(self):
         self.assertFalse(L.shortfall_abort(74, 71)); self.assertTrue(L.shortfall_abort(74, 70)); self.assertTrue(L.shortfall_abort(74, None))
@@ -78,17 +91,33 @@ class JudgeTest(unittest.TestCase):
         self.assertEqual(L.e3_verdict(146, 146, True, True, (b, c_ok))["verdict"], "합격"); self.assertEqual(L.e3_verdict(146, 146, True, True, (b, c_bad))["verdict"], "불합격")
         self.assertEqual(L.e3_verdict(146, 146, True, True, (b, {"found": False}))["counts_as"], "실패")
 
-    def test_s4_gate_g2_is_fail_closed_until_conversion_is_set(self):
-        ref = dict(self.A, yaw_deg=-179.0); a_small = dict(self.A, center=[673.5, 267.0]); a_big = dict(self.A, center=[675.0, 267.0])
-        self.assertTrue(L.s4_gate(ref, a_small)["go"])                                  # 불감대 안: 환산 불필요
-        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, a_big)                  # 불감대 밖: 환산·부호가 UNSET
-        pp = params(g2_mm_per_px=0.8, g2_x_sign=1)
-        self.assertFalse(L.s4_gate(ref, a_big, dx_depth_mm=-2.0, P=pp)["g2"])             # +1.2 mm, 예상 구간 음수 → 방향 불일치
-        self.assertTrue(L.s4_gate(ref, dict(self.A, center=[671.5, 267.0]), dx_depth_mm=-2.0, P=pp)["g2"])
-        self.assertTrue(L.s4_gate(ref, a_big, dx_depth_mm=1.0, P=pp)["g2"])               # 예상 구간이 0을 걸치면 방향 판정 생략
-        self.assertFalse(L.s4_gate(ref, dict(self.A, center=[680.0, 267.0]), dx_depth_mm=1.0, P=pp)["g2"])   # 4 mm > 3.0
-        self.assertFalse(L.s4_gate(ref, dict(a_small, side_px=30.0))["go"]); self.assertFalse(L.s4_gate(ref, dict(a_small, yaw_deg=-175.0))["go"])
-        self.assertFalse(L.s4_gate(ref, {"found": False})["go"])
+    def test_s4_gate_g2(self):
+        ref = dict(self.A); small = dict(self.A, center=[673.5, 267.0]); big = dict(self.A, center=[675.0, 267.0])
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, small)                 # 이동 지표(x/2D)가 UNSET이면 모든 경우 거부
+        px = params(g2_deadzone_metric="x"); pd = params(g2_deadzone_metric="dist")
+        self.assertTrue(L.s4_gate(ref, small, P=px)["go"])                               # 불감대 안: 입력 불필요
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, P=px)              # 불감대 밖인데 Δx_block·d_x 없음 → 조용한 생략 금지
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, dx_block_mm=1.2, P=px)
+        self.assertFalse(L.s4_gate(ref, big, dx_block_mm=+1.2, dx_depth_mm=-2.0, P=px)["g2"])   # 예상 구간 (−3.26,−2.77) 음수, 이동 양수 → 방향 불일치
+        self.assertTrue(L.s4_gate(ref, big, dx_block_mm=-1.2, dx_depth_mm=-2.0, P=px)["g2"])
+        self.assertTrue(L.s4_gate(ref, big, dx_block_mm=+1.2, dx_depth_mm=1.0, P=px)["g2"])      # 예상 구간 (−0.26,0.23)이 0을 걸치면 방향 판정 생략
+        self.assertFalse(L.s4_gate(ref, big, dx_block_mm=+4.0, dx_depth_mm=1.0, P=px)["g2"])     # 4 mm > 3.0
+        ydrift = dict(self.A, center=[673.0, 268.0])                                      # y만 1 px 이동
+        self.assertTrue(L.s4_gate(ref, ydrift, P=px)["go"])                               # x 지표면 불감대 안
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, ydrift, P=pd)            # 2D 지표면 불감대 밖(입력 없음 → 거부)
+        self.assertFalse(L.s4_gate(ref, dict(small, side_px=30.0), P=px)["go"]); self.assertFalse(L.s4_gate(ref, dict(small, yaw_deg=-175.0), P=px)["go"])
+        self.assertFalse(L.s4_gate(ref, {"found": False}, P=px)["go"])
+
+    def test_params_jsonable_survives_json(self):
+        import json
+        d = json.loads(json.dumps(L.params_jsonable())); self.assertEqual(d["q3_box"], "UNSET"); self.assertEqual(d["j2_window"], [66, 110]); self.assertIsNone(d["first_move_min_ms"])
+
+    def test_q3_verdict_needs_the_arm_in_box_criterion(self):
+        rec = {"shift_resp_ok": True}
+        with self.assertRaises(P.ParamsNotFinal): L.q3_verdict(rec)                                    # 기준 UNSET → 판정 없음
+        self.assertEqual(L.q3_verdict(rec, params(q3_arm_in_box_criterion=lambda r: True))["verdict"], "판정 불가")
+        self.assertEqual(L.q3_verdict(rec, params(q3_arm_in_box_criterion=lambda r: False))["verdict"], "합격")
+        self.assertEqual(L.q3_verdict({"shift_resp_ok": False}, params(q3_arm_in_box_criterion=lambda r: False))["verdict"], "불합격")
 
 
 try:
@@ -116,12 +145,11 @@ class Q3Test(unittest.TestCase):
         a, b = self.imgs()
         with self.assertRaises(P.ParamsNotFinal): L.q3_record(a, b)                                # P9 확정 전(UNSET)
         r = L.q3_record(a, b, params(q3_box=(800, 0, 900, 100)))
-        self.assertEqual(r["old_box"], [480, 0, 900, 100]); self.assertEqual(r["box"], [800, 0, 900, 100]); self.assertTrue(r["ok"])
+        self.assertEqual(r["old_box"], [480, 0, 900, 100]); self.assertEqual(r["box"], [800, 0, 900, 100]); self.assertTrue(r["shift_resp_ok"])
         self.assertEqual(r["new"], L.base_shift_fresh(a, b, (800, 0, 900, 100))); self.assertEqual(r["old"], L.base_shift_fresh(a, b, L.OLD_BASE_BOX))
 
     def test_q3_fails_when_shift_exceeds_2px(self):
         a, _ = self.imgs(); b = np.roll(a, 3, axis=1).copy()
-        self.assertFalse(L.q3_record(a, b, params(q3_box=(800, 0, 900, 100)))["ok"])
-
+        self.assertFalse(L.q3_record(a, b, params(q3_box=(800, 0, 900, 100)))["shift_resp_ok"])
 
 if __name__ == "__main__": unittest.main()

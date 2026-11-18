@@ -3,6 +3,7 @@
 미확정(UNSET) 값을 쓰면 g01_lift_params.ParamsNotFinal(fail-closed)."""
 from g01_lift_params import PARAMS, ParamsNotFinal
 
+EPS = 1e-9   # 판정 문턱(E1·E3·G4·G5·Q3)의 부동소수 경계 오차 허용. 안전 시계(PressClock)에는 두지 않는다(경계를 넘으면 시작하지 않는 쪽이 안전).
 CLOSE_MS = 1500          # 닫기 계단 단계 시간(plan close_ms, g01_s42_plan_p2k.py)
 QUIET_S, POLL_S = 0.3, 0.1   # 쓰기 전 조용한 시간, 폴링 간격(p2k_test.py QUIET_S·POLL_MS)
 WATCH_TAIL_S = 0.1       # 이동마다 J5·J6 읽기 등 여유(플랜 §2-1 단계 상한)
@@ -43,10 +44,16 @@ def simulate(actuals, P=None):
 
 
 # ---------- 두 번째 J2 명령(R1, E-2b §9-1) ----------
-def second_j2_command(first_target, j2_start_deg, j2_after_first_deg):
-    """두 번째 J2 절대 명령 = 첫 명령 + round(clip(8 − 실제 올라간 각도 + 1.5, 3, 6)). 각도는 원시 읽기(실수)."""
-    up = j2_after_first_deg - j2_start_deg; inc = min(6.0, max(3.0, 8.0 - up + 1.5))
-    return int(first_target) + int(inc + 0.5), inc          # 반올림은 half-up(파이썬 round의 짝수 반올림을 쓰지 않는다)
+def second_j2_command(first_target, j2_start_deg, j2_after_first_deg, P=None):
+    """두 번째 J2 절대 명령. 승인 공식 inc = clip(8 − 실제 올라간 각도 + 1.5, 3, 6)에, 최악(부족 0) tilt ≤ 30°를 지키는 총 상승량 상한
+    lift_j2_total_cap_deg(UNSET이면 ParamsNotFinal)을 적용한다: inc ≤ cap − 올라간 각도(내림). 상한 때문에 inc < 1이면 두 번째 이동을 하지 않는다(None).
+    각도는 원시 읽기(실수). 반올림은 half-up, 상한은 내림."""
+    import math
+    P = PARAMS if P is None else P
+    cap = P["lift_j2_total_cap_deg"]                       # UNSET이면 여기서 ParamsNotFinal
+    up = j2_after_first_deg - j2_start_deg; inc_f = min(6.0, max(3.0, 8.0 - up + 1.5))
+    inc = min(int(inc_f + 0.5), int(math.floor(cap - up + EPS)))
+    return (int(first_target) + inc if inc >= 1 else None), {"up_actual": up, "inc_formula": inc_f, "inc_used": inc}
 
 
 def shortfall_abort(commanded, readback_int, tol=3):
@@ -72,7 +79,6 @@ def e1_decide(a, b, P=None):
     P = PARAMS if P is None else P
     if not (a.get("found") and b.get("found")): return {"verdict": "판정 불가", "reason": "마커 미검출"}
     up = a["center"][1] - b["center"][1]; side = b["side_px"] - a["side_px"]; lat = abs(b["center"][0] - a["center"][0])
-    EPS = 1e-9   # 경계값(예: 변 길이 +0.7 px)의 부동소수 오차 허용
     i, ii, iii = up >= P["e1_center_up_px"] - EPS, side >= P["e1_side_len_px"] - EPS, lat <= P["e1_lateral_px"] + EPS
     return {"verdict": "합격" if (i and ii and iii) else "불합격", "up_px": up, "side_delta_px": side, "lateral_px": lat, "i": i, "ii": ii, "iii": iii}
 
@@ -83,28 +89,34 @@ def e3_verdict(j6_after_close, j6_after_lift, hold_done, photo_c_done, gemini_pa
     P = PARAMS if P is None else P
     if not hold_done: return {"verdict": "판정 불가", "counts_as": "실패", "rule": "E-2 원래 규칙(유지 생략)"}
     if j6_after_close is None or j6_after_lift is None: return {"verdict": "판정 불가", "counts_as": "실패", "rule": "J6 회독 없음"}
-    j6_ok = abs(j6_after_lift - j6_after_close) <= 1
+    j6_ok = abs(j6_after_lift - j6_after_close) <= 1 + EPS
     if not photo_c_done: return {"verdict": "합격" if j6_ok else "불합격", "rule": "사진 C 생략: J6 회독판만", "j6_ok": j6_ok, "gemini": "생략"}
     b, c = gemini_pair
     if not (b.get("found") and c.get("found")): return {"verdict": "판정 불가", "counts_as": "실패", "rule": "사진 C 마커 미검출", "j6_ok": j6_ok}
-    g_ok = abs(c["center"][0] - b["center"][0]) <= 1 and abs(c["center"][1] - b["center"][1]) <= 1 and abs(c["side_px"] - b["side_px"]) <= 1
+    import math   # 중심은 2D 거리 ≤ 1 px(축별 아님, 더 엄격한 해석 — 플랜 열린 항목), 변 길이는 |Δ| ≤ 1 px
+    g_ok = math.hypot(c["center"][0] - b["center"][0], c["center"][1] - b["center"][1]) <= 1 + EPS and abs(c["side_px"] - b["side_px"]) <= 1 + EPS
     return {"verdict": "합격" if (j6_ok and g_ok) else "불합격", "rule": "J6 회독판 + Gemini판", "j6_ok": j6_ok, "gemini_ok": g_ok}
 
 
 # ---------- S4' 관문(G1~G5) ----------
-def s4_gate(ref, a, dx_depth_mm=None, P=None):
-    """ref·a: 기준 사진·사진 A 검출. G3은 기록만. G2의 px→mm 환산·부호 규약은 UNSET(정독 전)이라 쓰면 ParamsNotFinal."""
+def s4_gate(ref, a, dx_block_mm=None, dx_depth_mm=None, P=None):
+    """ref·a: 기준 사진·사진 A 검출. dx_block_mm = Δx_block(프로젝트 x, mm) = 사전 등록 `p2k_analyze_261117.inv_P`(높이 0.030 m 평면 역투영)로 A·기준의
+    마커 중심을 변환한 x 차이(부호·환산은 그 사전 등록 코드가 정의, 호출부가 계산). dx_depth_mm = 정렬 보고의 d_x(깊이). G3은 기록만.
+    불감대 밖인데 두 입력 중 하나라도 없으면 ParamsNotFinal(조용한 생략 금지). 불감대 이동 지표(x/2D)는 UNSET이면 쓸 때 ParamsNotFinal."""
+    import math
     P = PARAMS if P is None else P
     if not (a.get("found") and ref.get("found")): return {"go": False, "g1": False, "reason": "G1 마커 미검출"}
     dxp = a["center"][0] - ref["center"][0]; dyp = a["center"][1] - ref["center"][1]
-    g4 = abs(a["side_px"] - ref["side_px"]) <= P["g4_side_px"]
-    dyaw = (a["yaw_deg"] - ref["yaw_deg"] + 180.0) % 360.0 - 180.0; g5 = abs(dyaw) <= P["g5_yaw_deg"]
-    if abs(dxp) <= P["g2_deadzone_px"]: g2 = True
+    g4 = abs(a["side_px"] - ref["side_px"]) <= P["g4_side_px"] + EPS
+    dyaw = (a["yaw_deg"] - ref["yaw_deg"] + 180.0) % 360.0 - 180.0; g5 = abs(dyaw) <= P["g5_yaw_deg"] + EPS
+    metric = P["g2_deadzone_metric"]                       # UNSET이면 여기서 ParamsNotFinal
+    shift = abs(dxp) if metric == "x" else math.hypot(dxp, dyp)
+    if shift <= P["g2_deadzone_px"] + EPS: g2 = True
     else:
-        mm = dxp * P["g2_mm_per_px"] * P["g2_x_sign"]          # UNSET이면 여기서 ParamsNotFinal
-        lo, hi = (dx_depth_mm + P["g2_s_range_mm"][0], dx_depth_mm + P["g2_s_range_mm"][1]) if dx_depth_mm is not None else (None, None)
-        sign_ok = True if (lo is None or lo * hi <= 0) else ((mm > 0) == (lo > 0))   # 예상 구간이 0을 걸치면 방향 판정 생략
-        g2 = sign_ok and abs(mm) <= P["g2_magnitude_mm"]
+        if dx_block_mm is None or dx_depth_mm is None: raise ParamsNotFinal("G2 불감대 밖인데 Δx_block 또는 d_x(깊이) 입력이 없다(조용한 생략 금지)")
+        lo, hi = dx_depth_mm + P["g2_s_range_mm"][0], dx_depth_mm + P["g2_s_range_mm"][1]
+        sign_ok = True if lo * hi <= 0 else ((dx_block_mm > 0) == (lo > 0))   # 예상 구간이 0을 걸칠 때만 방향 판정 생략
+        g2 = sign_ok and abs(dx_block_mm) <= P["g2_magnitude_mm"] + EPS
     return {"go": bool(g2 and g4 and g5), "g1": True, "g2": g2, "g3_dy_px": dyp, "g4": g4, "g5": g5, "dyaw_deg": dyaw}
 
 
@@ -122,9 +134,31 @@ OLD_BASE_BOX = (480, 0, 900, 100)   # E-0G 사전 등록 BASE_BOX(g01_e0g_analyz
 
 
 def q3_record(a_bgr, b_bgr, P=None):
-    """사진 A·B에서 현행 BASE_BOX와 확정 영역의 이동·응답 원값을 모두 기록한다(P9 조건 ②). 확정 영역이 UNSET이면 ParamsNotFinal."""
+    """사진 A·B에서 현행 BASE_BOX와 확정 영역의 이동·응답 원값을 모두 기록한다(P9 조건 ②). 확정 영역이 UNSET이면 ParamsNotFinal.
+    shift_resp_ok는 원값 판정일 뿐 Q3 판정이 아니다(P9 조건 ③은 q3_verdict)."""
     P = PARAMS if P is None else P
     box = tuple(P["q3_box"])                               # UNSET이면 여기서 ParamsNotFinal
     old = base_shift_fresh(a_bgr, b_bgr, OLD_BASE_BOX); new = base_shift_fresh(a_bgr, b_bgr, box)
     return {"old_box": list(OLD_BASE_BOX), "old": old, "box": list(box), "new": new,
-            "ok": new[2] >= P["q3_response_min"] and abs(new[0]) <= P["q3_shift_max_px"] and abs(new[1]) <= P["q3_shift_max_px"]}
+            "shift_resp_ok": new[2] >= P["q3_response_min"] - EPS and abs(new[0]) <= P["q3_shift_max_px"] + EPS and abs(new[1]) <= P["q3_shift_max_px"] + EPS}
+
+
+def q3_verdict(record, P=None):
+    """Q3 판정: P9 조건 ③(들어올림 자세에서 팔이 영역에 들어오면 판정 불가). 기준(q3_arm_in_box_criterion: record → bool)이 UNSET이면 ParamsNotFinal."""
+    P = PARAMS if P is None else P
+    crit = P["q3_arm_in_box_criterion"]                    # UNSET이면 여기서 ParamsNotFinal
+    if crit(record): return {"verdict": "판정 불가", "counts_as": "실패(E-2 규칙)", "reason": "팔이 Q3 영역에 들어옴(P9 ③)"}
+    return {"verdict": "합격" if record["shift_resp_ok"] else "불합격"}
+
+
+# ---------- 기록 직렬화 ----------
+def params_jsonable(P=None):
+    """결과 JSON에 PARAMS를 남길 때 UNSET·튜플이 json.dumps에서 깨지지 않게 변환한다(함수는 이름만)."""
+    P = PARAMS if P is None else P
+    def f(v):
+        from g01_lift_params import _Unset
+        if isinstance(v, _Unset): return "UNSET"
+        if isinstance(v, (tuple, list)): return [f(x) for x in v]
+        if callable(v): return getattr(v, "__name__", "callable")
+        return v
+    return {k: f(v) for k, v in P.items()}

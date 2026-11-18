@@ -12,7 +12,7 @@ class _Unset:
     def __repr__(self): return "UNSET"
     def _no(self, *a, **k): raise ParamsNotFinal("미확정 상수(UNSET)를 값으로 쓸 수 없다")
     __bool__ = __eq__ = __ne__ = __lt__ = __le__ = __gt__ = __ge__ = _no
-    __add__ = __radd__ = __sub__ = __mul__ = __rmul__ = __truediv__ = __getitem__ = __iter__ = __len__ = __int__ = __float__ = __index__ = __contains__ = _no
+    __call__ = __add__ = __radd__ = __sub__ = __mul__ = __rmul__ = __truediv__ = __getitem__ = __iter__ = __len__ = __int__ = __float__ = __index__ = __contains__ = _no
     __hash__ = object.__hash__
 
 
@@ -39,9 +39,9 @@ PARAMS = {
     "q3_shift_max_px": 2.0, "q3_response_min": 0.3,
     # --- S4' 관문 승인 값(E-2b `:14` 승인됨, S4' 문서 §3 `:22~28`) ---
     "g2_deadzone_px": 0.75, "g2_s_range_mm": (-1.26, -0.77), "g2_magnitude_mm": 3.0, "g4_side_px": 0.75, "g5_yaw_deg": 3.0,
-    # --- 미확정(기본값 없음; 정렬 보고 계산 `p2k_align_report.py`·`p2k_analyze_261117.py` 정독 전) ---
-    "g2_mm_per_px": UNSET,                  # G2: 중심 이동(px) → Δx_block(mm) 환산(S4' 문서는 '0.75 px ≈ 0.6 mm'로만 적음)
-    "g2_x_sign": UNSET,                     # G2: 영상 x 이동 부호 → 프로젝트 x 부호 규약(프로젝트 x와 월드 x가 반대, 구현 전 원 기록으로 확정)
+    # --- 미확정(기본값 없음, 사용자 확인 필요) ---
+    "g2_deadzone_metric": UNSET,            # G2 ①: '중심 이동 ≤ 0.75 px'의 이동이 x만인지 2D 거리인지(S4' 문서가 명시하지 않음, 해석이라 사용자 확인)
+    "lift_j2_total_cap_deg": UNSET,         # R1: 두 번째 J2 뒤 J2 총 상승량(실제) 상한. FK 최악(부족 0, J4 넘침 0.8) tilt ≤ 30°(ADR-007 개정): 총 +8.5°까지 29.6°, +9.0° 30.1°(플랜 §2 R1). 높이와 맞바꾸는 판단이라 사용자 결정
     # --- 미확정(P9 확정 전, 기본값 없음) ---
     "q3_box": UNSET,                        # P9: (나') (800,0,900,100) 원칙 동의, 확정은 사전 등록 전
     "q3_arm_in_box_criterion": UNSET,       # P9 조건 ③: 들어올림 자세에서 팔이 영역에 들어오면 판정 불가로 처리하는 기준
