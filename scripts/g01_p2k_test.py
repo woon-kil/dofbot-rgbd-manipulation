@@ -297,7 +297,7 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
                                         "Adapter": GripperTestAdapter, "WINDOWS": WINDOWS, "PROG": PROG, "P2K": P2K, "say": say, "cmd": P2K["cmd"], "start_all": P2K["start_all"], "ads": P2K["ads"], "mode": mode,
                                         "stalled": stalled, "n_plan": len(plan["moves"]), "release": _release, "Abort": Abort, "run_id": P2K["run_id"]})
             if out_ == "lifted":
-                P2K["lift_done"] = True; P2K["low"] = True; lo_ = r2["lift"].get("open_readback"); r2["release_readback"] = lo_
+                P2K["lift_done"] = True; P2K["drop_confirm"] = (r2["lift"].get("code") == "SAG_LATE"); P2K["low"] = True; lo_ = r2["lift"].get("open_readback"); r2["release_readback"] = lo_
                 if lo_ is None or abs(lo_ - s) > 3: raise Abort("열기 도착 실패(회독 %s, 목표 %d). 이후 이동 없음, 복귀로 이어집니다." % (lo_, s))
                 return
         adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
@@ -506,6 +506,8 @@ def main():
                         raise Abort("D0 중단 규칙: 자세 %s의 입력 %r가 숫자가 아니거나 하한 %s mm 미만이라 더 내려가지 않습니다. FK 높이 오차가 예상보다 클 수 있습니다." % (pid, rec_.get("user_entry"), mn_))
         # 복귀(정상 종료 시에도 같은 경로로 직립까지)
         if mode != "dry_run":
+            if P2K.get("drop_confirm") and not ask("★ 처짐 거부(SAG_LATE)로 첫 이동 높이에서 J6를 열어 블록이 낙하했습니다. 블록·팔 주변을 눈으로 확인했고 손·도구를 치웠습니까? y면 들어올린 상태 복귀 경로로 K1에 복귀합니다(블록은 E-5 물리 복원 전까지 재등록·재사용하지 않습니다)"):
+                raise Abort("낙하 뒤 사람 확인 N(또는 y 없음): 복귀하지 않습니다. 추가 이동 없음.")   # 낙하 뒤 물러남은 열린 항목이라 사람 확인을 요구한다(사용자 결정 2026-11-18)
             do_return(plan, {"ads": ads}, arm, cmd, start_all, state, result, PROG["sent"], a, mode, normal=True)
             if P2K.get("lift_done") and result.get("returned_to_start"):   # 들어올림 뒤 K1 도착: J6를 시작값(오므림)으로 닫는다(새 코드)
                 import g01_lift_hook as LH

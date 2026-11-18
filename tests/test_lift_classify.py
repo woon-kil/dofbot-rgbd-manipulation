@@ -39,6 +39,12 @@ class ClassifyTest(unittest.TestCase):
         c = K.classify(res(LOG150, dict(base, lift={"moves": [{"step": "lift1"}, {"step": "lift2"}, {"step": "lift3"}], "ended_reason": "완료"}))); self.assertEqual(c["outcome"], "lifted")
         c = K.classify(res(LOG150, dict(base, lift={"moves": [{"step": "lift1", "aborted": True}]}))); self.assertEqual((c["outcome"], c["code"]), ("no_lift", "ABORT"))
 
+    def test_cap_reduced_attempt_is_labelled_not_counted_as_grasp_failure_evidence(self):
+        base = {"close_steps": [{"target": 150, "stall": True}], "stall_readback": 146, "stall_command": 150}
+        c = K.classify(res(LOG150, dict(base, lift={"moves": [{"step": "lift1"}, {"step": "lift2"}, {"step": "lift3"}], "sag": {"late": {"cap": 76, "plan_max": 77}}})))
+        self.assertEqual(c["outcome"], "lifted"); self.assertIn("E1 신호 약함 가능", c["note"]); self.assertIn("30회 0건 집계에 넣지 않는다", c["note"])
+        c = K.classify(res(LOG150, dict(base, lift={"moves": [{"step": "lift3"}], "sag": {"late": {"cap": 77, "plan_max": 77}}}))); self.assertNotIn("note", c)
+
     def test_judgement_count_is_left_to_r8(self):
         self.assertIn("R8", K.classify(res(LOG150, {"close_steps": []}))["judgement_record"])
 

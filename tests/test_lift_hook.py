@@ -230,6 +230,28 @@ class SagCapMethods:
         self.assertEqual(L["code"], "SAG_LATE"); self.assertTrue(L["lifted_once"]); self.assertEqual([m["step"] for m in L["moves"]], ["lift1"]); self.assertIsNotNone(L.get("open_readback"))
         logs = r["j6_adapter_logs"]; self.assertEqual(sum(1 for l in logs["contact"] if l[0] == "write" and len(l) > 4 and l[4] == "return_to_start"), 1)   # J6 열기 1회
         self.assertTrue(r["returned_to_start"]); self.assertEqual(r["j6_k1_close_readback"], 178 if r.get("j6_k1_close_readback") else r["j6_k1_close_readback"])
+        used = L["return_index_used"]; self.assertTrue(used["key"].startswith("before_j4:"), used); self.assertLessEqual(used["distance"], 3)      # 첫 이동만 한 상태가 들어올린 복귀 항목(J2 72~77)에 매핑된다
+        self.assertEqual(self.plan33["return_routes"][used["index"]]["lift_stage"], "before_j4")
+
+    def test_late_refusal_asks_a_human_before_return_and_no_stops_the_return(self):
+        qs = []; orig = R.ask
+        def ask(msg): qs.append(msg); return not ("SAG_LATE" in msg or "시작 자세가 아닐 수" in msg)                                                      # 낙하 확인 질문과 그 뒤 중단 경로의 복귀 질문에 N(N이면 복귀 없음)
+        R.ask = ask
+        try: r, n = self.instrumented(late=(1.5, 0.0))
+        finally: R.ask = orig
+        self.assertTrue(any("SAG_LATE" in q for q in qs)); self.assertEqual(r["ended"], "aborted"); self.assertIn("복귀하지 않습니다", r["abort_reason"]); self.assertNotEqual(r.get("returned_to_start"), True)
+        qs2 = []
+        def ask2(msg): qs2.append(msg); return True
+        R.ask = ask2
+        try: r, n = self.instrumented(late=(1.5, 0.0))
+        finally: R.ask = orig
+        self.assertTrue(any("SAG_LATE" in q for q in qs2)); self.assertTrue(r["returned_to_start"])                                           # y면 복귀
+        qs3 = []
+        def ask3(msg): qs3.append(msg); return True
+        R.ask = ask3
+        try: r, n = self.instrumented()
+        finally: R.ask = orig
+        self.assertFalse(any("SAG_LATE" in q for q in qs3))                                                                                    # 정상 들어올림에는 이 질문이 없다
 
     def test_cap_below_first_target_is_refused_explicitly(self):
         r, n = self.instrumented(late=(3.5, 0.0)); L = self.lift(r)                                                                          # cap ≤ 73: 첫 이동만으로도 30° 초과 → ValueError가 아니라 같은 거부

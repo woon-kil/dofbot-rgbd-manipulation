@@ -36,6 +36,9 @@ def classify(result):
     elif stall: res.update(outcome="no_lift", code="STALL_%s" % (r2.get("stall_command") or last_cmd))
     elif steps is not None: res.update(outcome="no_lift", code="NO_STALL_%s" % last_cmd)
     else: res.update(outcome="no_lift", code="ABORT")
+    late = ((lift or {}).get("sag") or {}).get("late") or {}
+    if late.get("cap") is not None and late.get("plan_max") is not None and late["cap"] < late["plan_max"]:
+        res["note"] = "처짐 cap으로 둘째 J2 목표가 %d→%d: E1 신호 약함 가능, 파지 실패의 증거로 쓰지 않는다. 탐색 단계의 이런 시도는 30회 0건 집계에 넣지 않는다(사용자 결정 2026-11-18)" % (late["plan_max"], late["cap"])
     return res
 
 
@@ -43,6 +46,7 @@ def main():
     if len(sys.argv) != 2: sys.exit(__doc__)
     c = classify(json.load(open(sys.argv[1], encoding="utf-8")))
     print("분류: %s%s%s" % (c["attempt"], (" + " + c["outcome"] + ((" (" + c["code"] + ")") if c.get("code") else "") + (", 첫 J2 이동 뒤 열림" if c.get("lifted_once") and c["outcome"] == "no_lift" else "")) if c.get("counted") else "", (" — " + c["why"]) if c.get("why") else ""))
+    if c.get("note"): print("주의: " + c["note"])
     print("판정 기록: " + c["judgement_record"])
 
 

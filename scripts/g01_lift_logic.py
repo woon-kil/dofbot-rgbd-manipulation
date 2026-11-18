@@ -94,7 +94,7 @@ def e1_attempt_label(e1, lift):
     late = (((lift or {}).get("sag") or {}).get("late")) or {}
     capped = late.get("cap") is not None and late.get("plan_max") is not None and late["cap"] < late["plan_max"]      # 처짐 cap으로 둘째 목표가 낮아진 시도(P10)
     weak = bool(sj.get("skipped_reason") or sj.get("no_response") or capped)
-    return dict(e1, signal_shortfall_possible=bool(weak and e1.get("verdict") == "불합격"), note=("두 번째 J2 이동 생략/무반응/처짐 cap: 들어올림이 덜 되어 E1 불합격은 신호 부족일 수 있음" if weak and e1.get("verdict") == "불합격" else ""))
+    return dict(e1, signal_shortfall_possible=bool(weak and e1.get("verdict") == "불합격"), note=("두 번째 J2 이동 생략/무반응/처짐 cap: E1 신호 약함 가능 — 들어올림이 덜 되어 E1 불합격은 '쥠 실패'가 아니라 신호 부족일 수 있다(파지 실패의 증거로 쓰지 않는다)" if weak and e1.get("verdict") == "불합격" else ""))
 
 
 # ---------- E1·E3 (R8, E-2 :28·:98~100, E-7) ----------
