@@ -160,7 +160,8 @@ def lift_after_stall(ctx):
         # 어댑터 생성(read_start)은 쓰기가 나가기 전이다. 여기서 실패하면(예: 서보 회독 None) 복귀 색인·cmd를 실제 상태 기준으로 돌린 뒤 다시 던진다(재실행 #1 사고: PROG["sent"]가 '이 이동이 끝난 뒤' 색인으로 남아 복귀가 쓰기 없이 멈췄다)
         try: ad = _adapter(ctx, joint, target)
         except BaseException as exc_:
-            lift["code"] = "ADAPTER_BEFORE_WRITE"; lift["lifted_once"] = bool(lifted); lift["adapter_error"] = {"joint": joint, "target": int(target), "error": repr(exc_)}; save_logs()
+            lift["adapter_error"] = {"joint": joint, "target": int(target), "error": repr(exc_), "type": type(exc_).__name__}; save_logs()
+            if type(exc_).__name__ == "GripperTestError": lift["code"] = "ADAPTER_BEFORE_WRITE"; lift["lifted_once"] = bool(lifted)   # 분류 라벨은 어댑터 거부일 때만(Ctrl-C·Hangup은 라벨 없이 복원만)
             try:
                 PROG["sent"] = _stage_idx(ctx)
                 for j_, v_ in zip((1, 2, 3, 4), plan["return_routes"][PROG["sent"]]["state"]): cmd[j_] = v_
@@ -178,6 +179,8 @@ def lift_after_stall(ctx):
                 for j_, v_ in zip((1, 2, 3, 4), plan["return_routes"][PROG["sent"]]["state"]): cmd[j_] = v_   # run_move가 중단 전에 cmd에 적은 '목표'(예: 무반응이었던 77)를 실제 상태 항목 값으로 되돌린다(복귀의 비명령 관절 이탈 검사)
             except BaseException: pass
             lift["moves"].append({"step": step, "joint": joint, "target": int(target), "aborted": True}); lifted = True; raise
+        fv_ = (st.get("final") or {}).get(str(joint))   # 이동 성공 뒤 그 관절의 명령 기준점을 run_move가 이미 모은 실제 정수 회독으로 갱신한다(사용자 승인 2026-11-19; 새로 읽지 않음, None이면 목표값 유지, HOLD_TOL 3·run_move 불변)
+        if fv_ is not None: cmd[joint] = fv_                # 비명령 관절 이탈 검사가 서보 정상 부족분(약 2°)을 섞지 않게 한다
         lift["moves"].append(dict(st, step=step, target=int(target))); lifted = True; PROG["sent"] = _stage_idx(ctx)
         return st
     try:

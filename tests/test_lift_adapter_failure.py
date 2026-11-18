@@ -75,29 +75,78 @@ class AdapterFailureTest(unittest.TestCase):
         self.fail_adapter_at(3); r = self.run33(); r["mode"] = "real"; c = CL.classify(r)
         self.assertEqual(c["outcome"], "no_lift"); self.assertEqual(c["code"], "ADAPTER_BEFORE_WRITE"); self.assertTrue(c["lifted_once"])
 
+    # --- 어댑터 생성 중 Ctrl-C: 분류 라벨은 붙이지 않고 복귀 색인·cmd 복원만 한다 ---
+    def test_keyboard_interrupt_in_adapter_restores_but_not_labeled_adapter(self):
+        orig = self.old[2]; cnt = {"n": 0}
+        def wrapped(ctx, joint, target):
+            cnt["n"] += 1
+            if cnt["n"] == 3: raise KeyboardInterrupt()
+            return orig(ctx, joint, target)
+        LH._adapter = wrapped; r = self.run33(); L = self.lift(r)
+        self.assertNotEqual(L.get("code"), "ADAPTER_BEFORE_WRITE"); self.assertEqual((L.get("adapter_error") or {}).get("type"), "KeyboardInterrupt")
+        used = L.get("return_index_used") or {}; self.assertEqual(R.PROG["sent"], used.get("index"))      # 복귀 색인은 실제 상태 기준으로 복원됨
+
     # --- T8: 실패한 어댑터의 로그가 결과 JSON에 남는다 ---
     def test_T8_failed_adapter_log_is_saved(self):
         self.fail_adapter_at(3); r = self.run33(); logs = self.lift(r).get("adapter_logs")
         self.assertIsNotNone(logs, "lift.adapter_logs 없음"); flat = json.dumps(logs)
         self.assertIn('["read", null]', flat)
 
-    # --- T9: 셋째 이동 이탈 검사(현재 동작 기록, 합격/불합격 시험 아님) ---
-    def test_T9_record_third_move_hold_check_with_j2_sag(self):
-        class SagArm(self.old[3]):
-            extra = 0.0; armed = False
+    # --- T9: 셋째 이동(J4) 이탈 검사. 사용자 승인(2026-11-19)으로 이동 성공 뒤 cmd[joint]를 실제 정수 회독으로 갱신한다(HOLD_TOL 3 불변). 추가 처짐은 셋째 이동 중에만 적용한다 ---
+    def sag_arm_class(self):
+        base = self.old[3]
+        class SagArm(base):
+            extra = 0.0; arm_next = False; until = -1.0
+            def Arm_serial_servo_write(s, id, angle, time_ms):
+                import time as _t
+                if id == 4 and s.arm_next: s.until = _t.monotonic() + 3.5; s.arm_next = False   # 셋째 이동의 J4 쓰기부터 3.5 s 동안만 J2가 extra만큼 더 낮게 읽힌다(복귀에는 영향 없음)
+                return super().Arm_serial_servo_write(id, angle, time_ms)
             def Arm_serial_servo_read(s, id):
+                import time as _t
                 v = super().Arm_serial_servo_read(id)
-                return v if (v is None or id != 2 or not s.armed) else int(round(v - s.extra))
+                return v if (v is None or id != 2 or _t.monotonic() > s.until) else int(round(v - s.extra))
+        return SagArm
+
+    def run_with_sag(self, extra, path=None, hyst="1.9,0.27"):
+        Sag = self.sag_arm_class(); Sag.extra = extra; R.FakeArmS = Sag; orig = self.old[2]
+        def wrapped(ctx, joint, target):
+            if joint == 4: ctx["arm"].arm_next = True
+            return orig(ctx, joint, target)
+        LH._adapter = wrapped
+        old_path = self.path
+        if path is not None: self.path = path
+        try:
+            R.LIFT_CHANNEL = T.FakeChannel(T.REF, T.photos())
+            return vclock.run_runner_fake(self.path, ("--fake-ceil", "6:146", *(("--fake-hyst", hyst) if hyst else ())))
+        finally: self.path = old_path
+
+    def test_T9_third_move_hold_check_uses_actual_reading(self):
         out = {}
         for extra in (0.0, 1.0, 2.0, 3.0, 4.0):
-            SagArm.extra = extra; R.FakeArmS = SagArm; orig = self.old[2]
-            def wrapped(ctx, joint, target, orig=orig):
-                if joint == 4: ctx["arm"].armed = True                                      # 셋째 이동 시작부터 J2가 extra만큼 더 낮게 읽힌다(둘째 이동 뒤 부족분은 hyst가 모사)
-                return orig(ctx, joint, target)
-            LH._adapter = wrapped; r = self.run33(); L = self.lift(r)
-            out[extra] = {"ended": r.get("ended"), "abort": (r.get("abort_reason") or r.get("error") or "")[:90], "moves": [(m["target"], bool(m.get("aborted"))) for m in L.get("moves", [])], "photo_b": L.get("hold_done")}
-        print("\nT9 기록(J2 추가 처짐 → 결과):\n" + json.dumps(out, ensure_ascii=False, indent=1))
-        self.assertEqual(set(out), {0.0, 1.0, 2.0, 3.0, 4.0})
+            r = self.run_with_sag(extra); L = self.lift(r)
+            out[extra] = (r.get("ended"), [(m["target"], bool(m.get("aborted"))) for m in L.get("moves", [])], (r.get("abort_reason") or "")[:70])
+        print("\nT9(cmd 갱신 뒤) J2 추가 처짐 → 결과:", json.dumps({str(k): v for k, v in out.items()}, ensure_ascii=False))
+        for extra in (0.0, 1.0, 2.0, 3.0): self.assertEqual(out[extra][0], "completed", (extra, out[extra])); self.assertEqual([t for t, a in out[extra][1]], [74, 77, 27])
+        self.assertEqual(out[4.0][0], "aborted"); self.assertTrue(out[4.0][1][-1][1])                # 기준값(실제 회독) 대비 3° 넘게 늘면 여전히 셋째 이동이 중단된다
 
+    # --- T10: 셋째 이동 중 J2 하한이 접촉 깊이 위인지(최대 목표 76·77, 둘째 이동 생략 경로, 추가 처짐 포함) ---
+    def plan_variant(self, max_target):
+        import copy, tempfile
+        pl = copy.deepcopy(self.plan33); pl["lift"]["j2_max_target"] = int(max_target)
+        f = Path(self.td.name) / ("plan33_max%d.json" % max_target); f.write_text(json.dumps(pl), encoding="utf-8"); return f
+
+    def test_T10_j2_floor_above_contact_depth(self):
+        rows = {}
+        for mx in (76, 77):
+            for hyst in ("1.9,0.27", ""):                     # "" = 서보 부족분 없음(최대 목표가 가까우면 둘째 이동 생략 경로)
+                r = self.run_with_sag(3.0, path=self.plan_variant(mx), hyst=hyst); L = self.lift(r)
+                moves = L.get("moves", []); contact_j2 = moves[0]["cmd_before"]["2"] if moves else None
+                last = next((m for m in reversed(moves) if m.get("target") == 27 or m.get("joint") == 4), None)
+                floor = min((v for t, v in (last or {}).get("series", {}).get("2", []) if v is not None), default=None)
+                rows[(mx, hyst)] = {"ended": r.get("ended"), "moves": [m["target"] for m in moves], "second": (L.get("second_j2") or {}).get("skipped_reason") or (L.get("second_j2") or {}).get("target"), "contact_j2": contact_j2, "lift3_j2_floor": floor}
+        print("\nT10 (최대 목표, hyst) → 기록:", json.dumps({str(k): v for k, v in rows.items()}, ensure_ascii=False))
+        for k, v in rows.items():
+            self.assertEqual(v["ended"], "completed", (k, v))
+            if v["lift3_j2_floor"] is not None: self.assertGreater(v["lift3_j2_floor"], v["contact_j2"], (k, v))   # 하한이 접촉 깊이 J2 위
 
 if __name__ == "__main__": unittest.main()
