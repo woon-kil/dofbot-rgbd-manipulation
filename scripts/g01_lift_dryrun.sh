@@ -34,9 +34,9 @@ json.dump(B.make_ref('${TS}', det, float(m.group(1)), ${PA_MAXSEC}, time.time(),
 # 기준 결과를 Jetson에 원자적으로 둔다(러너 기동 직전: 러너는 이 파일의 elapsed_at_ref_s에 자기 경과를 더해 P-A 경과를 판단한다)
 scp -q -o BatchMode=yes "${REF}" "${H}:${RD}/.lift_photo_ref.json.tmp" && "${SSH[@]}" "mv ~/${RD}/.lift_photo_ref.json.tmp ~/${RD}/lift_photo_ref.json" || { echo "기준 결과 전달 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
 scp -q -o BatchMode=yes "${ROOT}/scripts/g01_lift_params.py" "${ROOT}/scripts/g01_lift_logic.py" "${ROOT}/scripts/g01_lift_hook.py" "${ROOT}/scripts/g01_lift_dryrun_stub.py" "${H}:${RD}/" || { echo "스텁 전달 실패. 중단"; exit 7; }
-BLOG="${ROOT}/evidence/G01/raw/lift_dryrun_bridge_${TS}.log"
+BLOG="${ROOT}/evidence/G01/raw/lift_dryrun_bridge_${TS}.log"; RLOG="${ROOT}/evidence/G01/raw/lift_runner_${TS}.log"
 STUBCMD="cd ~/${RD} && python3 g01_lift_dryrun_stub.py --run-id ${TS} --out ~/${RD}/dryrun_stub_result.json"
-ssh -t -o ConnectTimeout=8 "${H}" "${STUBCMD}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)" || echo "(스텁 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
+ssh -t -o ConnectTimeout=8 "${H}" "${STUBCMD}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") "${RLOG}" || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
 for _ in $(seq 1 20); do grep -q '"results"' "${BLOG}" 2>/dev/null && break; sleep 0.5; done   # 다리가 EOF를 받아 결과를 적을 때까지 잠시 기다린다
 
 SOUT="${ROOT}/evidence/G01/raw/lift_dryrun_stub_${TS}.json"

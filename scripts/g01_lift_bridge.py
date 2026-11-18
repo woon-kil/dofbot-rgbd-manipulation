@@ -213,7 +213,18 @@ def real_push(host, rd, tmpdir):
     return push
 
 
+def pump(bridge, lines, say=print):
+    """stdin을 EOF까지 읽는다. 줄마다 예외를 삼켜 계속 읽는다(다리가 죽으면 tee가 SIGPIPE로 끝나 ssh가 닫히고 러너가 누름 중에 SIGHUP을 받을 수 있다)."""
+    for line in lines:
+        try: bridge.handle(line)
+        except Exception as e:
+            try: say("[다리] 줄 처리 오류 %r (계속 읽는다)" % (e,))
+            except Exception: pass
+
+
 def main():
+    import signal
+    for sg in (signal.SIGINT, signal.SIGHUP): signal.signal(sg, signal.SIG_IGN)   # 우발적 신호로 다리가 죽지 않게(터미널 Ctrl-C는 원격 pty로 전달되어 러너가 처리한다)
     ap = argparse.ArgumentParser(); ap.add_argument("--run-id", required=True); ap.add_argument("--ref", required=True); ap.add_argument("--host", required=True); ap.add_argument("--rd", required=True)
     ap.add_argument("--plan", required=True); ap.add_argument("--name-prefix", required=True); ap.add_argument("--tmpdir", default="/tmp"); ap.add_argument("--log", default=None); a = ap.parse_args()
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); ref = json.load(open(a.ref, encoding="utf-8"))
@@ -226,7 +237,7 @@ def main():
     plan = json.load(open(a.plan, encoding="utf-8")); import g01_s42_plan_lift as PL; mods = PL._load_modules()   # chdir root(생성기 모듈이 상대 경로를 읽음)
     snap = real_snap(root, a.name_prefix)
     b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods), imghash=real_imghash(root, snap))
-    for line in sys.stdin: b.handle(line)
+    pump(b, sys.stdin, say)
     if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}, "history": b.history}, ensure_ascii=False, default=str) + "\n"); logf.close()
 
 

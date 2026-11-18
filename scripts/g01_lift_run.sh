@@ -87,18 +87,18 @@ json.dump(B.make_ref('${TS}', det, float(m.group(1)), ${PA_MAXSEC}, time.time(),
 # 기준 결과를 Jetson에 원자적으로 둔다(러너 기동 직전: 러너는 이 파일의 elapsed_at_ref_s에 자기 경과를 더해 P-A 경과를 판단한다)
 scp -q -o BatchMode=yes "${REF}" "${H}:${RD}/.lift_photo_ref.json.tmp" && "${SSH[@]}" "mv ~/${RD}/.lift_photo_ref.json.tmp ~/${RD}/lift_photo_ref.json" || { echo "기준 결과 전달 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
 fi
-BLOG="${ROOT}/evidence/G01/raw/lift_bridge_${TS}.log"
+BLOG="${ROOT}/evidence/G01/raw/lift_bridge_${TS}.log"; RLOG="${ROOT}/evidence/G01/raw/lift_runner_${TS}.log"   # 러너 출력은 매번 파일로도 남긴다(래퍼 경유 dry run에서 result.json이 사라진 원인을 숨기지 않기 위해)
 RUNNER="cd ~/${RD} && python3 g01_p2k_test.py --plan plan.json ${ARGS} --run-id ${TS} --out ~/${RD}/result.json"
 if [ "${MODE}" = real ]; then
-  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
+  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") "${RLOG}" || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
   for _ in $(seq 1 20); do grep -q '"results"' "${BLOG}" 2>/dev/null && break; sleep 0.5; done   # 다리가 EOF를 받아 결과를 적을 때까지 잠시 기다린다
   echo "[복귀 뒤 사진] 팔이 K1로 돌아왔습니다. 화면 밖에 계세요. P-A 스냅 1장(기록용, P4)."
   bash "${ROOT}/scripts/pa_snap_mac.sh" "lift_${TS}_post" || echo "(복귀 뒤 P-A 스냅 실패: 기록 없음)"
   pa_stop
 else
-  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"   # dry_run: 쓰기 0, 사진·P-A 없음
+  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) "${RLOG}" || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"   # dry_run: 쓰기 0, 사진·P-A 없음
 fi
-scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; echo "--- 진단(읽기 전용): Jetson 작업 폴더와 러너 프로세스 ---"; "${SSH[@]}" "date; ls -la --time-style=full-iso ~/${RD} | head -20; pgrep -fa g01_p2k_test || echo '러너 프로세스 없음'" || true; exit 6; }
+scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; echo "--- 진단(읽기 전용): Jetson 작업 폴더와 러너 프로세스 ---"; "${SSH[@]}" "date; ls -la --time-style=full-iso ~/${RD} | head -20; pgrep -fa '[g]01_p2k_test' || echo '러너 프로세스 없음'" || true; exit 6; }
 python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'returned_to_start=',j.get('returned_to_start'),'lift=',(j.get('lift') or {}).get('ended_reason'))" "${OUT}" "${TS}" "${MODE}"
 echo "저장: ${OUT}"
 "${VPY}" -I "${ROOT}/scripts/g01_lift_classify.py" "${OUT}" || echo "(분류 실패: 결과 JSON을 직접 확인)"

@@ -18,7 +18,10 @@ JOINT_DESC = {1: "J1(밑동 회전: 팔 전체가 좌우로 돈다)", 2: "J2(어
 CAP_CMD = 'source /opt/ros/humble/setup.bash; source ~/dofbot_pro_ws/install/setup.bash; mkdir -p /tmp/g01_s42_view; rm -rf /tmp/g01_s42_view/p{pid}; python3 ~/dofbot-g01_5b4/g01_dabai_expsweep.py /tmp/g01_s42_view/p{pid} {vals} dabai > /tmp/g01_s42_view/p{pid}.log 2>&1; echo capture_exit=$?'
 
 
-def say(*a, **k): builtins.print(*a, **k, flush=True)
+def say(*a, **k):
+    """출력. ssh/pty가 끊기면 print가 OSError를 낸다 — 비상 열기·결과 기록 앞의 say가 그 예외로 finally를 중단하면 안 되므로 삼킨다(2026-11-18, 가짜 시험으로 재현: 죽은 pty에서 비상 J6 열기와 result.json이 건너뛰어졌다)."""
+    try: builtins.print(*a, **k, flush=True)
+    except (OSError, ValueError): pass
 def flush_stdin():
     """tty에 남은 입력(정지 중 친 두 번째 입력 등)을 버린다: 질문이 잘못된 입력을 소비하지 않게(R16에서 종합 확인 y가 버퍼에 먹혔을 가능성)."""
     try:

@@ -63,6 +63,15 @@ class TestBridge(unittest.TestCase):
         res = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=PARAMS, say=lambda s: None, imghash=bad).handle("[사진 요청 C id=t2]"); self.assertIsNone(res["image_sha256"])   # 해시 실패는 R8이 판정 없음으로 처리
         self.assertEqual(B.make_ref("rid", REF, 1000.0, 1800, 1042.5, "abc")["image_sha256"], "abc")
 
+    def test_pump_survives_a_line_that_raises_and_keeps_reading(self):
+        seen = []
+        class Br:
+            def handle(s, line):
+                if "boom" in line: raise RuntimeError("처리 오류")
+                seen.append(line)
+        out = []; B.pump(Br(), ["a\n", "boom\n", "c\n"], say=out.append); self.assertEqual(seen, ["a\n", "c\n"]); self.assertTrue(any("줄 처리 오류" in o for o in out))
+        B.pump(Br(), ["boom\n", "d\n"], say=lambda s: (_ for _ in ()).throw(OSError("죽은 터미널"))); # say마저 실패해도 계속(여기서는 예외가 새지 않아야 한다)
+
     def test_snap_failure_still_pushes_with_reason(self):
         r = Rec(snap_exc=RuntimeError("프레임 없음")); res = bridge(r).handle("[사진 요청 A id=t]")
         self.assertIsNone(res["detect"]); self.assertFalse(res["gate"]["go"]); self.assertIn("프레임 없음", res["error_snap"]); self.assertEqual(len(r.pushed), 1)

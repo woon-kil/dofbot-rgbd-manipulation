@@ -259,6 +259,24 @@ class SagCapMethods:
         finally: R.ask = orig
         self.assertEqual(r["ended"], "aborted"); self.assertIn("복귀하지 않습니다", r["abort_reason"]); self.assertNotEqual(r.get("returned_to_start"), True)                 # 정상 들어올림에서도 N이면 복귀하지 않는다
 
+    def test_dead_terminal_during_press_still_opens_j6_once_and_writes_result(self):
+        """ssh/pty가 끊겨(SIGHUP→Hangup, 이후 print가 OSError) 사진 A를 기다리는 누름 중에도 비상 J6 열기가 정확히 1회 나가고 result.json이 써져야 한다(래퍼 경유 dry run에서 result.json이 사라진 원인 가설: finally 안의 say가 죽은 pty에서 OSError → 열기·기록 건너뜀)."""
+        import builtins
+        orig_print = builtins.print; dead = {"on": False}
+        def dying_print(*a, **k):
+            if dead["on"]: raise OSError(5, "Input/output error")
+            return orig_print(*a, **k)
+        class Ch(FakeChannel):
+            def wait(s, name, timeout_s, token):
+                if name == "A": dead["on"] = True; raise R.Hangup("가짜 SIGHUP: 터미널 끊김")
+                return super().wait(name, timeout_s, token)
+        builtins.print = dying_print
+        try: r = self.run33(Ch(REF, photos()))
+        finally: builtins.print = orig_print; dead["on"] = False
+        self.assertEqual(r["ended"], "hangup"); self.assertTrue(r.get("emergency_open") or any(l[0] == "write" and len(l) > 4 and l[4] == "return_to_start" for l in r["j6_adapter_logs"]["contact"]))
+        opens = [l for l in r["j6_adapter_logs"]["contact"] if l[0] == "write" and len(l) > 4 and l[4] == "return_to_start"] + [l for l in r["j6_adapter_logs"].get("emergency_open", []) if l[0] == "write"]
+        self.assertEqual(len(opens), 1, opens)                                                                                                  # 열기 정확히 1회
+
     def test_cap_below_first_target_is_refused_explicitly(self):
         r, n = self.instrumented(late=(3.5, 0.0)); L = self.lift(r)                                                                          # cap ≤ 73: 첫 이동만으로도 30° 초과 → ValueError가 아니라 같은 거부
         self.assertEqual(L["code"], "SAG_LATE"); self.assertLess(L["sag"]["late"]["cap"], 74)
