@@ -45,15 +45,17 @@ def simulate(actuals, P=None):
 
 # ---------- 두 번째 J2 명령(R1, E-2b §9-1) ----------
 def second_j2_command(first_target, j2_start_deg, j2_after_first_deg, P=None):
-    """두 번째 J2 절대 명령. 승인 공식 inc = clip(8 − 실제 올라간 각도 + 1.5, 3, 6)에, 최악(부족 0) tilt ≤ 30°를 지키는 총 상승량 상한
-    lift_j2_total_cap_deg(UNSET이면 ParamsNotFinal)을 적용한다: inc ≤ cap − 올라간 각도(내림). 상한 때문에 inc < 1이면 두 번째 이동을 하지 않는다(None).
-    각도는 원시 읽기(실수). 반올림은 half-up, 상한은 내림."""
+    """두 번째 J2 절대 명령(SDK 정수 각도). 승인 공식 inc = clip(8 − 실제 올라간 각도 + 1.5, 3, 6)을 **첫 이동 뒤 실제 각도에 더하고**(FK `follow()` 모델,
+    E-2b `:117` '원시 각도를 읽어 남은 몫'), 최악(부족 0) tilt ≤ 30°를 지키는 총 상승량 상한을 절대 목표에 적용한다:
+    target = min(half_up(실제 + inc), floor(시작 + lift_j2_total_cap_deg)). 상한 UNSET이면 ParamsNotFinal. 첫 명령이 이미 상한을 넘으면 ValueError.
+    target이 첫 이동 뒤 실제 각도보다 1° 이상 높지 않으면 두 번째 이동을 하지 않는다(None). 각도는 원시 읽기(실수)."""
     import math
     P = PARAMS if P is None else P
     cap = P["lift_j2_total_cap_deg"]                       # UNSET이면 여기서 ParamsNotFinal
+    if first_target - j2_start_deg > cap + EPS: raise ValueError("첫 J2 명령이 총 상승량 상한을 넘는다")
     up = j2_after_first_deg - j2_start_deg; inc_f = min(6.0, max(3.0, 8.0 - up + 1.5))
-    inc = min(int(inc_f + 0.5), int(math.floor(cap - up + EPS)))
-    return (int(first_target) + inc if inc >= 1 else None), {"up_actual": up, "inc_formula": inc_f, "inc_used": inc}
+    target = min(int(j2_after_first_deg + inc_f + 0.5), int(math.floor(j2_start_deg + cap + EPS)))
+    return (target if target - j2_after_first_deg >= 1.0 - EPS else None), {"up_actual": up, "inc_formula": inc_f, "target_formula": int(j2_after_first_deg + inc_f + 0.5), "target_cap": int(math.floor(j2_start_deg + cap + EPS))}
 
 
 def shortfall_abort(commanded, readback_int, tol=3):

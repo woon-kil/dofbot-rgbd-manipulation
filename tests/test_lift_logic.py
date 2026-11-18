@@ -45,21 +45,23 @@ class ClockTest(unittest.TestCase):
 
 
 class LiftMathTest(unittest.TestCase):
-    def test_second_j2_command_applies_cap_and_formula(self):
+    def test_second_j2_command_adds_to_actual_angle_and_caps_total(self):
         pp = params(lift_j2_total_cap_deg=8.5)
-        self.assertEqual(L.second_j2_command(74, 69.0, 72.5, pp)[0], 74 + 5)      # 올라간 3.5°: 공식 6.0 → 상한 floor(8.5−3.5)=5
-        self.assertEqual(L.second_j2_command(74, 69.0, 74.0, pp)[0], 74 + 3)      # 부족 없음(5°): 공식 4.5→5, 상한 floor(3.5)=3 (tilt 31.1° 경로를 막음)
-        self.assertEqual(L.second_j2_command(74, 69.0, 66.0, pp)[0], 74 + 6)      # 거꾸로 움직임: 공식 상한 6, cap은 넉넉
-        self.assertIsNone(L.second_j2_command(74, 69.0, 77.6, pp)[0])             # 이미 cap 이상 올라감: 두 번째 이동 없음
+        # 시작 69.0, 첫 명령 74. 목표는 '실제 + inc'를 시작 + cap(=77.5→77)으로 자른다
+        self.assertEqual(L.second_j2_command(74, 69.0, 72.5, pp)[0], 77)          # 실제 72.5(올라간 3.5°): 공식 72.5+6.0=78.5→79 → 상한 77 (이전 결함: 79 = 총 +10° → tilt 31.1°)
+        self.assertEqual(L.second_j2_command(74, 69.0, 74.0, pp)[0], 77)          # 부족 없음: 공식 74+4.5=78.5→79 → 상한 77
+        self.assertEqual(L.second_j2_command(74, 69.0, 76.0, pp)[0], 77)          # 실제 76: 공식 76+3=79 → 상한 77
+        self.assertIsNone(L.second_j2_command(74, 69.0, 76.5, pp)[0])             # 77 − 76.5 < 1° → 두 번째 이동 없음
+        self.assertEqual(L.second_j2_command(74, 69.0, 70.0, pp)[0], 76)          # 첫 이동이 거의 안 감: 공식 70+6.0=76 < 상한 77 → 76
         pw = params(lift_j2_total_cap_deg=20.0)
-        self.assertEqual(L.second_j2_command(74, 69.0, 74.0, pw)[0], 74 + 5)      # cap이 넉넉하면 공식만(half-up 4.5→5)
-        self.assertEqual(L.second_j2_command(74, 69.0, 80.0, pw)[0], 74 + 3)      # 하한 3
+        self.assertEqual(L.second_j2_command(74, 69.0, 72.5, pw)[0], 79)          # cap이 넉넉하면 공식만(72.5+6.0=78.5, half-up 79)
+        with self.assertRaises(ValueError): L.second_j2_command(78, 69.0, 72.5, pp)   # 첫 명령이 이미 상한 초과
 
     def test_total_up_never_exceeds_cap_over_a_grid(self):
         pp = params(lift_j2_total_cap_deg=8.5)
         for k in range(0, 21):
-            up = k * 0.5 - 1.0; t, d = L.second_j2_command(74, 69.0, 69.0 + up, pp)
-            if t is not None: self.assertLessEqual(up + (t - 74), 8.5 + 1e-9, (up, t))
+            actual = 69.0 + k * 0.5 - 1.0; t, d = L.second_j2_command(74, 69.0, actual, pp)
+            if t is not None: self.assertLessEqual(t - 69.0, 8.5 + 1e-9, (actual, t))
 
     def test_second_j2_cap_unset_is_fail_closed(self):
         with self.assertRaises(P.ParamsNotFinal): L.second_j2_command(74, 69.0, 72.5)
