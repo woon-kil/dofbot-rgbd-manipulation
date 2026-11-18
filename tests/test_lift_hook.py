@@ -12,18 +12,18 @@ FIX = ROOT / "tests" / "fixtures" / "s4_2_plan_31_fixture.json"
 
 
 class FakeChannel(LH.PhotoChannel if vclock else object):
-    def __init__(self, ref=None, resp=None, delay=1.0, delays=None):
-        self.ref = ref; self.resp = resp or {}; self.delay = delay; self.delays = delays or {}; self.requests = []
-    def request(self, name): self.requests.append(name)
+    def __init__(self, ref=None, resp=None, delay=1.0, delays=None, stale=()):
+        self.ref = ref; self.resp = resp or {}; self.delay = delay; self.delays = delays or {}; self.requests = []; self.stale = set(stale); self.tokens = {}
+    def request(self, name, run_id): self.requests.append(name); self.tokens[name] = "%s-%s-tok" % (run_id, name); return self.tokens[name]
     def read_ref(self): return self.ref
-    def wait(self, name, timeout_s):
+    def wait(self, name, timeout_s, token):
         d = self.delays.get(name, self.delay); r = self.resp.get(name)
         if r is None or d > timeout_s: time.sleep(min(d, timeout_s)); return None
-        time.sleep(d); return r
+        time.sleep(d); return dict(r, request_id=("old-request" if name in self.stale else token))      # stale: 옛 파일이 남은 상황(요청 토큰 불일치)
 
 
 DET = {"found": True, "center": [673.0, 267.0], "side_px": 29.0, "yaw_deg": -179.0}
-REF = {"started_epoch": 1.5, "elapsed_at_ref_s": 120.0, "maxsec": 1800, "detect": DET}
+REF = {"run_id": "reg", "started_epoch": 1.5, "elapsed_at_ref_s": 120.0, "maxsec": 1800, "detect": DET}
 
 
 def photos(go=True, epoch_b=1.5, epoch_c=1.5, epoch_a=1.5):
@@ -42,10 +42,10 @@ class LiftHookTest(unittest.TestCase):
         self.old_ch, self.old_limit = R.LIFT_CHANNEL, LP.PARAMS["clock_limit_s"]
     def tearDown(self):
         R.LIFT_CHANNEL = self.old_ch; LP.PARAMS["clock_limit_s"] = self.old_limit
-    def run33(self, ch, ceil="6:146", extra=()):
+    def run33(self, ch, ceil="6:146", extra=(), hyst="1.9,0.27"):
         R.LIFT_CHANNEL = ch
-        # 시험에서는 Q3 UNSET이 --real만 막으므로 fake 모드로 실행한다
-        return vclock.run_runner_fake(self.path, ("--fake-ceil", ceil, *extra))
+        # Q3 UNSET은 --real만 막으므로 fake 모드로 실행. 기본은 서보 방향별 오차 모사(증가 방향 부족 1.9°, 감소 넘침 0.27°: 세트 16 대표값)
+        return vclock.run_runner_fake(self.path, ("--fake-ceil", ceil, *(("--fake-hyst", hyst) if hyst else ()), *extra))
     def lift(self, r): return r["poses"][3]["run2"].get("lift")
 
     def test_happy_path_lifts_drops_and_returns_with_j6_closed(self):
@@ -67,7 +67,7 @@ class LiftHookTest(unittest.TestCase):
             r = self.run33(ch); self.assertEqual(self.lift(r)["moves"], [], ch.delays); self.assertEqual(r["ended"], "completed")
 
     def test_precheck_failure_never_closes_the_gripper(self):
-        for ref in (None, dict(REF, elapsed_at_ref_s=1600.0), dict(REF, detect=None)):
+        for ref in (None, dict(REF, elapsed_at_ref_s=1600.0), dict(REF, detect=None), dict(REF, run_id="other-run")):
             r = self.run33(FakeChannel(ref, photos())); self.assertEqual(r["ended"], "aborted"); self.assertIn("사전 점검", r["abort_reason"]); self.assertNotIn("close_steps", r["poses"][3].get("run2", {}))
 
     def test_clock_stop_mid_lift_opens_and_returns_from_the_lifted_state(self):
@@ -79,6 +79,33 @@ class LiftHookTest(unittest.TestCase):
     def test_photo_b_from_another_pa_start_skips_hold_and_c_but_still_drops(self):
         ch = FakeChannel(REF, photos(epoch_b=9.9)); r = self.run33(ch); L = self.lift(r)
         self.assertFalse(L["hold_done"]); self.assertEqual(ch.requests, ["A", "B"]); self.assertEqual(r["ended"], "completed"); self.assertIsNotNone(L["open_readback"])
+
+    def test_stale_photo_results_are_ignored(self):
+        for names in (("A",), ("B",)):
+            ch = FakeChannel(REF, photos(), stale=names); r = self.run33(ch); L = self.lift(r)
+            self.assertEqual(r["ended"], "completed"); self.assertIsNone(L["photos"][names[0]])
+            if names == ("A",): self.assertEqual(L["moves"], [])                       # 옛 gate.go로 들어올리지 않는다
+            else: self.assertFalse(L["hold_done"]); self.assertEqual(ch.requests, ["A", "B"])   # 옛 B를 '확인됨'으로 받지 않는다
+
+    def test_photo_and_move_records_for_the_dry_run_measurements(self):
+        r = self.run33(FakeChannel(REF, photos())); L = self.lift(r)
+        for n in "ABC": self.assertEqual(set(L["photo_times"][n]), {"req_mono", "rx_mono", "wait_s", "req_epoch", "rx_epoch", "request_id"}); self.assertTrue(L["photo_times"][n]["request_id"].startswith("reg-%s-" % n))
+        for m in L["moves"]: self.assertIn("series", m); self.assertIn("reach_within_tol_ms", m)       # 이동당 시간 원자료(R11)
+
+    def test_second_j2_below_min_effective_step_is_skipped_not_sent(self):
+        r = self.run33(FakeChannel(REF, photos()), hyst=None); L = self.lift(r)                  # 이상적 서보: 첫 이동이 74에 정확히 도착 → 두 번째 요청 폭 3.0° < 3.5°
+        self.assertEqual([(m["joint"], m["target"]) for m in L["moves"]], [(2, 74), (4, 27)]); self.assertIn("최소 유효 폭", L["second_j2"]["skipped_reason"])
+        self.assertEqual(r["ended"], "completed"); self.assertIsNotNone(L["open_readback"])
+
+    def test_second_j2_with_no_response_aborts_via_arrival_check_when_readback_is_low(self):
+        orig = R.FakeArmS.Arm_serial_servo_write
+        def drop77(self_, id_, angle, time_ms):                                                    # 두 번째 J2 쓰기(77)만 서보가 무시하는 상황
+            if id_ == 2 and angle == 77 and R.P2K.get("contact"): self_.writes.append((id_, angle, time_ms)); return   # 접촉(누름) 중의 들어올림 쓰기만
+            return orig(self_, id_, angle, time_ms)
+        R.FakeArmS.Arm_serial_servo_write = drop77
+        try: r = self.run33(FakeChannel(REF, photos())); L = self.lift(r)                          # 부족 1.9°로 첫 이동 뒤 readback 73 → 두 번째(77) 무반응 → |77−73| = 4 > 3
+        finally: R.FakeArmS.Arm_serial_servo_write = orig
+        self.assertEqual(r["ended"], "aborted"); self.assertIn("도착 실패", r["abort_reason"]); self.assertTrue(L["moves"][-1].get("aborted"))
 
     def test_no_stall_at_150_means_no_lift(self):
         r = self.run33(FakeChannel(REF, photos()), ceil="6:179"); rr = r["poses"][3]["run2"]

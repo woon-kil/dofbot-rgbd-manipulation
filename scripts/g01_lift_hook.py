@@ -12,9 +12,11 @@ REF_NAME = "ref"
 class PhotoChannel:
     """사진 요청·결과 수신 채널(시험에서 가짜로 대체). request(name)은 요청 줄을 출력하고, wait(name, timeout_s)는 결과 dict 또는 None(시간 초과)을 돌려준다."""
     def __init__(self, say): self.say = say
-    def request(self, name): self.say("[사진 요청 %s]" % name)
+    def request(self, name, run_id):
+        """고유 토큰을 만들어 요청 줄에 넣는다(결과 JSON의 request_id와 대조). 반환: 토큰."""
+        tok = "%s-%s-%d" % (run_id, name, time.time_ns()); self.say("[사진 요청 %s id=%s]" % (name, tok)); return tok
     def read_ref(self): raise NotImplementedError
-    def wait(self, name, timeout_s): raise NotImplementedError
+    def wait(self, name, timeout_s, token): raise NotImplementedError
 
 
 class FilePhotoChannel(PhotoChannel):
@@ -25,12 +27,18 @@ class FilePhotoChannel(PhotoChannel):
     def read_ref(self):
         p = self._path(REF_NAME)
         return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else None
-    def wait(self, name, timeout_s):
+    def request(self, name, run_id):
+        try: os.remove(self._path(name))                                 # 요청 직전에 같은 이름의 옛 결과를 지운다
+        except FileNotFoundError: pass
+        return super().request(name, run_id)
+    def wait(self, name, timeout_s, token):
         t0 = time.monotonic()
         while time.monotonic() - t0 <= timeout_s:
             p = self._path(name)
             if os.path.exists(p):
-                try: return json.load(open(p, encoding="utf-8"))
+                try:
+                    r = json.load(open(p, encoding="utf-8"))
+                    if r.get("request_id") == token: return r              # 이번 요청의 응답만 받는다(옛 파일·다른 요청은 무시하고 계속 폴링)
                 except Exception: pass                                   # 쓰는 중이면 다음 폴링에서 다시 읽는다
             time.sleep(self.POLL_S)
         return None
@@ -40,11 +48,12 @@ def new_clock(params):
     return L.PressClock(time.monotonic, params)
 
 
-def precheck_before_close(ch, params, t_runner_start, now=None):
+def precheck_before_close(ch, params, t_runner_start, run_id=None, now=None):
     """R5·R6: 닫기 전에 기준 사진(실행 전, 같은 P-A 기동)이 있고 P-A 경과가 여유 안인지 확인한다. 반환 (ok, 사유, ref dict)."""
     now = time.monotonic() if now is None else now
     ref = ch.read_ref()
     if not ref or not ref.get("detect") or ref.get("started_epoch") is None: return False, "기준 사진 결과(lift_photo_ref.json)가 없다", ref
+    if run_id is not None and ref.get("run_id") != run_id: return False, "기준 사진이 이번 실행(run_id %s)의 것이 아니다" % run_id, ref
     elapsed = float(ref.get("elapsed_at_ref_s", 1e9)) + (now - t_runner_start)
     if not L.pa_elapsed_ok(elapsed, float(ref.get("maxsec", 0)), params): return False, "P-A 기동 경과 %.0f s가 MAXSEC − %d s를 넘었다" % (elapsed, params["pa_elapsed_margin_s"]), ref
     return True, "", ref
@@ -56,6 +65,22 @@ def _adapter(ctx, joint, target):
     ad = ctx["Adapter"](ctx["arm"], {"approved": True, "expires": today.isoformat(), "allowed_times_ms": [ctx["params"]["move_time_ms"]], "first_move_min_ms": ctx["params"]["first_move_min_ms"],
                                      "max_writes": 3, "delta_deg": 1, "joint_id": joint, "direction": 1, "angle_window": list(ctx["WINDOWS"][joint]), "pattern": "list"}, today=today, dry_run=False)
     s = ad.read_start(); ad.set_targets([s, int(target)]); return ad
+
+
+def _raw(ctx, joint):
+    """원시 각도(실수) 읽기, None이면 3회 재시도 후 명시적으로 중단(높이 관문과 같은 방식)."""
+    for _ in range(3):
+        v = ctx["raw_set"](ctx["arm"])[str(joint)]["deg"]
+        if v is not None: return v
+        time.sleep(0.05)
+    raise ctx["Abort"]("J%d 원시 각도 읽기 실패(None). 추가 이동 없음." % joint)
+
+
+def _stage_idx(ctx):
+    """현재 원시 J2·J4에 가장 가까운 들어올린 상태의 복귀 색인(이동 뒤·중단 시 실제 상태 기준)."""
+    plan = ctx["plan"]; j4_before = int(plan["return_routes"][plan["lift"]["contact_moves_done"]]["state"][3]); j4_after = j4_before + plan["lift"]["j4_delta"]
+    stage = "after_j4" if abs(_raw(ctx, 4) - j4_after) < abs(_raw(ctx, 4) - j4_before) else "before_j4"
+    return _idx(plan, stage, int(round(_raw(ctx, 2))))
 
 
 def _idx(plan, stage, j2_read):
@@ -73,7 +98,9 @@ def lift_after_stall(ctx):
     def done(reason): lift["ended_reason"] = reason; lift["clock_log"] = list(clk.log)
     def photo(name):
         if not clk.may_start("photo_" + name.lower(), ubs["photo_" + name.lower()]): return None
-        ch.request(name); r = ch.wait(name, P["photo_wait_max_s"]); lift["photos"][name] = r
+        t_req, e_req = time.monotonic(), time.time(); tok = ch.request(name, ctx["run_id"]); r = ch.wait(name, P["photo_wait_max_s"], tok)
+        if r is not None and r.get("request_id") != tok: r = None                                  # 요청 토큰이 다르면 응답이 아니다(방어)
+        lift["photos"][name] = r; lift.setdefault("photo_times", {})[name] = {"req_mono": t_req, "rx_mono": time.monotonic(), "wait_s": round(time.monotonic() - t_req, 3), "req_epoch": e_req, "rx_epoch": time.time(), "request_id": tok}
         if r is None: say("  ! 사진 %s 결과가 %.1f s 안에 오지 않았다(판정 없음)." % (name, P["photo_wait_max_s"]))
         return r
     # --- 사진 A·S4' 관문(들어올리기 전) ---
@@ -90,19 +117,27 @@ def lift_after_stall(ctx):
         nonlocal lifted
         if not clk.may_start(step, ubs[step]): raise _ClockStop(step)
         # 복귀 색인은 쓰기 직전에 '이 이동이 끝난 뒤' 상태로 지정한다(이미 보낸 이동은 서보가 끝까지 수행, 쓰기 전에 중단되면 do_return이 3° 불일치로 쓰기 없이 멈춘다)
-        PROG["sent"] = _idx(plan, "before_j4", int(target)) if joint == 2 else _idx(plan, "after_j4", int(round(ctx["raw_set"](arm)["2"]["deg"])))
+        PROG["sent"] = _idx(plan, "before_j4", int(target)) if joint == 2 else _idx(plan, "after_j4", int(round(_raw(ctx, 2))))
         ad = _adapter(ctx, joint, target); ads = dict(ads0); ads[joint] = ad
         mv = {"joint": joint, "target": int(target), "time_ms": ms, "phase": "L", "pose_id": None}
-        st = ctx["run_move"](ads, arm, mv, cmd, start_all, rec, n0 + k, n0 + 3, ctx["mode"], P["move_countdown_s"]); lift["moves"].append({"step": step, "joint": joint, "target": int(target), "final": st.get("final")}); lifted = True
+        try: st = ctx["run_move"](ads, arm, mv, cmd, start_all, rec, n0 + k, n0 + 3, ctx["mode"], P["move_countdown_s"])
+        except BaseException:
+            try: PROG["sent"] = _stage_idx(ctx)                                                     # 중단되면 실제 상태에 가장 가까운 복귀 항목(불일치면 do_return이 쓰기 없이 멈춘다)
+            except BaseException: pass
+            lift["moves"].append({"step": step, "joint": joint, "target": int(target), "aborted": True}); lifted = True; raise
+        lift["moves"].append(dict(st, step=step, target=int(target))); lifted = True; PROG["sent"] = _stage_idx(ctx)
         return st
     try:
-        j2_start = ctx["raw_set"](arm)["2"]["deg"]; first = plan["lift"]["j2_first_target"]
+        j2_start = _raw(ctx, 2); first = plan["lift"]["j2_first_target"]
         if first > plan["lift"]["j2_max_target"]: raise ValueError("계획의 첫 J2 명령이 최대 목표를 넘는다")
-        st = do_move("lift1", 2, first, 1); j2_read = ctx["raw_set"](arm)["2"]["deg"]; PROG["sent"] = _idx(plan, "before_j4", int(round(j2_read)))
+        st = do_move("lift1", 2, first, 1); j2_read = _raw(ctx, 2)
         t2, info = L.second_j2_command(first, j2_start, j2_read, dict(P, lift_j2_max_target=plan["lift"]["j2_max_target"])); lift["second_j2"] = dict(info, target=t2, j2_start=j2_start, j2_after_first=j2_read)
+        if t2 is not None and t2 - j2_read < P["lift_j2_min_effective_step_deg"]:   # 요청 폭이 서보 최소 유효 폭(위 방향, 세트 16)보다 작으면 보내지 않는다(조용한 반쪽 이동 방지, P10 조건 ①)
+            lift["second_j2"]["skipped_reason"] = "요청 폭 %.2f° < 최소 유효 폭 %.1f°" % (t2 - j2_read, P["lift_j2_min_effective_step_deg"]); say("  두 번째 J2 이동 생략: %s" % lift["second_j2"]["skipped_reason"]); t2 = None
         if t2 is not None:
-            do_move("lift2", 2, t2, 2); PROG["sent"] = _idx(plan, "before_j4", int(round(ctx["raw_set"](arm)["2"]["deg"])))
-        do_move("lift3", 4, int(cmd[4]) + plan["lift"]["j4_delta"], 3); j2_end = ctx["raw_set"](arm)["2"]["deg"]; PROG["sent"] = _idx(plan, "after_j4", int(round(j2_end)))
+            do_move("lift2", 2, t2, 2); moved = _raw(ctx, 2) - j2_read; lift["second_j2"]["moved_deg"] = moved
+            if moved < P["lift_j2_no_response_deg"]: lift["second_j2"]["no_response"] = True; say("  ! 두 번째 J2 무반응 의심(원시 변화 %.2f°). 재전송하지 않고 J4로 진행합니다(덜 들어올린 쪽)." % moved)
+        do_move("lift3", 4, int(cmd[4]) + plan["lift"]["j4_delta"], 3)
         # --- 사진 B → 유지 → 사진 C ---
         b = photo("B"); lift["hold_done"] = False; lift["photo_c_done"] = False
         if b is not None and L.same_start([ref.get("started_epoch"), b.get("started_epoch")]):
@@ -130,7 +165,8 @@ def close_j6_at_k1(ctx):
     s = fin.read_start(); mid = cfg.get("open_mid", 140)
     if abs(s - cfg["open_j6"]) > 2: raise ctx["Abort"]("K1 도착 뒤 J6 회독 %s가 열림 %d와 다르다. J6 닫기 없음." % (s, cfg["open_j6"]))
     fin.set_targets([s, mid, cfg["close_to"]]); last = None
-    for t in (mid, cfg["close_to"]):
+    for i, t in enumerate((mid, cfg["close_to"]), 1):
+        ctx["say"]("\n[이동 %d/2] J6 -> %d (time %d ms): 3초 뒤 닫습니다. ▶ **J6(그리퍼)를 지켜보세요. 손가락 근처에 손을 넣지 마세요.**" % (i, t, cfg["close_to_ms"])); time.sleep(3.0)   # 래퍼 beep_watch가 '[이동 N/M]' 줄에 소리를 낸다
         fin.confirm_hands_clear(); time.sleep(ctx["QUIET_S"]); fin.move(t, cfg["close_to_ms"])
         series = ctx["poll"](fin, 2 * cfg["close_to_ms"] + 1000); last = next((v for _, v in reversed(series) if v is not None), None)
     ctx["P2K"]["cur6"] = cfg["close_to"]; ctx["P2K"]["start6"] = cfg["close_to"]; ctx["start_all"][6] = cfg["close_to"]

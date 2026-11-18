@@ -40,7 +40,7 @@ def max_target(C, q0, first_target, limit=TILT_LIMIT_DEG, search=12):
 
 def make_lift_plan(plan31, G=None, C=None):
     if G is None or C is None: G, C = _load_modules()
-    plan = copy.deepcopy(plan31)
+    plan = copy.deepcopy(plan31); G.RET_J1_LAST = True   # 세트 31 생성과 같게(생성기 main()이 세트 21~32에서 켠다): 손가락을 연 채 블록 위에서 J1을 먼저 돌리지 않는다
     if plan.get("set") != "31": raise ValueError("세트 31 계획이 아니다")
     run2 = plan["run2"]; pid = run2["contact_pose"]
     k = max(i for i, m in enumerate(plan["moves"], 1) if m.get("pose_id") == pid)          # 접촉 자세에 도착한 마지막 이동 번호(= 완료한 이동 수)

@@ -41,6 +41,17 @@ class LiftPlanTest(unittest.TestCase):
             stage, j2 = key.split(":"); self.assertEqual(e["state"][1], int(j2)); self.assertEqual(e["state"][3], 32 if stage == "before_j4" else 27)
         self.assertEqual(sorted(int(k.split(":")[1]) for k in L["return_index"] if k.startswith("after_j4")), [72, 73, 74, 75, 76, 77])
 
+    def test_lifted_return_routes_never_move_j2_after_j1(self):                      # 세트 31과 같은 'J1은 마지막'(RET_J1_LAST) 규칙: 손가락을 연 채 블록 위에서 J1을 먼저 돌리지 않는다
+        n0 = len(self.src["return_routes"]); import g01_s42_plan_p2k as GG
+        self.assertTrue(GG.RET_J1_LAST)
+        for idx in self.plan["lift"]["return_index"].values():
+            joints = [m["joint"] for m in self.plan["return_routes"][idx]["route"]]
+            if 1 in joints: self.assertNotIn(2, joints[joints.index(1):], (idx, joints))
+
+    def test_lifted_return_routes_are_same_with_explicit_j1_last(self):
+        import copy as cp; G.RET_J1_LAST = False; other, _ = PL.make_lift_plan(cp.deepcopy(self.src_copy), G, C)      # make_lift_plan이 스스로 True로 켠다
+        self.assertEqual(other["return_routes"], self.plan["return_routes"])
+
     def test_source_plan_is_not_mutated_and_other_fields_kept(self):
         self.assertEqual(self.src, self.src_copy)
         for k in ("moves", "run2", "return_target", "return_nominal"): self.assertEqual(self.plan[k], self.src[k])

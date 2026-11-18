@@ -268,7 +268,7 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         lift_clock = None
         if LP.is_lift_plan(plan):   # 들어올림 계획: 닫기 전 사전 점검(기준 사진·P-A 경과, R5·R6)과 누름 시계(145 쓰기부터)
             import g01_lift_hook as LH
-            lparams = LP.params_for_plan(plan); lch = LIFT_CHANNEL or LH.FilePhotoChannel(say); ok_, why_, lref = LH.precheck_before_close(lch, lparams, P2K["t_start"])
+            lparams = LP.params_for_plan(plan); lch = LIFT_CHANNEL or LH.FilePhotoChannel(say); ok_, why_, lref = LH.precheck_before_close(lch, lparams, P2K["t_start"], P2K["run_id"])
             if not ok_: raise Abort("들어올림 사전 점검 실패: %s. 닫지 않고 복귀합니다." % why_)
             lift_clock = LH.new_clock(lparams); lub = dict(LH.L.step_upper_bounds(lparams))
         say("\n[접촉] J6를 열린 %d에서 %s로 닫습니다(P2h 정체 규칙: 명령 − 회독 ≥ 3° 이고 같은 값 연속 2회면 정체 → 3초 안에 엽니다). 손을 팔 범위에 넣지 마세요." % (s, cfg["close_seq"]))
@@ -293,7 +293,7 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
                 sr_ = poll(adc, 2 * cfg["release_ms"] + 1000); return next((v for _, v in reversed(sr_) if v is not None), None)
             out_ = LH.lift_after_stall({"plan": plan, "arm": arm, "adc": adc, "cfg": cfg, "rec": r2, "params": lparams, "clock": lift_clock, "channel": lch, "ref": lref, "run_move": run_move, "raw_set": raw_set,
                                         "Adapter": GripperTestAdapter, "WINDOWS": WINDOWS, "PROG": PROG, "P2K": P2K, "say": say, "cmd": P2K["cmd"], "start_all": P2K["start_all"], "ads": P2K["ads"], "mode": mode,
-                                        "stalled": stalled, "n_plan": len(plan["moves"]), "release": _release})
+                                        "stalled": stalled, "n_plan": len(plan["moves"]), "release": _release, "Abort": Abort, "run_id": P2K["run_id"]})
             if out_ == "lifted":
                 P2K["lift_done"] = True; P2K["low"] = True; lo_ = r2["lift"].get("open_readback"); r2["release_readback"] = lo_
                 if lo_ is None or abs(lo_ - s) > 3: raise Abort("열기 도착 실패(회독 %s, 목표 %d). 이후 이동 없음, 복귀로 이어집니다." % (lo_, s))
@@ -427,7 +427,7 @@ def main():
         lists = {j: [state[j]] + [m["target"] for m in moves if m["joint"] == j] for j in (1, 2, 3, 4)}
         times = [m["time_ms"] for m in moves] + [3000, 1500, 8000]
         ads = make_adapters(arm, lists, times, mode, 8000)
-        cmd = {j: state[j] for j in (1, 2, 3, 4)}; P2K["cmd"] = cmd; P2K["ads"] = ads; P2K["t_start"] = time.monotonic(); P2K["lift_done"] = False   # 들어올림 훅이 main의 상태를 넘겨받는다(F5)
+        cmd = {j: state[j] for j in (1, 2, 3, 4)}; P2K["cmd"] = cmd; P2K["ads"] = ads; P2K["t_start"] = time.monotonic(); P2K["lift_done"] = False; P2K["run_id"] = a.run_id   # 들어올림 훅이 main의 상태를 넘겨받는다(F5)
         say("\n계획 요약: 접기 계단 후 기준 깊은 자세 J1~J4 = %s (모델 높이 %.1f mm), 자세 순서 %s" % (plan["base"], plan["gate"]["base_z"], list(plan["poses"].keys())))
         say("자세별 모델 높이(mm) %s, 전이 최저 %s, 복귀(첫 구간) 최저 %.1f mm" % (plan["gate"]["pose_z"], plan["gate"]["transition_min"], plan["gate"]["return_j12_min"]))
         say("\n== 안전 확인(시작 시 1회) ==")
@@ -507,7 +507,7 @@ def main():
             do_return(plan, {"ads": ads}, arm, cmd, start_all, state, result, PROG["sent"], a, mode, normal=True)
             if P2K.get("lift_done") and result.get("returned_to_start"):   # 들어올림 뒤 K1 도착: J6를 시작값(오므림)으로 닫는다(새 코드)
                 import g01_lift_hook as LH
-                result["j6_k1_close_readback"] = LH.close_j6_at_k1({"cfg": plan["run2"], "plan": plan, "arm": arm, "Adapter": GripperTestAdapter, "Abort": Abort, "QUIET_S": QUIET_S, "poll": poll, "P2K": P2K, "start_all": start_all})
+                result["j6_k1_close_readback"] = LH.close_j6_at_k1({"cfg": plan["run2"], "plan": plan, "arm": arm, "Adapter": GripperTestAdapter, "Abort": Abort, "QUIET_S": QUIET_S, "poll": poll, "P2K": P2K, "start_all": start_all, "say": say})
             if not result.get("returned_to_start"): raise Abort("정상 종료 뒤 직립 복귀가 완료되지 않았다(%s). 팔 상태를 확인하고 에이전트에게 알리세요." % (result.get("return_abort") or result.get("return_state_mismatch") or "원인 미상"))
         if mode != "dry_run":
             result["overall_ok"] = ask("마지막 확인 1회: 전체 이동에서 소리·떨림·냄새, 처짐·흔들림, 접촉·걸림, 케이블 당김이 없었고 **J2·J3·J4와 오므린 그리퍼 서보 J6가 뜨겁지 않았습니까?**")
