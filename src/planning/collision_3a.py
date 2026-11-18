@@ -83,13 +83,17 @@ def capsule_points(caps, p5, R5, n=5):
 class Box:
     """월드 좌표 축 정렬 직육면체(블록·받침대). center, half: (3,) m."""
 
-    def __init__(self, center, half):
+    def __init__(self, center, half, yaw_deg=0.0):
         self.center = np.asarray(center, float)
         self.half = np.asarray(half, float)
+        self.yaw_deg = float(yaw_deg)   # 2026-11-18: z축 회전(도, 기본 0 = 기존 축 정렬 동작과 같다). 낙하 뒤 블록 yaw 스윕용
 
     def signed_distance(self, pts):
         """점들 (...,3) -> 부호 거리(밖 양수, 안 음수). 유클리드 거리(밖), 안쪽은 가장 가까운 면까지의 음수 거리."""
-        q = np.abs(np.asarray(pts, float) - self.center) - self.half
+        d = np.asarray(pts, float) - self.center
+        if self.yaw_deg != 0.0:   # 상자 좌표계로 회전(거리는 회전에 불변)
+            a = np.deg2rad(-self.yaw_deg); ca, sa = np.cos(a), np.sin(a); d = np.stack([ca * d[..., 0] - sa * d[..., 1], sa * d[..., 0] + ca * d[..., 1], d[..., 2]], axis=-1)
+        q = np.abs(d) - self.half
         outside = np.linalg.norm(np.maximum(q, 0.0), axis=-1)
         inside = np.max(q, axis=-1)
         return np.where(np.any(q > 0, axis=-1), outside, inside)

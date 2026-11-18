@@ -251,7 +251,13 @@ class SagCapMethods:
         R.ask = ask3
         try: r, n = self.instrumented()
         finally: R.ask = orig
-        self.assertFalse(any("SAG_LATE" in q for q in qs3))                                                                                    # 정상 들어올림에는 이 질문이 없다
+        self.assertFalse(any("SAG_LATE" in q for q in qs3)); self.assertTrue(any("들어올림 뒤 J6를 열어 블록이 낙하했습니다" in q and "5° 이내" in q for q in qs3))   # 정상 들어올림에도 낙하 뒤 사람 확인 질문이 있다(SAG_LATE 문구는 없음)
+        qs4 = []
+        def ask4(msg): qs4.append(msg); return not ("낙하했습니다" in msg or "시작 자세가 아닐 수" in msg)
+        R.ask = ask4
+        try: r, n = self.instrumented()
+        finally: R.ask = orig
+        self.assertEqual(r["ended"], "aborted"); self.assertIn("복귀하지 않습니다", r["abort_reason"]); self.assertNotEqual(r.get("returned_to_start"), True)                 # 정상 들어올림에서도 N이면 복귀하지 않는다
 
     def test_cap_below_first_target_is_refused_explicitly(self):
         r, n = self.instrumented(late=(3.5, 0.0)); L = self.lift(r)                                                                          # cap ≤ 73: 첫 이동만으로도 30° 초과 → ValueError가 아니라 같은 거부

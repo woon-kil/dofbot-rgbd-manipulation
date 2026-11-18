@@ -123,3 +123,13 @@ class PoseGridTests(unittest.TestCase):
         d0 = self.grid.nearest_observations(target, 0.0)[0][1]
         d15 = self.grid.nearest_observations(target, 0.15)[0][1]
         self.assertGreaterEqual(d15, d0)
+
+
+def test_box_yaw_default_is_axis_aligned_and_yaw_swaps_extents():
+    """Box.yaw_deg(2026-11-18 추가, 기본 0 = 기존 동작): yaw 90°는 x·y 반폭을 맞바꾼다."""
+    import numpy as np
+    from planning.collision_3a import Box
+    pts = np.array([[0.05, 0, 0], [0, 0.05, 0]]); half = [0.03, 0.015, 0.01]
+    assert np.allclose(Box([0, 0, 0], half).signed_distance(pts), [0.02, 0.035])
+    assert np.allclose(Box([0, 0, 0], half, yaw_deg=90).signed_distance(pts), [0.035, 0.02])
+    assert np.allclose(Box([0, 0, 0], half, yaw_deg=0.0).signed_distance(pts), Box([0, 0, 0], half).signed_distance(pts))
