@@ -35,7 +35,9 @@ def s4_gate_safe(ref_detect, detect, P=None):
     import g01_lift_logic as L
     try:
         if not (detect or {}).get("found"): return {"go": False, "reason": "사진 A에서 마커 id 7 미검출"}
-        return L.s4_gate(ref_detect, detect, dx_block_mm=None, dx_depth_mm=None, P=P)
+        dxb = None
+        if (ref_detect or {}).get("found") and detect.get("found"): dxb = dx_block_mm(ref_detect, detect)      # 원값은 gate 결과에 항상 기록
+        return L.s4_gate(ref_detect, detect, dx_block_mm=dxb, dx_depth_mm=None, P=P)
     except Exception as e:                                           # ParamsNotFinal 포함: 기록하고 no-go
         return {"go": False, "reason": "%s: %s" % (type(e).__name__, e)}
 

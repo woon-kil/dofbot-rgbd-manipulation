@@ -124,12 +124,17 @@ def s4_gate(ref, a, dx_block_mm=None, dx_depth_mm=None, P=None):
     shift = abs(dxp) if metric == "x" else math.hypot(dxp, dyp)
     if shift <= P["g2_deadzone_px"] + EPS: g2 = True
     else:
-        if dx_block_mm is None or dx_depth_mm is None: raise ParamsNotFinal("G2 불감대 밖인데 Δx_block 또는 d_x(깊이) 입력이 없다(조용한 생략 금지)")
-        lo, hi = dx_depth_mm + P["g2_s_range_mm"][0], dx_depth_mm + P["g2_s_range_mm"][1]
+        if dx_block_mm is None: raise ParamsNotFinal("G2 불감대 밖인데 Δx_block 입력이 없다(조용한 생략 금지)")
+        if dx_depth_mm is not None: lo, hi = dx_depth_mm + P["g2_s_range_mm"][0], dx_depth_mm + P["g2_s_range_mm"][1]
+        else:   # d_x(깊이) 미상(세트 33): 정렬 허용 ±bound로 보고 구간을 잡는다. 0을 걸치면 아래에서 방향 판정이 생략된다(방향 검사 생략은 승인 기록에 적는다)
+            if P["g2_dx_depth_bound_mm"] is None: raise ParamsNotFinal("d_x(깊이) 입력도 가정 범위(g2_dx_depth_bound_mm)도 없다")
+            b = P["g2_dx_depth_bound_mm"]; lo, hi = -b + P["g2_s_range_mm"][0], b + P["g2_s_range_mm"][1]
         x_out = abs(dxp) > P["g2_deadzone_px"] + EPS           # 2D 지표에서 y 이동만으로 불감대를 벗어나면 x 부호는 잡음이라 방향 판정을 하지 않는다(S4' G3: y는 기록만)
         sign_ok = True if (lo * hi <= 0 or not x_out) else ((dx_block_mm > 0) == (lo > 0))   # 예상 구간이 0을 걸치거나 x가 불감대 안이면 방향 판정 생략
         g2 = sign_ok and abs(dx_block_mm) <= P["g2_magnitude_mm"] + EPS
-    return {"go": bool(g2 and g4 and g5), "g1": True, "g2": g2, "g3_dy_px": dyp, "g4": g4, "g5": g5, "dyaw_deg": dyaw}
+    out = {"go": bool(g2 and g4 and g5), "g1": True, "g2": g2, "g3_dy_px": dyp, "g4": g4, "g5": g5, "dyaw_deg": dyaw, "dx_block_mm": dx_block_mm, "dx_depth_assumed": dx_depth_mm is None and dx_block_mm is not None}
+    if dx_block_mm is not None: out["near"] = abs(dx_block_mm) >= P["g2_near_mm"] - EPS      # 기록 전용 표시(P["g2_near_mm"])
+    return out
 
 
 # ---------- Q3 (R8, P9) ----------

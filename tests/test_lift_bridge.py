@@ -6,7 +6,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import g01_lift_bridge as B, g01_lift_hook as LH, g01_lift_params as LP
 
 REF = {"found": True, "center": [673.0, 267.0], "side_px": 29.3, "yaw_deg": -178.8}
-PARAMS = dict(LP.PARAMS)
+PARAMS = dict(LP.PARAMS); P_UNSET = LP.UNSET
 
 
 class Rec:
@@ -38,10 +38,16 @@ class TestBridge(unittest.TestCase):
         self.assertEqual(r.pushed[0][0], "A"); self.assertEqual(res["request_id"], "tok1"); self.assertEqual(res["started_epoch"], 1000.0); self.assertTrue(res["gate"]["go"])
 
     def test_gate_exception_is_written_not_silent(self):
-        moved = dict(REF, center=[676.0, 267.0])                               # 불감대 밖(3 px) + G2 입력(d_x) 미확정 → ParamsNotFinal
-        p = dict(PARAMS, g2_deadzone_metric="x"); r = Rec(detect=moved)
+        moved = dict(REF, center=[676.0, 267.0]); r = Rec(detect=moved)
+        p = dict(PARAMS, g2_deadzone_metric=P_UNSET)                           # 판정 지표가 UNSET이면 관문 계산이 ParamsNotFinal
         res = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=p, say=lambda s: None).handle("[사진 요청 A id=t]")
         self.assertFalse(res["gate"]["go"]); self.assertIn("ParamsNotFinal", res["gate"]["reason"]); self.assertEqual(len(r.pushed), 1)   # 결과는 반드시 전달된다
+
+    def test_gate_records_dx_block_and_passes_normal_grip_shift(self):
+        r = Rec(detect=dict(REF, center=[675.0, 267.0])); res = bridge(r).handle("[사진 요청 A id=t]")      # 정상 물림 규모의 x 이동(약 −1.6~−2 mm급): 불감대 밖이지만 3 mm 안
+        self.assertTrue(res["gate"]["go"], res["gate"]); self.assertIsNotNone(res["gate"]["dx_block_mm"]); self.assertTrue(res["gate"]["dx_depth_assumed"])
+        res = bridge(Rec(detect=dict(REF, center=[679.0, 267.0]))).handle("[사진 요청 A id=t2]")           # 약 4.8 px ≈ 3.6 mm > 3 → no-go, 원값은 남는다
+        self.assertFalse(res["gate"]["go"]); self.assertIn("dx_block_mm", res["gate"])
 
     def test_snap_failure_still_pushes_with_reason(self):
         r = Rec(snap_exc=RuntimeError("프레임 없음")); res = bridge(r).handle("[사진 요청 A id=t]")

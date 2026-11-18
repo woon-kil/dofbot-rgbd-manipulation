@@ -108,8 +108,8 @@ class JudgeTest(unittest.TestCase):
         self.assertTrue(L.s4_gate(ref, small)["go"])                                    # 기본 PARAMS: G2 불감대 = x(P11 ① 확정)
         px = params(g2_deadzone_metric="x"); pd = params(g2_deadzone_metric="dist")
         self.assertTrue(L.s4_gate(ref, small, P=px)["go"])                               # 불감대 안: 입력 불필요
-        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, P=px)              # 불감대 밖인데 Δx_block·d_x 없음 → 조용한 생략 금지
-        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, dx_block_mm=1.2, P=px)
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, P=px)              # 불감대 밖인데 Δx_block 없음 → 조용한 생략 금지
+        with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, big, P=params(g2_deadzone_metric="x", g2_dx_depth_bound_mm=None), dx_block_mm=1.2)   # d_x도 가정 범위도 없으면 거부
         self.assertFalse(L.s4_gate(ref, big, dx_block_mm=+1.2, dx_depth_mm=-2.0, P=px)["g2"])   # 예상 구간 (−3.26,−2.77) 음수, 이동 양수 → 방향 불일치
         self.assertTrue(L.s4_gate(ref, big, dx_block_mm=-1.2, dx_depth_mm=-2.0, P=px)["g2"])
         self.assertTrue(L.s4_gate(ref, big, dx_block_mm=+1.2, dx_depth_mm=1.0, P=px)["g2"])      # 예상 구간 (−0.26,0.23)이 0을 걸치면 방향 판정 생략
@@ -124,6 +124,15 @@ class JudgeTest(unittest.TestCase):
         with self.assertRaises(P.ParamsNotFinal): L.s4_gate(ref, ydrift, P=pd)            # 2D 지표면 불감대 밖인데 입력 없음 → 거부
         self.assertFalse(L.s4_gate(ref, dict(small, side_px=30.0), P=px)["go"]); self.assertFalse(L.s4_gate(ref, dict(small, yaw_deg=-175.0), P=px)["go"])
         self.assertFalse(L.s4_gate(ref, {"found": False}, P=px)["go"])
+
+    def test_s4_gate_g2_without_d_x_uses_magnitude_only(self):
+        """사용자 결정 2026-11-18(A): d_x(깊이) 미상 → ±3 mm로 보고 예상 구간 [-4.26, 2.23]이 0을 걸쳐 방향 판정 생략, |Δx| ≤ 3.0 mm만 본다."""
+        ref = dict(self.A); big = dict(self.A, center=[675.0, 267.0])
+        for dxb, go, near in ((-1.9, True, False), (-1.35, True, False), (+1.9, True, False), (-2.5, True, True), (-2.9, True, True), (+2.9, True, True), (-3.0, True, True), (-3.1, False, True), (+3.1, False, True)):
+            r = L.s4_gate(ref, big, dx_block_mm=dxb); self.assertEqual(r["go"], go, dxb); self.assertEqual(r["near"], near, dxb)
+            self.assertEqual(r["dx_block_mm"], dxb); self.assertTrue(r["dx_depth_assumed"])
+        self.assertTrue(L.s4_gate(ref, ref, dx_block_mm=None)["go"])              # 불감대 안이면 입력 없이 go
+        self.assertNotIn("near", L.s4_gate(ref, ref))                            # 입력 없으면 표시 없음
 
     def test_params_jsonable_survives_json(self):
         import json
