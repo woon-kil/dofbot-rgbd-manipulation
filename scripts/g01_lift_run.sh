@@ -66,7 +66,7 @@ pa_stop() { [ "${PA_STARTED}" = 1 ] && { pa_ssh stop || echo "(P-A 드라이버 
 trap pa_stop EXIT
 beep_watch() { while IFS= read -r l; do case "$l" in *"[이동 "*) afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &;; esac; done; }   # 세트 33은 36 s Gemini 사진(D1)을 쓰지 않는다(사진은 P-A 스냅)
 if [ "${MODE}" = real ]; then
-QTXT="기준 사진 전 확인: 노란 블록(마커 id 7)을 **마커 기준 재등록 사진 이후 만지지 않았고**(${REFINFO}) 지정 자리 그대로이며, 눈금자·클램프·거치대는 없고 종이·보드 위에 그 밖의 물체가 없으며, 사람·손이 화면 밖입니까? (y 이외는 중단) [y/N] "
+QTXT="기준 사진 전 확인: 노란 블록(마커 id 7)을 **마지막으로 위치를 확인한 사진(재등록 또는 복원 재측정) 이후 만지지 않았고**(${REFINFO}) 지정 자리 그대로이며, 눈금자·클램프·거치대는 없고 종이·보드 위에 그 밖의 물체가 없으며, 사람·손이 화면 밖입니까? (y 이외는 중단) [y/N] "
 read -r -p "${QTXT}" _ok; [ "${_ok}" = y ] || { echo "중단(팔은 움직이지 않았다)"; exit 7; }
 echo "[기준 사진] 팔 K1·눈금자 없음·사람 없음 상태로 Gemini 기준 사진 1장을 찍습니다(약 40초). 화면 밖에 계세요."
 bash "${ROOT}/scripts/p1_m3_gemini_photo.sh" "p2kref_${TS}" && [ -s "${ROOT}/data/g04/p2kref_${TS}.png" ] || { echo "기준 사진 실패(또는 파일 없음): 시험을 시작하지 않는다. 팔은 움직이지 않았다."; exit 7; }

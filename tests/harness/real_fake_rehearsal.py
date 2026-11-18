@@ -95,7 +95,7 @@ def main():
         p, st = os.waitpid(pid, os.WNOHANG)
         if p: status = st; break
     if hang_at_len is not None:
-        import glob, json; time.sleep(10); res = glob.glob(str(T / "jetson" / "result.json")) + glob.glob(str(T / "evidence" / "G01" / "raw" / "*result-real-*.json"))
+        import glob, json; time.sleep(10); res = glob.glob(str(T / "jetson" / "dofbot-g01_5b4" / "result.json")) + glob.glob(str(T / "evidence" / "G01" / "raw" / "*result-real-*.json"))
         print("[재현] 결과 파일:", res)
         for f in res:
             j = json.load(open(f)); print("ended", j.get("ended"), "| returned_to_start", j.get("returned_to_start"), "| J6 로그", {k: [(l[1], l[4] if len(l) > 4 else "") for l in v if l[0] == "write"] for k, v in (j.get("j6_adapter_logs") or {}).items()})

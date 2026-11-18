@@ -19,6 +19,13 @@ EXTRA_DATA = ["evidence/G06/p2k_poses_s42.json", "evidence/G06/p2k_marker_ref.tx
 OPTIONAL = {"evidence/G06/d3_height_model.json", "evidence/G01/s3_path_fk.json"}   # 생성기가 열 수 있는 입력(소스 grep): 있으면 포함, 없으면 기록
 
 
+def check_name(name):
+    """스냅샷 이름 검증: `-`로 시작(옵션처럼 보이는 `--help`)하거나 비어 있거나 `/`·공백·`..`를 포함하면 거부한다(폴더를 만들기 전에)."""
+    import re
+    if not name or name.startswith("-") or ".." in name or not re.fullmatch(r"[0-9A-Za-z._][0-9A-Za-z._-]*", name): raise SystemExit("스냅샷 이름이 올바르지 않다: %r (영문·숫자·._- 만, `-`로 시작·`..`·`/`·공백 금지)" % (name,))
+    return name
+
+
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
@@ -27,7 +34,7 @@ def git(*a): return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, t
 
 def main():
     if len(sys.argv) != 2: sys.exit(__doc__)
-    name = sys.argv[1]; out = ROOT / "evidence" / "scripts_snapshot" / name
+    name = check_name(sys.argv[1]); out = ROOT / "evidence" / "scripts_snapshot" / name
     if out.exists(): sys.exit("이미 있다(기존 스냅샷은 지우지 않는다): %s" % out)
     dirty = [l for l in git("status", "--porcelain", "--untracked-files=no", "--", "scripts", "src", "evidence/G06", "requirements.txt", "tools").splitlines() if l.strip()]
     if dirty: sys.exit("대상 경로에 수정된 추적 파일이 있다(커밋 뒤 다시): " + "; ".join(dirty))

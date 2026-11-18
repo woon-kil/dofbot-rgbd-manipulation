@@ -45,7 +45,7 @@ def classify(result):
 def main():
     if len(sys.argv) != 2: sys.exit(__doc__)
     c = classify(json.load(open(sys.argv[1], encoding="utf-8")))
-    print("분류: %s%s%s" % (c["attempt"], (" + " + c["outcome"] + ((" (" + c["code"] + ")") if c.get("code") else "") + (", 첫 J2 이동 뒤 열림" if c.get("lifted_once") and c["outcome"] == "no_lift" else "")) if c.get("counted") else "", (" — " + c["why"]) if c.get("why") else ""))
+    print("분류: %s%s%s" % (c["attempt"], (" + " + c["outcome"] + ((" (" + c["code"] + ")") if c.get("code") else "") + (", 들어올림 이동 뒤 열림(실행한 이동 수는 결과 JSON의 lift.moves)" if c.get("lifted_once") and c["outcome"] == "no_lift" else "")) if c.get("counted") else "", (" — " + c["why"]) if c.get("why") else ""))
     if c.get("note"): print("주의: " + c["note"])
     print("판정 기록: " + c["judgement_record"])
 

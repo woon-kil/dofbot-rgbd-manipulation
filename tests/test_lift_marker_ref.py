@@ -52,7 +52,7 @@ class TestRegister(unittest.TestCase):
 class TestWrapperStrings(unittest.TestCase):
     def test_wrapper_uses_only_lift_ref_and_fixes_question_text(self):
         t = (ROOT / "scripts" / "g01_lift_run.sh").read_text(encoding="utf-8")
-        self.assertNotIn("678.2", t); self.assertNotIn("Run 3 이후 만지지 않았고", t); self.assertIn("LMR.load()", t); self.assertIn("재등록 사진 이후 만지지 않았고", t.replace("**", ""))
+        self.assertNotIn("678.2", t); self.assertNotIn("Run 3 이후 만지지 않았고", t); self.assertIn("LMR.load()", t); self.assertIn("마지막으로 위치를 확인한 사진(재등록 또는 복원 재측정) 이후 만지지 않았고", t.replace("**", "")); self.assertNotIn("재등록 사진 이후 만지지 않았고", t.replace("**", ""))   # T6: 래퍼 질문은 마커 관문보다 앞이라 관문 통과를 말하지 않는다
         self.assertIn("g01_lift_classify.py", t)
         self.assertLess(t.index("g01_lift_marker_ref.py\" info"), t.index('scp -q -o BatchMode=yes "${ROOT}/scripts/g01_dabai_probe.py"'))   # 파일 확인이 배포보다 앞
 

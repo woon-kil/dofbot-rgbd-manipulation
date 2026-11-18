@@ -268,7 +268,7 @@ class SagCapMethods:
         try:
             with contextlib.redirect_stdout(buf): self.run33(FakeChannel(REF, photos()))
         finally: R.ask = orig
-        out = buf.getvalue(); self.assertIn("마커 기준 재등록 사진", out); self.assertNotIn("Run 3 이후 만지지", out); self.assertNotIn("약 15~20 mm", out); self.assertIn("약 10~17 mm", out)
+        out = buf.getvalue(); self.assertIn("기준 사진 이후 손대지 않았고", out); self.assertIn("--real", out.split("기준 사진 이후")[0][-60:]); self.assertNotIn("2026-11-18 17:02", out); self.assertNotIn("Run 3 이후 만지지", out); self.assertNotIn("약 15~20 mm", out); self.assertIn("약 10~17 mm", out)
         keys = ["위 8개를 모두 확인했습니까", "정렬 확인이 모두 맞습니까", "블록이 낙하했습니다", "마지막 확인 1회"]   # --real 정상 경로의 ask 순서(안내문서 §4와 같음)
         pos = [next(i for i, q in enumerate(qs) if k in q) for k in keys]; self.assertEqual(pos, sorted(pos)); self.assertEqual(len(qs), 4)
 

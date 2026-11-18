@@ -64,6 +64,7 @@ def _adapter(ctx, joint, target):
     today = datetime.date.today()
     ad = ctx["Adapter"](ctx["arm"], {"approved": True, "expires": today.isoformat(), "allowed_times_ms": [ctx["params"]["move_time_ms"]], "first_move_min_ms": ctx["params"]["first_move_min_ms"],
                                      "max_writes": 3, "delta_deg": 1, "joint_id": joint, "direction": 1, "angle_window": list(ctx["WINDOWS"][joint]), "pattern": "list"}, today=today, dry_run=False)
+    if ctx.get("_lift_adapters") is not None: ctx["_lift_adapters"].append((joint, int(target), ad))   # 기록 전용: read_start가 None으로 실패해도 어댑터 로그("read", None)가 결과 JSON에 남는다(재실행 #1: 로그가 어댑터째 사라졌다)
     s = ad.read_start(); ad.set_targets([s, int(target)]); return ad
 
 
@@ -128,6 +129,8 @@ def lift_after_stall(ctx):
     lift = rec.setdefault("lift", {"photos": {}, "moves": []}); ubs = dict(L.step_upper_bounds(P)); lift["clock_ub"] = ubs
     lift["j6_after_close"] = ctx["stalled"]
     def done(reason): lift["ended_reason"] = reason; lift["clock_log"] = list(clk.log)
+    adapters = ctx.setdefault("_lift_adapters", [])
+    def save_logs(): lift["adapter_logs"] = [{"joint": j_, "target": t_, "log": [list(l_) for l_ in a_.log]} for j_, t_, a_ in adapters]   # 기록 전용(성공·실패 무관)
     def photo(name):
         extra = ""
         if name == "A":   # P10 런타임 확인용: 접촉 자세의 실제 원시 q(높이 관문에서 읽은 값)를 요청 줄에 실어 Mac 관문이 두 번째 J2 최대 목표를 다시 풀게 한다. 없으면 필드를 생략(관문이 거부)
@@ -154,13 +157,22 @@ def lift_after_stall(ctx):
     def do_move(step, joint, target, k):
         nonlocal lifted
         if not clk.may_start(step, ubs[step]): raise _ClockStop(step)
+        # 어댑터 생성(read_start)은 쓰기가 나가기 전이다. 여기서 실패하면(예: 서보 회독 None) 복귀 색인·cmd를 실제 상태 기준으로 돌린 뒤 다시 던진다(재실행 #1 사고: PROG["sent"]가 '이 이동이 끝난 뒤' 색인으로 남아 복귀가 쓰기 없이 멈췄다)
+        try: ad = _adapter(ctx, joint, target)
+        except BaseException as exc_:
+            lift["code"] = "ADAPTER_BEFORE_WRITE"; lift["lifted_once"] = bool(lifted); lift["adapter_error"] = {"joint": joint, "target": int(target), "error": repr(exc_)}; save_logs()
+            try:
+                PROG["sent"] = _stage_idx(ctx)
+                for j_, v_ in zip((1, 2, 3, 4), plan["return_routes"][PROG["sent"]]["state"]): cmd[j_] = v_
+            except BaseException: pass
+            raise
         # 복귀 색인은 쓰기 직전에 '이 이동이 끝난 뒤' 상태로 지정한다(이미 보낸 이동은 서보가 끝까지 수행, 쓰기 전에 중단되면 do_return이 3° 불일치로 쓰기 없이 멈춘다)
         PROG["sent"] = _idx(plan, "before_j4", int(target)) if joint == 2 else _idx(plan, "after_j4", int(round(_raw(ctx, 2, "J4 이동 전"))))
-        ad = _adapter(ctx, joint, target); ads = dict(ads0); ads[joint] = ad
+        ads = dict(ads0); ads[joint] = ad
         mv = {"joint": joint, "target": int(target), "time_ms": ms, "phase": "L", "pose_id": None}
         try: st = ctx["run_move"](ads, arm, mv, cmd, start_all, rec, n0 + k, n0 + 3, ctx["mode"], P["move_countdown_s"])
         except BaseException as exc_:
-            lift["abort_class"] = classify_abort(exc_)
+            lift["abort_class"] = classify_abort(exc_); save_logs()
             try:
                 PROG["sent"] = _stage_idx(ctx)                                                     # 중단되면 실제 상태에 가장 가까운 복귀 항목(불일치면 do_return이 쓰기 없이 멈춘다)
                 for j_, v_ in zip((1, 2, 3, 4), plan["return_routes"][PROG["sent"]]["state"]): cmd[j_] = v_   # run_move가 중단 전에 cmd에 적은 '목표'(예: 무반응이었던 77)를 실제 상태 항목 값으로 되돌린다(복귀의 비명령 관절 이탈 검사)
@@ -199,6 +211,7 @@ def lift_after_stall(ctx):
         lift["code"] = "SAG_" + e.args[0].upper(); lift["lifted_once"] = bool(lifted); done("처짐 과다(%s): %s — %s" % (e.args[0], e.args[1].get("reason"), "첫 이동 뒤 그 높이에서 열기" if lifted else "이동 없이 열기"))
     except _ClockStop as e:
         lift["code"] = "CLOCK"; done("시계 규칙으로 단계 '%s' 시작 전 중단(경과 + 상한 > %.1f s): 즉시 열기" % (e.args[0], P["clock_limit_s"]))
+    save_logs()
     # --- 낙하 열기(시계의 끝) ---
     if not lifted: start_all[6] = ctx["cfg"]["open_j6"]; return "no_lift"
     lift["open_readback"] = ctx["release"](); lift["elapsed_at_open_s"] = clk.elapsed(); ctx["start_all"][6] = ctx["cfg"]["open_j6"]   # 열린 뒤 J6 감시 기준을 열림 값으로 되돌린다
