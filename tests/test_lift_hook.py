@@ -109,9 +109,24 @@ class LiftHookTest(unittest.TestCase):
         # 비상 경로(R12·§3 필수 시험): J6는 접촉 어댑터로 정확히 한 번만 열리고, 들어올린 상태의 복귀 항목으로 K1까지 돌아간다
         self.assertTrue(r["emergency_open"]); opens = [w for w in r["j6_adapter_logs"]["contact"] if "return_to_start" in w]; self.assertEqual(len(opens), 1)
         self.assertTrue(r["returned_to_start"], r.get("return_abort")); self.assertEqual(L["abort_class"], "기타 중단")
-        closes = [w for k, v in r["j6_adapter_logs"].items() for w in v if w[0] == "write" and w[1] == 178]
-        self.assertTrue(all(True for _ in closes))                                         # J6 닫기(178)는 복귀 뒤 K1에서만 가능(아래 순서 시험이 확인)
+        contact_writes = [w[1] for w in r["j6_adapter_logs"]["contact"] if w[0] == "write" and "return_to_start" not in w]
+        self.assertEqual(contact_writes, [120, 130, 135, 140, 145, 150])                    # 접촉 로그에는 닫기 계단만(+ return_to_start 1회, 위에서 확인): K1 도착 전 J6 닫기 없음
+        closes = [w for w in r["j6_adapter_logs"].get("final", []) if w[0] == "write"]       # 178 닫기는 복귀가 끝난 뒤에만(returned_to_start가 True일 때만 존재)
+        self.assertTrue(all(w[1] in (140, 178) for w in closes)); self.assertEqual(L["return_index_used"]["key"].split(":")[0], "before_j4")
         self.assertGreater(len(r["return_steps"]), 0)
+
+    def test_first_j2_move_without_response_returns_via_the_contact_entry(self):
+        orig = R.FakeArmS.Arm_serial_servo_write
+        def drop74(self_, id_, angle, time_ms):                                                    # 누름 중 첫 J2 쓰기(74)와 재전송을 서보가 모두 무시
+            if id_ == 2 and angle == 74 and R.P2K.get("contact"): self_.writes.append((id_, angle, time_ms)); return
+            return orig(self_, id_, angle, time_ms)
+        R.FakeArmS.Arm_serial_servo_write = drop74
+        try: r = self.run33(FakeChannel(REF, photos())); L = self.lift(r)
+        finally: R.FakeArmS.Arm_serial_servo_write = orig
+        self.assertEqual(r["ended"], "aborted"); self.assertTrue("무반응" in r["abort_reason"] or "도착 실패" in r["abort_reason"], r["abort_reason"])
+        self.assertEqual(L["return_index_used"]["index"], self.plan33["lift"]["contact_moves_done"]); self.assertEqual(L["return_index_used"]["key"], "contact")   # 들어올린 상태 경로가 아니라 접촉 항목
+        self.assertTrue(r["emergency_open"]); self.assertEqual(len([w for w in r["j6_adapter_logs"]["contact"] if "return_to_start" in w]), 1)
+        self.assertTrue(r["returned_to_start"], r.get("return_abort"))
 
     def test_classify_abort_labels_j6_slip(self):
         self.assertEqual(LH.classify_abort(Exception("J6 회독 150가 시작값 146에서 3° 넘게 벗어났다. 추가 이동 없음.")), "E3 미끄러짐 의심(J6 이탈)")

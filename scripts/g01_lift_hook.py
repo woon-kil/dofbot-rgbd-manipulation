@@ -82,11 +82,21 @@ def _raw(ctx, joint):
     raise ctx["Abort"]("J%d 원시 각도 읽기 실패(None). 추가 이동 없음." % joint)
 
 
+def _int_read(raw, joint):
+    """원시 각도 → do_return이 쓰는 SDK 정수 회독과 같은 규칙(J2~J4는 올림, J1은 내림; D0~D2 기록으로 확인된 Arm_Lib 환산)."""
+    import math
+    return int(math.ceil(raw - 1e-9)) if joint in (2, 3, 4) else int(math.floor(raw + 1e-9))
+
+
 def _stage_idx(ctx):
-    """현재 원시 J2·J4에 가장 가까운 들어올린 상태의 복귀 색인(이동 뒤·중단 시 실제 상태 기준)."""
-    plan = ctx["plan"]; j4_before = int(plan["return_routes"][plan["lift"]["contact_moves_done"]]["state"][3]); j4_after = j4_before + plan["lift"]["j4_delta"]
-    stage = "after_j4" if abs(_raw(ctx, 4) - j4_after) < abs(_raw(ctx, 4) - j4_before) else "before_j4"
-    return _idx(plan, stage, int(round(_raw(ctx, 2))))
+    """현재 상태에 가장 가까운 복귀 항목의 색인: 접촉 자세 항목(첫 이동이 실패한 경우)과 들어올린 상태 항목들 중에서 J2·J4 정수 회독 거리가 가장 작은 것.
+    (접촉 항목이 후보에 없으면 첫 이동 실패 때 들어올린 상태 경로를 접촉 깊이에서 실행하게 된다 — 16라운드)"""
+    plan = ctx["plan"]; k = plan["lift"]["contact_moves_done"]; cs = plan["return_routes"][k]["state"]
+    j2, j4 = _int_read(_raw(ctx, 2), 2), _int_read(_raw(ctx, 4), 4); cand = [(abs(cs[1] - j2) + abs(cs[3] - j4), k, "contact")]
+    for key, idx in plan["lift"]["return_index"].items():
+        st = plan["return_routes"][idx]["state"]; cand.append((abs(st[1] - j2) + abs(st[3] - j4), idx, key))
+    d, idx, key = min(cand); ctx["rec"].setdefault("lift", {})["return_index_used"] = {"index": idx, "key": key, "distance": d, "j2": j2, "j4": j4}
+    return idx
 
 
 def _idx(plan, stage, j2_read):
