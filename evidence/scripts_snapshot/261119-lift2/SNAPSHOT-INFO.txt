@@ -1,0 +1,65 @@
+스냅샷 261119-lift2
+시각 2026-11-19T00:16:21
+HEAD c1be47ebd8777db2938e380d53887bf0ef274997
+HEAD 제목 셋째 이동 이탈 검사 기준점을 실제 회독으로(사용자 승인), 어댑터 예외 종류별 라벨, T9 단언·T10 하한 시험, 체크 결과 갱신
+대상 경로 추적 파일 변경: 없음(있으면 실패)
+없는 선택 입력(기록): 없음
+
+[shasum -c MANIFEST-extra.sha256, 저장소 루트에서]
+src/planning/p1_plan_check.py: OK
+src/planning/collision_3a.py: OK
+src/planning/dry_run.py: OK
+src/planning/p1_poses.py: OK
+src/kinematics/urdf_fk.py: OK
+src/control/gripper_adapter.py: OK
+evidence/G06/run2_contact_clearance_261117.py: OK
+evidence/G06/p2k_analyze_261117.py: OK
+evidence/G06/carried_block_path_261117.py: OK
+evidence/G06/gemini_fingertip_detect_r15.py: OK
+requirements.txt: OK
+evidence/G06/p2k_poses_s42.json: OK
+evidence/G06/p2k_marker_ref.txt: OK
+data/refs/dofbot-pro-DOFBOT_Pro-V24.urdf: OK
+evidence/G06/d3_height_model.json: OK
+evidence/G01/s3_path_fk.json: OK
+data/refs/dofbot_meshes/base_link.STL: OK
+data/refs/dofbot_meshes/Arm1_Link.STL: OK
+data/refs/dofbot_meshes/Arm2_Link.STL: OK
+data/refs/dofbot_meshes/Arm3_Link.STL: OK
+data/refs/dofbot_meshes/Arm4_Link.STL: OK
+data/refs/dofbot_meshes/DaBai_DCW2_Link.STL: OK
+data/refs/dofbot_meshes/Arm5_Link.STL: OK
+evidence/G06/lift_marker_ref_261118-1702.txt: OK
+
+[shasum -c MANIFEST.sha256, scripts/에서]
+g01_lift_run.sh: OK
+g01_lift_bridge.py: OK
+g01_lift_r8.py: OK
+g01_lift_classify.py: OK
+g01_lift_marker_ref.py: OK
+g01_lift_params.py: OK
+g01_lift_logic.py: OK
+g01_lift_hook.py: OK
+g01_s42_plan_lift.py: OK
+g01_s42_plan_p2k.py: OK
+g01_p2k_test.py: OK
+g01_5a_gripper_test.py: OK
+g01_5b4_joint_test.py: OK
+gripper_adapter.py: OK
+g01_s4_2_path.py: OK
+g01_s3_path.py: OK
+g01_pose_generator.py: OK
+g01_dabai_probe.py: OK
+g01_dabai_expsweep.py: OK
+g01_e0g_analyze.py: OK
+p2k_align_report.py: OK
+p1_m3_gemini_photo.sh: OK
+g01_gemini_check.sh: OK
+pa_driver.sh: OK
+pa_snap_mac.sh: OK
+pa_snap.py: OK
+pa_detect.py: OK
+g01_lift_dryrun.sh: OK
+g01_lift_dryrun_stub.py: OK
+g01_lift_dryrun_report.py: OK
+
