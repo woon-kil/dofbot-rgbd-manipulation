@@ -1,0 +1,7 @@
+# dofbot-rgbd-manipulation — 맥(오프라인 계획·검증·분석) 환경 고정 (2026-11-16)
+# 생성: python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+# 출처: 기존 검증 환경(~/projects/simple-vision-tech-poc/.venv, Python 3.12.14)에서 `pip list`로 확인한 버전. 테스트 153건이 이 조합에서 통과했다.
+# Jetson 전용(Arm_Lib, rclpy, sensor_msgs, orbbec_camera_msgs)은 pip로 설치하지 않는다(Jetson의 시스템·ROS 환경 사용).
+numpy==2.5.4
+opencv-python-headless==4.14.0.94
+scipy==1.18.1
