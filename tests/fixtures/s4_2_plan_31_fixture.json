@@ -1,0 +1,1515 @@
+{
+ "bracket_ids": [],
+ "set": "31",
+ "start": {
+  "1": 88,
+  "2": 92,
+  "3": 92,
+  "4": 91,
+  "5": 90,
+  "6": 176
+ },
+ "base": [
+  88,
+  92,
+  14,
+  11
+ ],
+ "moves": [
+  {
+   "joint": 3,
+   "target": 72,
+   "time_ms": 8000,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 1
+  },
+  {
+   "joint": 4,
+   "target": 71,
+   "time_ms": 8000,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 2
+  },
+  {
+   "joint": 3,
+   "target": 52,
+   "time_ms": 1500,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 3
+  },
+  {
+   "joint": 4,
+   "target": 51,
+   "time_ms": 1500,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 4
+  },
+  {
+   "joint": 3,
+   "target": 32,
+   "time_ms": 1500,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 5
+  },
+  {
+   "joint": 4,
+   "target": 31,
+   "time_ms": 1500,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 6
+  },
+  {
+   "joint": 3,
+   "target": 14,
+   "time_ms": 3000,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 7
+  },
+  {
+   "joint": 4,
+   "target": 11,
+   "time_ms": 3000,
+   "phase": "A",
+   "pose_id": null,
+   "capture": false,
+   "n": 8
+  },
+  {
+   "joint": 1,
+   "target": 86,
+   "time_ms": 8000,
+   "phase": "B",
+   "pose_id": 3101,
+   "capture": false,
+   "note": "접힌 자세에서 처음 하는 J1/J2 이동(처짐·케이블 확인)",
+   "n": 9
+  },
+  {
+   "joint": 3,
+   "target": 18,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3101,
+   "capture": false,
+   "note": "",
+   "n": 10
+  },
+  {
+   "joint": 4,
+   "target": 20,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3101,
+   "capture": false,
+   "note": "",
+   "n": 11
+  },
+  {
+   "joint": 2,
+   "target": 81,
+   "time_ms": 8000,
+   "phase": "B",
+   "pose_id": 3101,
+   "capture": true,
+   "note": "",
+   "n": 12
+  },
+  {
+   "joint": 4,
+   "target": 22,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3102,
+   "capture": false,
+   "note": "",
+   "n": 13
+  },
+  {
+   "joint": 2,
+   "target": 77,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3102,
+   "capture": true,
+   "note": "",
+   "n": 14
+  },
+  {
+   "joint": 4,
+   "target": 28,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3103,
+   "capture": false,
+   "note": "",
+   "n": 15
+  },
+  {
+   "joint": 3,
+   "target": 12,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3103,
+   "capture": true,
+   "note": "",
+   "n": 16
+  },
+  {
+   "joint": 4,
+   "target": 32,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3104,
+   "capture": false,
+   "note": "",
+   "n": 17
+  },
+  {
+   "joint": 2,
+   "target": 69,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3104,
+   "capture": true,
+   "note": "",
+   "n": 18
+  },
+  {
+   "joint": 2,
+   "target": 81,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3105,
+   "capture": false,
+   "note": "",
+   "n": 19
+  },
+  {
+   "joint": 3,
+   "target": 18,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3105,
+   "capture": false,
+   "note": "",
+   "n": 20
+  },
+  {
+   "joint": 4,
+   "target": 20,
+   "time_ms": 1500,
+   "phase": "B",
+   "pose_id": 3105,
+   "capture": true,
+   "note": "",
+   "n": 21
+  }
+ ],
+ "return_routes": [
+  {
+   "after_move": 0,
+   "state": [
+    88,
+    92,
+    92,
+    91
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    }
+   ]
+  },
+  {
+   "after_move": 1,
+   "state": [
+    88,
+    92,
+    72,
+    91
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    }
+   ]
+  },
+  {
+   "after_move": 2,
+   "state": [
+    88,
+    92,
+    72,
+    71
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    }
+   ]
+  },
+  {
+   "after_move": 3,
+   "state": [
+    88,
+    92,
+    52,
+    71
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 3000
+    }
+   ]
+  },
+  {
+   "after_move": 4,
+   "state": [
+    88,
+    92,
+    52,
+    51
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 3000
+    }
+   ]
+  },
+  {
+   "after_move": 5,
+   "state": [
+    88,
+    92,
+    32,
+    51
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 6,
+   "state": [
+    88,
+    92,
+    32,
+    31
+   ],
+   "route": [
+    {
+     "joint": 3,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 51,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 7,
+   "state": [
+    88,
+    92,
+    14,
+    31
+   ],
+   "route": [
+    {
+     "joint": 3,
+     "target": 34,
+     "time_ms": 3000
+    },
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 51,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 54,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 74,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 8,
+   "state": [
+    88,
+    92,
+    14,
+    11
+   ],
+   "route": [
+    {
+     "joint": 3,
+     "target": 34,
+     "time_ms": 3000
+    },
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 31,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 51,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 54,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 74,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 9,
+   "state": [
+    86,
+    92,
+    14,
+    11
+   ],
+   "route": [
+    {
+     "joint": 3,
+     "target": 34,
+     "time_ms": 3000
+    },
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 31,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 51,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 54,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 74,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 10,
+   "state": [
+    86,
+    92,
+    18,
+    11
+   ],
+   "route": [
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 31,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 51,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 71,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 11,
+   "state": [
+    86,
+    92,
+    18,
+    20
+   ],
+   "route": [
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 2,
+     "target": 90,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 40,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 60,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 80,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 12,
+   "state": [
+    86,
+    81,
+    18,
+    20
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 40,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 60,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 80,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 13,
+   "state": [
+    86,
+    81,
+    18,
+    22
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 42,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 62,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 82,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 14,
+   "state": [
+    86,
+    77,
+    18,
+    22
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 42,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 62,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 82,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 15,
+   "state": [
+    86,
+    77,
+    18,
+    28
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 48,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 68,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 88,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 16,
+   "state": [
+    86,
+    77,
+    12,
+    28
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 32,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 48,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 68,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 88,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 17,
+   "state": [
+    86,
+    77,
+    12,
+    32
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 32,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 72,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 18,
+   "state": [
+    86,
+    69,
+    12,
+    32
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 32,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 72,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 19,
+   "state": [
+    86,
+    81,
+    12,
+    32
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 32,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 72,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 20,
+   "state": [
+    86,
+    81,
+    18,
+    32
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 52,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 72,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  },
+  {
+   "after_move": 21,
+   "state": [
+    86,
+    81,
+    18,
+    20
+   ],
+   "route": [
+    {
+     "joint": 2,
+     "target": 91,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 38,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 40,
+     "time_ms": 3000
+    },
+    {
+     "joint": 1,
+     "target": 89,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 58,
+     "time_ms": 3000
+    },
+    {
+     "joint": 4,
+     "target": 60,
+     "time_ms": 3000
+    },
+    {
+     "joint": 3,
+     "target": 78,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 80,
+     "time_ms": 1500
+    },
+    {
+     "joint": 3,
+     "target": 91,
+     "time_ms": 1500
+    },
+    {
+     "joint": 4,
+     "target": 91,
+     "time_ms": 1500
+    }
+   ]
+  }
+ ],
+ "gate": {
+  "pose_min_required": 32.0,
+  "base_min_required": 70.0,
+  "base_z": 79.3,
+  "pose_z": {
+   "3101": 71.3,
+   "3102": 61.6,
+   "3103": 52.9,
+   "3104": 32.9,
+   "3105": 71.3
+  },
+  "transition_min": {
+   "3101": 71.3,
+   "3102": 61.6,
+   "3103": 52.9,
+   "3104": 32.9,
+   "3105": 32.9
+  },
+  "return_j12_min": 32.9,
+  "return_full_min": 32.9
+ },
+ "gate_errors": [],
+ "hold_poses": [],
+ "hold_max_s": 180,
+ "exposures": [
+  15,
+  25,
+  35
+ ],
+ "settle_s": 2,
+ "poses": {
+  "3101": [
+   86,
+   81,
+   18,
+   20,
+   90
+  ],
+  "3102": [
+   86,
+   77,
+   18,
+   22,
+   90
+  ],
+  "3103": [
+   86,
+   77,
+   12,
+   28,
+   90
+  ],
+  "3104": [
+   86,
+   69,
+   12,
+   32,
+   90
+  ],
+  "3105": [
+   86,
+   81,
+   18,
+   20,
+   90
+  ]
+ },
+ "run2": {
+  "align_pose": 3101,
+  "descent_poses": [
+   3102,
+   3103,
+   3104
+  ],
+  "contact_pose": 3104,
+  "ascent_pose": 3105,
+  "open_j6": 100,
+  "open_mid": 140,
+  "open_ms": 3000,
+  "close_seq": [
+   120,
+   130,
+   135,
+   140,
+   145,
+   150
+  ],
+  "close_ms": 1500,
+  "release_ms": 3000,
+  "close_to": 178,
+  "close_to_ms": 3000,
+  "window_close": [
+   95,
+   150
+  ],
+  "hold_s": 55.0,
+  "height_gate": {
+   "h_min": 7.0,
+   "model": {
+    "h_ref": 16.39,
+    "q_ref": [
+     68.16,
+     11.46,
+     31.3
+    ],
+    "a": [
+     3.21,
+     2.69,
+     1.26
+    ]
+   },
+   "note": "닫힘 모델 캡 끝 **종이 위** 높이(mm) = h_ref + a2·(J2−q2) + a3·(J3−q3) + a4·(J4−q4), 원시 각도, 종이 = FK z + 11. 미달이면 닫지 않는다(사용자 승인 문턱: 종이 위 7 mm)"
+  }
+ },
+ "no_camera": true,
+ "gemini_photo": true,
+ "p2k": {
+  "j6_targets": [
+   140,
+   100,
+   140,
+   178
+  ],
+  "j6_times_ms": [
+   3000,
+   3000,
+   3000,
+   3000
+  ],
+  "hold_s": 55.0,
+  "window": [
+   95,
+   179
+  ],
+  "return_ms": 4800
+ },
+ "return_target": [
+  89,
+  91,
+  91,
+  91
+ ],
+ "return_nominal": true,
+ "raw_after": false
+}
