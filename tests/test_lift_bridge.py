@@ -1,5 +1,5 @@
 """Mac 사진 다리(g01_lift_bridge) 시험: 요청 줄 파싱, A 관문(침묵 금지), 실패·중복, 러너 FilePhotoChannel과의 종단 연결(가짜 snap·push)."""
-import json, os, sys, tempfile, threading, time, unittest
+import json, os, subprocess, sys, tempfile, threading, time, unittest
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -93,6 +93,34 @@ class TestBridge(unittest.TestCase):
             while not lines: time.sleep(0.01)
             b.handle(lines[0]); t.join(5)
             self.assertEqual(out["res"]["request_id"], out["tok"]); self.assertTrue(out["res"]["gate"]["go"])
+
+
+class TestAlign(unittest.TestCase):
+    def mk(self, align): return B.Bridge({"detect": REF}, Rec().snap, Rec().status, Rec().push, P=PARAMS, say=self.out.append, align=align)
+    def setUp(self): self.out = []
+
+    def test_align_line_runs_once_prints_and_does_not_push(self):
+        r = Rec(); calls = []; b = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=PARAMS, say=self.out.append, align=lambda: calls.append(1) or "보고 본문")
+        b.handle("[정렬 확인] Mac 화면의 정렬 보고를 읽으세요."); b.handle("[정렬 확인] 다시"); self.assertEqual(calls, [1]); self.assertIn("보고 본문", self.out); self.assertEqual(r.pushed, [])
+
+    def test_align_failure_prints_N_guidance(self):
+        def bad(): raise RuntimeError("스냅 실패")
+        self.mk(bad).handle("[정렬 확인] x"); self.assertTrue(any("러너 질문에 N" in o and "스냅 실패" in o for o in self.out))
+
+    def test_no_align_callable_is_ignored(self):
+        b = B.Bridge({"detect": REF}, Rec().snap, Rec().status, Rec().push, P=PARAMS, say=self.out.append); self.assertIsNone(b.handle("[정렬 확인] x")); self.assertEqual(self.out, [])
+
+    def test_report_timeout_and_nonzero_become_errors(self):
+        def to(*a, **k): raise subprocess.TimeoutExpired("x", 1)
+        with self.assertRaises(subprocess.TimeoutExpired): B.align_report("/nonexistent", "a", "b", run=to)
+        class R: returncode = 1; stdout = ""; stderr = "boom"
+        with self.assertRaises(RuntimeError): B.align_report("/nonexistent", "a", "b", run=lambda *a, **k: R())
+        self.assertLess(B.ALIGN_TIMEOUT_S, 30)
+
+    @unittest.skipUnless((ROOT / "data" / "g04" / "d1_261117-143127_31010.png").exists() and (ROOT / ".venv" / "bin" / "python").exists(), "원 사진 또는 venv 없음")
+    def test_positive_control_reproduces_run3_dx(self):
+        txt = B.align_report(str(ROOT), str(ROOT / "data/g04/d1_261117-143127_31010.png"), str(ROOT / "data/g04/p2kref_261117-143127.png"), python=str(ROOT / ".venv/bin/python"))
+        self.assertIn("d_x = +1.49 mm", txt); self.assertIn("36 s 도구와 동등성 미검증", txt); self.assertIn("|d_x| ≤ 3 mm", txt)   # Run 3 31010 정렬 사진의 기록 d_x와 일치(참고용)
 
 
 @unittest.skipUnless((ROOT / "data" / "g04" / "p2kpost_261117-153705.png").exists() and (ROOT / ".venv").exists(), "원 사진(gitignore) 또는 venv 없음")

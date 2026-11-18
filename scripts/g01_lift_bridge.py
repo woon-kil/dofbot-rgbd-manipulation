@@ -7,6 +7,10 @@ import argparse, json, os, re, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+ALIGN_MARK = "[정렬 확인]"
+ALIGN_FAIL = "\n[정렬 보고 없음] 보고를 만들지 못했다(%s) → 러너 질문에 N(하강 없이 복귀)\n"
+ALIGN_NOTE = "※ 참고 수치: P-A 스냅 기반, 36 s 도구와 동등성 미검증. 허용값 |d_x| ≤ 3 mm, 캡 옆 여유 ≥ 6 mm, 마커 관문 ≤ 1.0 px. 보고가 없거나 NG면 N."
+ALIGN_TIMEOUT_S = 15   # 보고 계산이 멈춰도 뒤의 사진 A 처리를 막지 않도록 하강 시간보다 훨씬 짧게
 REQ_RE = re.compile(r"\[사진 요청 ([ABC]) id=(\S+?)\]")
 
 
@@ -56,11 +60,16 @@ def s4_gate_safe(ref_detect, detect, P=None):
 
 class Bridge:
     """의존 주입: snap(이름) → detect dict, status() → started_epoch(float), push(이름, 결과 dict) → None, now() → epoch."""
-    def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print):
-        self.ref, self.snap, self.status, self.push, self.now, self.P, self.say = ref, snap, status, push, now, P, say
+    def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print, align=None):
+        self.ref, self.snap, self.status, self.push, self.now, self.P, self.say, self.align = ref, snap, status, push, now, P, say, align
         self.done = {}
 
     def handle(self, line):
+        if ALIGN_MARK in line:                                       # 정렬 자세의 러너 질문 직전 줄: 정렬 보고를 화면에 띄운다(한 번만, Jetson 전달 없음)
+            if self.align is None or "align" in self.done: return None
+            try: text = self.align()
+            except Exception as e: text = ALIGN_FAIL % repr(e)
+            self.done["align"] = text; self.say(text); return None
         req = parse_request(line)
         if req is None: return None
         name, tok = req
@@ -88,6 +97,20 @@ def make_ref(run_id, detect, started_epoch, maxsec, now_epoch):
     return {"run_id": run_id, "started_epoch": started_epoch, "elapsed_at_ref_s": now_epoch - started_epoch, "maxsec": maxsec, "detect": detect, "ref_written_epoch": now_epoch}
 
 
+def align_report(root, img, ref, python=None, timeout=ALIGN_TIMEOUT_S, run=subprocess.run):
+    """검증된 scripts/p2k_align_report.py(세트 31 인자)를 수정 없이 호출해 정렬 보고 문자열을 만든다. 실패·시간 초과·출력 없음은 예외(상위가 'N' 안내로 바꾼다)."""
+    r = run([python or sys.executable, "-I", os.path.join(root, "scripts", "p2k_align_report.py"), img, ref, "31"], cwd=root, capture_output=True, text=True, timeout=timeout)
+    if r.returncode != 0 or "결과:" not in r.stdout: raise RuntimeError("정렬 보고 계산 실패: " + (r.stdout + r.stderr).strip()[-200:])
+    return r.stdout.rstrip() + "\n" + ALIGN_NOTE + "\n"
+
+
+def marker_line(label, path):
+    """두 기준 사진(P-A·36 s)의 마커 중심·변 길이를 기록해 실행 뒤 같은 장면 쌍으로 대조할 수 있게 한다."""
+    import cv2, pa_detect
+    d = pa_detect.detect(cv2.imread(path))
+    return "기록: %s 마커 %s" % (label, ("(%.2f, %.2f) side %.2f px" % (d["center"][0], d["center"][1], d["side_px"])) if d.get("found") else "미검출")
+
+
 # ---- 실기기 구현(시험에서는 가짜로 대체) ----
 SO = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "-o", "ControlMaster=auto", "-o", "ControlPath=/tmp/lift-ssh-%C", "-o", "ControlPersist=300"]
 
@@ -98,6 +121,22 @@ def real_snap(root, prefix):
         if r.returncode != 0: raise RuntimeError("스냅 실패: " + (r.stdout + r.stderr).strip()[-200:])
         return json.load(open(os.path.join(root, "data", "g04", "pa", n + ".detect.json"), encoding="utf-8"))
     return snap
+
+
+def real_align(root, ts, prefix, snap):
+    def align():
+        snap("align")
+        pa = os.path.join(root, "data", "g04", "pa"); img = os.path.join(pa, "%s_align.color.png" % prefix); ref = os.path.join(pa, "%s_ref.color.png" % prefix)
+        text = align_report(root, img, ref)
+        extra = []
+        for lab, pth in (("P-A 기준", ref), ("36 s 기준", os.path.join(root, "data", "g04", "p2kref_%s.png" % ts)), ("P-A 정렬 자세", img)):
+            try: extra.append(marker_line(lab, pth))
+            except Exception as e: extra.append("기록: %s 마커 읽기 실패(%r)" % (lab, e))
+        text = "\n" + "=" * 60 + "\n[P-A 정렬 보고]\n" + text + "\n".join(extra) + "\n"
+        out = os.path.join(root, "evidence", "G01", "raw", "lift_align_%s.txt" % ts)
+        with open(out, "w", encoding="utf-8") as f: f.write(text)
+        return text
+    return align
 
 
 def real_status(root):
@@ -128,7 +167,8 @@ def main():
         print(s, flush=True)
         if logf: logf.write(s + "\n"); logf.flush()
     t0 = time.time(); load_pa(root); say("[다리] 분석 모듈 적재 %.2f s(사진 요청 경로 밖)" % (time.time() - t0))
-    b = Bridge(ref, real_snap(root, a.name_prefix), real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say)
+    snap = real_snap(root, a.name_prefix)
+    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap))
     for line in sys.stdin: b.handle(line)
     if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}}, ensure_ascii=False) + "\n"); logf.close()
 
