@@ -11,7 +11,7 @@ ALIGN_MARK = "[정렬 확인]"
 ALIGN_FAIL = "\n[정렬 보고 없음] 보고를 만들지 못했다(%s) → 러너 질문에 N(하강 없이 복귀)\n"
 ALIGN_NOTE = "※ 참고 수치: P-A 스냅 기반, 36 s 도구와 동등성 미검증. 허용값 |d_x| ≤ 3 mm, 캡 옆 여유 ≥ 6 mm, 마커 관문 ≤ 1.0 px. 보고가 없거나 NG면 N."
 ALIGN_TIMEOUT_S = 15   # 보고 계산이 멈춰도 뒤의 사진 A 처리를 막지 않도록 하강 시간보다 훨씬 짧게
-REQ_RE = re.compile(r"\[사진 요청 ([ABC]) id=(\S+?)\]")
+REQ_RE = re.compile(r"\[사진 요청 ([ABC]) id=(\S+?)(?: q=[-0-9.,]+)?\]")
 
 
 def parse_request(line):
@@ -46,6 +46,33 @@ def load_pa(root=None):
     return _PA
 
 
+Q_RE = re.compile(r" q=([-0-9.,]+)")
+
+
+def parse_q(line):
+    """요청 줄의 ' q=J1,J2,J3,J4'(접촉 자세 원시 각도, 도) → 4개 실수 목록 또는 None."""
+    m = Q_RE.search(line)
+    if not m: return None
+    try: v = [float(x) for x in m.group(1).split(",")]
+    except ValueError: return None
+    return v if len(v) == 4 else None
+
+
+def tilt_recheck(plan, q, modules=None):
+    """P10 런타임 확인(사용자 결정 2026-11-18, --real 전 필수): 실제 접촉 원시 q로 같은 규칙(FK 최악 정점 tilt ≤ 30°인 최대 정수 두 번째 J2 목표)을 다시 풀어
+    계획의 j2_max_target보다 작으면 거부한다. q 없음·계산 실패도 거부(fail-closed). 새 숫자 없음. FK UNVERIFIED."""
+    try:
+        import g01_s42_plan_lift as PL
+        L = plan["lift"]; planned = int(L["j2_max_target"]); first = int(L["j2_first_target"])
+        if q is None: return {"ok": False, "reason": "접촉 원시 q가 요청에 없다", "planned_max": planned}
+        C = (modules or PL._load_modules())[1]
+        m = PL.max_target(C, list(q), first)
+        if m is None: return {"ok": False, "reason": "실제 접촉 q에서 허용 목표 없음", "q": q, "planned_max": planned}
+        return {"ok": m[0] >= planned, "recomputed_max": m[0], "peak_tilt_deg": round(m[1], 2), "planned_max": planned, "q": q,
+                "reason": "" if m[0] >= planned else "실제 접촉 q의 최대 목표 %d < 계획 %d" % (m[0], planned)}
+    except Exception as e: return {"ok": False, "reason": "%s: %s" % (type(e).__name__, e)}
+
+
 def s4_gate_safe(ref_detect, detect, P=None):
     """S4' 관문. 계산 불가(ParamsNotFinal 등)는 go=False와 사유로 돌려준다. G2 배선 전(d_x 미확정)에는 불감대 밖이면 거부 쪽이다."""
     import g01_lift_logic as L
@@ -60,8 +87,8 @@ def s4_gate_safe(ref_detect, detect, P=None):
 
 class Bridge:
     """의존 주입: snap(이름) → detect dict, status() → started_epoch(float), push(이름, 결과 dict) → None, now() → epoch."""
-    def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print, align=None):
-        self.ref, self.snap, self.status, self.push, self.now, self.P, self.say, self.align = ref, snap, status, push, now, P, say, align
+    def __init__(self, ref, snap, status, push, now=time.time, P=None, say=print, align=None, tilt=None):
+        self.ref, self.snap, self.status, self.push, self.now, self.P, self.say, self.align, self.tilt = ref, snap, status, push, now, P, say, align, tilt
         self.done = {}
 
     def handle(self, line):
@@ -85,7 +112,11 @@ class Bridge:
         res = {"request_id": tok, "name": name, "started_epoch": started, "detect": detect, "mac": {"req_seen": t0, "snap_done": t1}}
         if started is None: res["error_status"] = err_s
         if detect is None: res["error_snap"] = err_d
-        if name == "A": res["gate"] = {"go": False, "reason": "스냅 실패"} if detect is None else s4_gate_safe(self.ref["detect"], detect, self.P)
+        if name == "A":
+            res["gate"] = {"go": False, "reason": "스냅 실패"} if detect is None else s4_gate_safe(self.ref["detect"], detect, self.P)
+            if self.tilt is not None:                                    # P10 런타임 확인: 설정되면 반드시 통과해야 go
+                tr = self.tilt(parse_q(line)); res["gate"]["tilt_check"] = tr
+                if not tr.get("ok"): res["gate"]["go"] = False; res["gate"]["reason"] = (res["gate"].get("reason", "") + " P10 tilt 재확인 실패: " + tr.get("reason", "")).strip()
         res["mac"]["gate_done"] = self.now()
         try: self.push(name, res); res["mac"]["push_done"] = self.now()
         except Exception as e: self.say("[다리] 사진 %s 전달 실패: %r" % (name, e)); self.done[name] = None; return None
@@ -97,9 +128,9 @@ def make_ref(run_id, detect, started_epoch, maxsec, now_epoch):
     return {"run_id": run_id, "started_epoch": started_epoch, "elapsed_at_ref_s": now_epoch - started_epoch, "maxsec": maxsec, "detect": detect, "ref_written_epoch": now_epoch}
 
 
-def align_report(root, img, ref, python=None, timeout=ALIGN_TIMEOUT_S, run=subprocess.run):
-    """검증된 scripts/p2k_align_report.py(세트 31 인자)를 수정 없이 호출해 정렬 보고 문자열을 만든다. 실패·시간 초과·출력 없음은 예외(상위가 'N' 안내로 바꾼다)."""
-    r = run([python or sys.executable, "-I", os.path.join(root, "scripts", "p2k_align_report.py"), img, ref, "31"], cwd=root, capture_output=True, text=True, timeout=timeout)
+def align_report(root, img, ref, python=None, timeout=ALIGN_TIMEOUT_S, run=subprocess.run, set_arg="33"):
+    """검증된 scripts/p2k_align_report.py(세트 33 인자: 재등록 기준 파일만 사용, 없으면 NG 보고. 세트 31 인자 '31'은 양성 대조용)를 수정 없이 호출해 정렬 보고 문자열을 만든다. 실패·시간 초과·출력 없음은 예외(상위가 'N' 안내로 바꾼다)."""
+    r = run([python or sys.executable, "-I", os.path.join(root, "scripts", "p2k_align_report.py"), img, ref, set_arg], cwd=root, capture_output=True, text=True, timeout=timeout)
     if r.returncode != 0 or "결과:" not in r.stdout: raise RuntimeError("정렬 보고 계산 실패: " + (r.stdout + r.stderr).strip()[-200:])
     return r.stdout.rstrip() + "\n" + ALIGN_NOTE + "\n"
 
@@ -159,7 +190,7 @@ def real_push(host, rd, tmpdir):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--run-id", required=True); ap.add_argument("--ref", required=True); ap.add_argument("--host", required=True); ap.add_argument("--rd", required=True)
-    ap.add_argument("--name-prefix", required=True); ap.add_argument("--tmpdir", default="/tmp"); ap.add_argument("--log", default=None); a = ap.parse_args()
+    ap.add_argument("--plan", required=True); ap.add_argument("--name-prefix", required=True); ap.add_argument("--tmpdir", default="/tmp"); ap.add_argument("--log", default=None); a = ap.parse_args()
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); ref = json.load(open(a.ref, encoding="utf-8"))
     assert ref.get("run_id") == a.run_id, "기준 사진 run_id 불일치"
     logf = open(a.log, "a", encoding="utf-8") if a.log else None
@@ -167,8 +198,9 @@ def main():
         print(s, flush=True)
         if logf: logf.write(s + "\n"); logf.flush()
     t0 = time.time(); load_pa(root); say("[다리] 분석 모듈 적재 %.2f s(사진 요청 경로 밖)" % (time.time() - t0))
+    plan = json.load(open(a.plan, encoding="utf-8")); import g01_s42_plan_lift as PL; mods = PL._load_modules()   # chdir root(생성기 모듈이 상대 경로를 읽음)
     snap = real_snap(root, a.name_prefix)
-    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap))
+    b = Bridge(ref, snap, real_status(root), real_push(a.host, a.rd, a.tmpdir), say=say, align=real_align(root, a.run_id, a.name_prefix, snap), tilt=lambda q: tilt_recheck(plan, q, mods))
     for line in sys.stdin: b.handle(line)
     if logf: logf.write(json.dumps({"results": {k: v for k, v in b.done.items()}}, ensure_ascii=False) + "\n"); logf.close()
 

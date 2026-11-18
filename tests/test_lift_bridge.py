@@ -95,6 +95,44 @@ class TestBridge(unittest.TestCase):
             self.assertEqual(out["res"]["request_id"], out["tok"]); self.assertTrue(out["res"]["gate"]["go"])
 
 
+PLAN33 = {"lift": {"j2_max_target": 77, "j2_first_target": 74}}
+Q0 = [86.3, 68.32, 11.37, 31.42]
+
+
+@unittest.skipUnless((ROOT / ".venv").exists(), "venv 필요")
+class TestTiltRecheck(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try: import cv2, numpy, scipy
+        except ImportError: raise unittest.SkipTest("venv 전용(FK 모듈)")
+        import g01_s42_plan_lift as PL; cwd = os.getcwd(); cls.mods = PL._load_modules(); os.chdir(cwd)
+
+    def test_parse_q_and_request_line_with_q(self):
+        self.assertEqual(B.parse_q("[사진 요청 A id=t q=86.3,68.32,11.37,31.42]"), Q0); self.assertIsNone(B.parse_q("[사진 요청 A id=t]")); self.assertIsNone(B.parse_q("[사진 요청 A id=t q=1,2,3]"))
+        self.assertEqual(B.parse_request("[사진 요청 A id=tok q=86.3,68.32,11.37,31.42]"), ("A", "tok"))
+
+    def test_recorded_contact_pose_keeps_77(self):
+        r = B.tilt_recheck(PLAN33, Q0, self.mods); self.assertTrue(r["ok"]); self.assertEqual(r["recomputed_max"], 77); self.assertAlmostEqual(r["peak_tilt_deg"], 29.79, places=2)
+        for dq in ([0, .08, 0, 0], [0, 0, .08, 0], [0, 0, 0, .08], [0, 0, -.08, 0]):                          # 측정된 접촉 원시 변동(0.08°)은 77을 유지
+            self.assertTrue(B.tilt_recheck(PLAN33, [a + b for a, b in zip(Q0, dq)], self.mods)["ok"], dq)
+
+    def test_pose_that_needs_a_lower_target_is_refused(self):
+        r = B.tilt_recheck(PLAN33, [86.3, 68.32, 11.62, 31.42], self.mods)                                    # J3 +0.25°: 77의 정점이 30° 초과 → 76
+        self.assertFalse(r["ok"]); self.assertLess(r["recomputed_max"], 77); self.assertIn("< 계획", r["reason"])
+
+    def test_missing_q_or_plan_is_fail_closed(self):
+        self.assertFalse(B.tilt_recheck(PLAN33, None, self.mods)["ok"]); self.assertFalse(B.tilt_recheck({}, Q0, self.mods)["ok"])
+
+    @need_cv
+    def test_bridge_gate_goes_no_go_when_tilt_fails_even_if_s4_passes(self):
+        r = Rec(); b = B.Bridge({"detect": REF}, r.snap, r.status, r.push, P=PARAMS, say=lambda s: None, tilt=lambda q: B.tilt_recheck(PLAN33, q, self.mods))
+        res = b.handle("[사진 요청 A id=t q=86.3,68.32,11.62,31.42]"); self.assertFalse(res["gate"]["go"]); self.assertFalse(res["gate"]["tilt_check"]["ok"]); self.assertIn("P10 tilt 재확인 실패", res["gate"]["reason"])
+        r2 = Rec(); res = B.Bridge({"detect": REF}, r2.snap, r2.status, r2.push, P=PARAMS, say=lambda s: None, tilt=lambda q: B.tilt_recheck(PLAN33, q, self.mods)).handle("[사진 요청 A id=t2 q=86.3,68.32,11.37,31.42]")
+        self.assertTrue(res["gate"]["go"]); self.assertTrue(res["gate"]["tilt_check"]["ok"])                    # 양성 대조
+        r3 = Rec(); res = B.Bridge({"detect": REF}, r3.snap, r3.status, r3.push, P=PARAMS, say=lambda s: None, tilt=lambda q: B.tilt_recheck(PLAN33, q, self.mods)).handle("[사진 요청 A id=t3]")
+        self.assertFalse(res["gate"]["go"]); self.assertIn("접촉 원시 q가 요청에 없다", res["gate"]["tilt_check"]["reason"])    # q 없음 → 거부
+
+
 class TestAlign(unittest.TestCase):
     def mk(self, align): return B.Bridge({"detect": REF}, Rec().snap, Rec().status, Rec().push, P=PARAMS, say=self.out.append, align=align)
     def setUp(self): self.out = []
@@ -117,9 +155,14 @@ class TestAlign(unittest.TestCase):
         with self.assertRaises(RuntimeError): B.align_report("/nonexistent", "a", "b", run=lambda *a, **k: R())
         self.assertLess(B.ALIGN_TIMEOUT_S, 30)
 
+    @unittest.skipUnless(not list((ROOT / "evidence" / "G06").glob("lift_marker_ref_*.txt")) and (ROOT / ".venv" / "bin" / "python").exists(), "재등록 전(기준 파일 없음)에만")
+    def test_set33_without_ref_file_reports_NG_not_run1_fallback(self):
+        txt = B.align_report(str(ROOT), str(ROOT / "data/g04/d1_261117-143127_31010.png"), str(ROOT / "data/g04/p2kref_261117-143127.png"), python=str(ROOT / ".venv/bin/python"))
+        self.assertIn("정렬 NG", txt); self.assertIn("마커 기준 파일이 0개", txt); self.assertNotIn("d_x =", txt); self.assertNotIn("678.2", txt)   # Run 1 위치·87.4로 계산한 보고가 아니다
+
     @unittest.skipUnless((ROOT / "data" / "g04" / "d1_261117-143127_31010.png").exists() and (ROOT / ".venv" / "bin" / "python").exists(), "원 사진 또는 venv 없음")
     def test_positive_control_reproduces_run3_dx(self):
-        txt = B.align_report(str(ROOT), str(ROOT / "data/g04/d1_261117-143127_31010.png"), str(ROOT / "data/g04/p2kref_261117-143127.png"), python=str(ROOT / ".venv/bin/python"))
+        txt = B.align_report(str(ROOT), str(ROOT / "data/g04/d1_261117-143127_31010.png"), str(ROOT / "data/g04/p2kref_261117-143127.png"), python=str(ROOT / ".venv/bin/python"), set_arg="31")
         self.assertIn("d_x = +1.49 mm", txt); self.assertIn("36 s 도구와 동등성 미검증", txt); self.assertIn("|d_x| ≤ 3 mm", txt)   # Run 3 31010 정렬 사진의 기록 d_x와 일치(참고용)
 
 

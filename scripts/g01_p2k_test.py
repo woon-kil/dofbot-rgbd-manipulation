@@ -262,7 +262,9 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
                 time.sleep(0.05)
             if any(v is None for v in dg): raise Abort("높이 관문: J2~J4 원시 각도 읽기 실패(None). 닫지 않고 복귀합니다.")
             m_ = hg["model"]; hp = m_["h_ref"] + sum(c_ * (d_ - q_) for c_, d_, q_ in zip(m_["a"], dg, m_["q_ref"]))
-            r2["height_pred_mm"] = round(hp, 2); r2["raw_at_contact"] = dg; say("  [높이 관문] 원시 J2~J4 %s → 예측 닫힘 모델 캡 끝 %.1f mm (문턱 %.1f mm 이상이어야 닫습니다)" % ([round(v, 2) for v in dg], hp, hg["h_min"]))
+            r2["height_pred_mm"] = round(hp, 2); r2["raw_at_contact"] = dg
+            if plan.get("set") == "33" or "lift" in plan: r2["raw_q_at_contact"] = [(rw.get("1") or {}).get("deg")] + list(dg)   # 들어올림 계획만(세트 31 기록은 불변): P10 런타임 확인용 접촉 원시 q
+            say("  [높이 관문] 원시 J2~J4 %s → 예측 닫힘 모델 캡 끝 %.1f mm (문턱 %.1f mm 이상이어야 닫습니다)" % ([round(v, 2) for v in dg], hp, hg["h_min"]))
             if hp < hg["h_min"]: raise Abort("높이 관문 미달: 예측 %.1f mm < %.1f mm. 닫지 않고 복귀합니다(열린 채 상승)." % (hp, hg["h_min"]))
         import g01_lift_params as LP
         lift_clock = None

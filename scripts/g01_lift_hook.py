@@ -12,9 +12,9 @@ REF_NAME = "ref"
 class PhotoChannel:
     """사진 요청·결과 수신 채널(시험에서 가짜로 대체). request(name)은 요청 줄을 출력하고, wait(name, timeout_s)는 결과 dict 또는 None(시간 초과)을 돌려준다."""
     def __init__(self, say): self.say = say
-    def request(self, name, run_id):
-        """고유 토큰을 만들어 요청 줄에 넣는다(결과 JSON의 request_id와 대조). 반환: 토큰."""
-        tok = "%s-%s-%d" % (run_id, name, time.time_ns()); self.say("[사진 요청 %s id=%s]" % (name, tok)); return tok
+    def request(self, name, run_id, extra=""):
+        """고유 토큰을 만들어 요청 줄에 넣는다(결과 JSON의 request_id와 대조). extra는 줄 끝에 붙는 추가 필드(예: ' q=86.3,68.3,11.4,31.4'). 반환: 토큰."""
+        tok = "%s-%s-%d" % (run_id, name, time.time_ns()); self.say("[사진 요청 %s id=%s%s]" % (name, tok, extra)); return tok
     def read_ref(self): raise NotImplementedError
     def wait(self, name, timeout_s, token): raise NotImplementedError
 
@@ -27,10 +27,10 @@ class FilePhotoChannel(PhotoChannel):
     def read_ref(self):
         p = self._path(REF_NAME)
         return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else None
-    def request(self, name, run_id):
+    def request(self, name, run_id, extra=""):
         try: os.remove(self._path(name))                                 # 요청 직전에 같은 이름의 옛 결과를 지운다
         except FileNotFoundError: pass
-        return super().request(name, run_id)
+        return super().request(name, run_id, extra)
     def wait(self, name, timeout_s, token):
         t0 = time.monotonic()
         while time.monotonic() - t0 <= timeout_s:
@@ -113,8 +113,12 @@ def lift_after_stall(ctx):
     lift["j6_after_close"] = ctx["stalled"]
     def done(reason): lift["ended_reason"] = reason; lift["clock_log"] = list(clk.log)
     def photo(name):
+        extra = ""
+        if name == "A":   # P10 런타임 확인용: 접촉 자세의 실제 원시 q(높이 관문에서 읽은 값)를 요청 줄에 실어 Mac 관문이 두 번째 J2 최대 목표를 다시 풀게 한다. 없으면 필드를 생략(관문이 거부)
+            q_ = (ctx["rec"] or {}).get("raw_q_at_contact")
+            if q_ and all(v is not None for v in q_): extra = " q=" + ",".join("%.3f" % v for v in q_)
         if not clk.may_start("photo_" + name.lower(), ubs["photo_" + name.lower()]): return None
-        t_req, e_req = time.monotonic(), time.time(); tok = ch.request(name, ctx["run_id"]); r = ch.wait(name, P["photo_wait_max_s"], tok)
+        t_req, e_req = time.monotonic(), time.time(); tok = ch.request(name, ctx["run_id"], extra); r = ch.wait(name, P["photo_wait_max_s"], tok)
         if r is not None and r.get("request_id") != tok: r = None                                  # 요청 토큰이 다르면 응답이 아니다(방어)
         lift["photos"][name] = r; lift.setdefault("photo_times", {})[name] = {"req_mono": t_req, "rx_mono": time.monotonic(), "wait_s": round(time.monotonic() - t_req, 3), "req_epoch": e_req, "rx_epoch": time.time(), "request_id": tok}
         if r is None: say("  ! 사진 %s 결과가 %.1f s 안에 오지 않았다(판정 없음)." % (name, P["photo_wait_max_s"]))

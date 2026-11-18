@@ -7,6 +7,10 @@ sys.path.insert(0, 'evidence/G06'); sys.path.insert(0, 'scripts'); sys.path.inse
 import cv2, numpy as np
 spec = importlib.util.spec_from_file_location('pa', 'evidence/G06/p2k_analyze_261117.py'); PA = importlib.util.module_from_spec(spec); spec.loader.exec_module(PA)
 img, ref = sys.argv[1], sys.argv[2]; Q = [87.4, 81.0, 16.28, 19.31]; RUN1_MARKER = (678.2, 265.8)
+if len(sys.argv) > 3 and sys.argv[3] == '33':   # 세트 33: 재등록 1회 한정 기준 파일(정확히 1개)만 쓴다. 없으면 Run 1 위치·J1 87.4로 되돌아가지 않고 NG
+    import g01_lift_marker_ref as LMR
+    try: RUN1_MARKER = LMR.load()[:2]; Q[0] = LMR.load()[2]
+    except LMR.MarkerRefError as e: print('\n' + '=' * 60 + '\n[세트 33 정렬 보고] ' + str(e) + '\n결과: 정렬 NG — 러너 질문에 N (하강 없이 복귀)\n' + '=' * 60); sys.exit(0)
 if len(sys.argv) > 3 and sys.argv[3] == '31' and os.path.exists('evidence/G06/p2k_marker_ref.txt'): _rf = [l for l in open('evidence/G06/p2k_marker_ref.txt', encoding='utf-8') if not l.startswith('#')]; RUN1_MARKER = tuple(float(v) for v in _rf[0].split()[:2]); Q[0] = float(_rf[1].split()[0])   # 세트 31: 사전 등록 파일(Run 3 복귀 뒤 위치)
 out = ['', '=' * 60, '[Run 2 정렬 보고] (사전 등록 규칙, J6 100 열린 상태 50 mm 사진)']
 mk = PA.E.detect(cv2.imread(ref)).get(7)

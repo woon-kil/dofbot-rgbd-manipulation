@@ -14,7 +14,7 @@ FIX = ROOT / "tests" / "fixtures" / "s4_2_plan_31_fixture.json"
 class FakeChannel(LH.PhotoChannel if vclock else object):
     def __init__(self, ref=None, resp=None, delay=1.0, delays=None, stale=()):
         self.ref = ref; self.resp = resp or {}; self.delay = delay; self.delays = delays or {}; self.requests = []; self.stale = set(stale); self.tokens = {}
-    def request(self, name, run_id): self.requests.append(name); self.tokens[name] = "%s-%s-tok" % (run_id, name); return self.tokens[name]
+    def request(self, name, run_id, extra=""): self.requests.append(name); self.extras = getattr(self, "extras", {}); self.extras[name] = extra; self.tokens[name] = "%s-%s-tok" % (run_id, name); return self.tokens[name]
     def read_ref(self): return self.ref
     def wait(self, name, timeout_s, token):
         d = self.delays.get(name, self.delay); r = self.resp.get(name)
@@ -50,6 +50,8 @@ class LiftHookTest(unittest.TestCase):
 
     def test_happy_path_lifts_drops_and_returns_with_j6_closed(self):
         ch = FakeChannel(REF, photos()); r = self.run33(ch); L = self.lift(r)
+        import re as _re
+        self.assertRegex(ch.extras["A"], r"^ q=[-0-9.]+,[-0-9.]+,[-0-9.]+,[-0-9.]+$"); self.assertEqual(ch.extras["B"], ""); self.assertEqual(ch.extras["C"], "")   # P10 런타임 확인용 접촉 원시 q는 사진 A 요청에만 실린다
         self.assertEqual(ch.requests, ["A", "B", "C"]); self.assertEqual(r["ended"], "completed"); self.assertTrue(r["returned_to_start"])
         self.assertEqual([(m["joint"], m["target"]) for m in L["moves"]], [(2, 74), (2, 77), (4, 27)])        # 첫 J2 74 → 최대 목표 77(P10) → J4 −5
         self.assertTrue(L["hold_done"] and L["photo_c_done"]); self.assertEqual(L["ended_reason"], "완료"); self.assertLessEqual(L["elapsed_at_open_s"], 26.8)

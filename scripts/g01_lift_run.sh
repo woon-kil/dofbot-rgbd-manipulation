@@ -42,6 +42,7 @@ python3 "${ROOT}/scripts/g01_s42_plan_p2k.py" --set "${BASE}" --start "${START}"
 # ★ 미확정 상수(UNSET)가 하나라도 있으면 --real 거부: scp·사진·질문·P-A 기동보다 앞(러너가 거부하면 결과 파일이 없어 엉뚱한 exit 6이 나온다)
 UNSETMSG=$("${VPY}" -I -c "import sys,json; sys.path.insert(0,'${ROOT}/scripts'); import g01_lift_params as P; p=P.params_for_plan(json.load(open('${PLAN}',encoding='utf-8'))); print(', '.join(P.unset_names(p)) or '없음'); P.check_real_allowed('${MODE}', p)") || { echo "미확정 상수(UNSET)가 남아 --real을 거부한다: ${UNSETMSG}. 팔은 움직이지 않았다(사진·질문·P-A 기동 없음)."; exit 8; }
 echo "미확정 상수(UNSET): ${UNSETMSG}$([ "${MODE}" = real ] || echo ' (--real이면 거부됨)')"
+if [ "${MODE}" = real ]; then REFINFO=$("${VPY}" -I "${ROOT}/scripts/g01_lift_marker_ref.py" info) || { echo "${REFINFO}"; echo "세트 33 마커 기준이 재등록되어 있지 않다. scp·사진·질문·P-A 기동 없이 중단(팔은 움직이지 않았다)."; exit 7; }; echo "마커 기준: ${REFINFO}"; fi   # 파일 없음·복수는 NG(옛 기준·Run 1 위치로 되돌아가지 않는다)
 # --- 간격 검증: 세트 31 래퍼(g01_p2k_run.sh)와 같은 명령·같은 상수(tests/test_lift_wrapper.py가 문자열 일치를 확인한다) ---
 PLAN30="${ROOT}/evidence/G01/s4_2_plan_30_${TS}.json"
 TSET=32   # 세트 31(Run 4): J1 86 접근 자세 3101의 전이 점검은 세트 32
@@ -65,13 +66,13 @@ pa_stop() { [ "${PA_STARTED}" = 1 ] && { pa_ssh stop || echo "(P-A 드라이버 
 trap pa_stop EXIT
 beep_watch() { while IFS= read -r l; do case "$l" in *"[이동 "*) afplay /System/Library/Sounds/Glass.aiff >/dev/null 2>&1 &;; esac; done; }   # 세트 33은 36 s Gemini 사진(D1)을 쓰지 않는다(사진은 P-A 스냅)
 if [ "${MODE}" = real ]; then
-QTXT="기준 사진 전 확인: 노란 블록(마커 id 7)을 **Run 3 이후 만지지 않았고** 지정 자리 그대로이며, 눈금자·클램프·거치대는 없고 종이·보드 위에 그 밖의 물체가 없으며, 사람·손이 화면 밖입니까? (y 이외는 중단) [y/N] "
+QTXT="기준 사진 전 확인: 노란 블록(마커 id 7)을 **마커 기준 재등록 사진 이후 만지지 않았고**(${REFINFO}) 지정 자리 그대로이며, 눈금자·클램프·거치대는 없고 종이·보드 위에 그 밖의 물체가 없으며, 사람·손이 화면 밖입니까? (y 이외는 중단) [y/N] "
 read -r -p "${QTXT}" _ok; [ "${_ok}" = y ] || { echo "중단(팔은 움직이지 않았다)"; exit 7; }
 echo "[기준 사진] 팔 K1·눈금자 없음·사람 없음 상태로 Gemini 기준 사진 1장을 찍습니다(약 40초). 화면 밖에 계세요."
 bash "${ROOT}/scripts/p1_m3_gemini_photo.sh" "p2kref_${TS}" && [ -s "${ROOT}/data/g04/p2kref_${TS}.png" ] || { echo "기준 사진 실패(또는 파일 없음): 시험을 시작하지 않는다. 팔은 움직이지 않았다."; exit 7; }
-"${ROOT}/.venv/bin/python" -I -c "import sys,cv2; sys.path.insert(0,'${ROOT}/scripts'); import g01_e0g_analyze as E; m=E.detect(cv2.imread('${ROOT}/data/g04/p2kref_${TS}.png')).get(7); assert m is not None, '마커 id 7 미검출'; RX, RY = (678.2, 265.8); import os; f='${ROOT}/evidence/G06/p2k_marker_ref.txt'
-if os.path.exists(f): RX, RY = [float(v) for v in [l for l in open(f, encoding='utf-8') if not l.startswith('#')][0].split()[:2]]
-d=((m['center'][0]-RX)**2+(m['center'][1]-RY)**2)**0.5; print('기준 사진 마커', [round(x,1) for x in m['center']], '기준 (%.2f, %.2f)과 차 %.2f px (관문 <= 1.0)' % (RX, RY, d)); assert d <= 1.0, '마커 관문 미달: 블록 또는 카메라가 기준 등록 이후 움직였다'" || { echo "마커 관문 실패: 블록·카메라 위치가 기준과 다르다. 시작하지 않는다(팔은 움직이지 않았다)."; exit 7; }
+"${VPY}" -I -c "import sys,cv2; sys.path.insert(0,'${ROOT}/scripts'); import g01_e0g_analyze as E, g01_lift_marker_ref as LMR; m=E.detect(cv2.imread('${ROOT}/data/g04/p2kref_${TS}.png')).get(7); assert m is not None, '마커 id 7 미검출'
+RX, RY = LMR.load()[:2]   # 세트 33: 재등록 1회 한정 기준 파일만(없거나 2개 이상이면 오류, Run 1 위치로 되돌아가지 않는다)
+d=((m['center'][0]-RX)**2+(m['center'][1]-RY)**2)**0.5; print('기준 사진 마커', [round(x,1) for x in m['center']], '기준 (%.2f, %.2f)과 차 %.2f px (관문 <= 1.0)' % (RX, RY, d)); assert d <= 1.0, '마커 관문 미달: 블록 또는 카메라가 재등록 이후 움직였다'" || { echo "마커 관문 실패: 블록·카메라 위치가 재등록 기준과 다르거나 기준 파일이 없다. 시작하지 않는다(팔은 움직이지 않았다)."; exit 7; }
 # --- P-A 기동(같은 카메라를 쓰므로 Gemini 36 s 사진 뒤에) + 기준 스냅(S4' 기준, 같은 P-A 기동) ---
 echo "[P-A 기동] p620 상시 드라이버를 켭니다(약 12초 예열, 최대 ${PA_MAXSEC} s). 화면 밖에 계세요."
 PA_STARTED=1; pa_ssh start WARMUP=12 MAXSEC=${PA_MAXSEC} || { echo "P-A 드라이버 기동 실패. 중단(팔은 움직이지 않았다)"; exit 8; }
@@ -88,7 +89,7 @@ fi
 BLOG="${ROOT}/evidence/G01/raw/lift_bridge_${TS}.log"
 RUNNER="cd ~/${RD} && python3 g01_p2k_test.py --plan plan.json ${ARGS} --run-id ${TS} --out ~/${RD}/result.json"
 if [ "${MODE}" = real ]; then
-  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
+  ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"
   for _ in $(seq 1 20); do grep -q '"results"' "${BLOG}" 2>/dev/null && break; sleep 0.5; done   # 다리가 EOF를 받아 결과를 적을 때까지 잠시 기다린다
   echo "[복귀 뒤 사진] 팔이 K1로 돌아왔습니다. 화면 밖에 계세요. P-A 스냅 1장(기록용, P4)."
   bash "${ROOT}/scripts/pa_snap_mac.sh" "lift_${TS}_post" || echo "(복귀 뒤 P-A 스냅 실패: 기록 없음)"
@@ -97,7 +98,7 @@ else
   ssh -t -o ConnectTimeout=8 "${H}" "${RUNNER}" | tee >(beep_watch) > /dev/null || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"   # dry_run: 쓰기 0, 사진·P-A 없음
 fi
 scp -q -o BatchMode=yes "${H}:${RD}/result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/result.json 확인 필요"; exit 6; }
-python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'returned_to_start=',j.get('returned_to_start'),'lift=',(j.get('lift') or {}).get('ended_reason'))" "${OUT}" "${TS}" "${MODE}"
+python3 -c "import json,sys;j=json.load(open(sys.argv[1]));assert j['run_id']==sys.argv[2] and j['mode']==sys.argv[3], '기록의 run_id/mode가 이번 실행과 다르다';print('기록 확인: mode=',j['mode'],'ended=',j['ended'],'이동 기록=',len(j['steps']),'returned_to_start=',j.get('returned_to_start'),'lift=',(j.get('lift') or {}).get('ended_reason'));r2=[p.get('run2') for p in j.get('poses',[]) if p.get('run2')];print('분류: 정렬 NG 중단(시도 아님, 들어올림 실패 집계에 넣지 않음)' if any(x.get('align_confirmed') is False for x in r2) else '분류: 정렬 NG 아님(시도 여부는 기록의 lift 절로 판단)')" "${OUT}" "${TS}" "${MODE}"
 echo "저장: ${OUT}"
 echo "비상 절차: 시험은 마지막에 시작값 S로 복귀한다. 복귀 없이 끝났거나 관절에서 소리·발열·처짐이 있으면 손부터 빼고, 팔 주변(넘어질 수 있는 범위, 낙하 받침 없음)을 확인한 뒤 담당자가 전원을 차단한다."
 echo "이 스크립트를 다시 실행하면 그 시점의 위치를 새 S로 읽으므로 원래 위치로 돌아가지 않는다. 원래 시작 자세는 기록(JSON)의 state0(J1~J6 시작 회독)에 있다."
