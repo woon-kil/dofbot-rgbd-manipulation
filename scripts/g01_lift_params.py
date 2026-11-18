@@ -49,6 +49,11 @@ PARAMS = {
 }
 
 
+def is_lift_plan(plan):
+    """들어올림 계획 판정(게이트와 훅이 같은 함수를 쓴다: 한쪽만 켜지는 fail-open 방지). 세트 33이거나 'lift' 절이 있으면 들어올림 계획이다."""
+    return plan.get("set") == "33" or "lift" in plan
+
+
 def params_for_plan(plan):
     """계획 JSON(세트 33)이 공급하는 값을 PARAMS 사본에 채운다: 접촉 자세마다 생성기가 계산한 두 번째 J2 최대 정수 목표(P10).
     plan[\"lift\"][\"j2_max_target\"]가 정수가 아니면 UNSET을 유지한다(fail-closed)."""

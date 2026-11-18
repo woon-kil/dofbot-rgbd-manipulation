@@ -370,9 +370,10 @@ def main():
     FAKE_ENTRIES[:] = [x.strip() for x in a.fake_entry.split(",") if x.strip()] if a.fake_entry else []
     FAKE.update({"countdown_int": a.fake_countdown_int, "return_int": a.fake_return_int, "capture_fail": a.fake_capture_fail})
     plan = json.load(open(a.plan, encoding="utf-8"))
-    if plan.get("set") == "33":   # 들어올림 세트: 미확정 상수(UNSET)가 하나라도 있으면 --real 거부(fail-closed, 사용자 결정 2026-11-18). Arm_Lib import·안전 질문·쓰기보다 앞
-        import g01_lift_params as LP
-        try: LP.check_real_allowed("fake" if a.fake else ("real" if a.real else "dry_run"), LP.params_for_plan(plan))
+    mode = "fake" if a.fake else ("real" if a.real else "dry_run")   # 한 번만 계산(게이트와 이후 흐름이 같은 값을 쓴다)
+    import g01_lift_params as LP
+    if LP.is_lift_plan(plan):   # 들어올림 세트: 미확정 상수(UNSET)가 하나라도 있으면 --real 거부(fail-closed, 사용자 결정 2026-11-18). Arm_Lib import·안전 질문·쓰기보다 앞
+        try: LP.check_real_allowed(mode, LP.params_for_plan(plan))
         except LP.ParamsNotFinal as e: sys.exit("세트 33: %s" % e)
     FAKE["abort_close"] = int(a.fake_abort_close) if a.fake_abort_close else None
     FAKE["ceils"] = {int(t_.split(":")[0]): int(t_.split(":")[1]) for t_ in a.fake_ceil.split(",") if ":" in t_}
@@ -382,7 +383,6 @@ def main():
     if plan["set"] == "22": WINDOWS[2] = [55, 110]   # D1-A: J2 창 하한 70 → 55(이 세트에 한정, 승인 D1-2 2026-11-16)
     if plan["set"] == "21": WINDOWS[2] = [58, 110]   # D0: J2 창 하한 70 → 58(이 세트에 한정, 사용자 승인 D0-3, docs/gates/G07-D0-파지근방-손끝높이-승인-요청-문서.md §5)
     if plan["set"] in ("18", "19"): WINDOWS[2] = [70, 140]   # T1-B(큰 이동 J2 90→135): 어댑터 목표 창을 이 세트에서만 J2 70~140으로 넓힌다(새 안전 한도, 사용자 승인 필요: docs/gates/G07-소각응답T1B-큰이동-승인-요청-문서.md D6). 다른 세트는 그대로 70~110
-    mode = "fake" if a.fake else ("real" if a.real else "dry_run")
     moves = plan["moves"]; N = len(moves)
     result = {"run_id": a.run_id, "mode": mode, "kind": "s42_" + plan["set"], "plan_set": plan["set"], "plan_gate": plan["gate"], "started_at": datetime.datetime.now().isoformat(timespec="seconds"), "state0": None, "steps": [], "poses": [], "ended": None, "return_steps": []}
     ads = {}; arm = None; wrote = False; cmd = {}; done_moves = 0; start_all = {}

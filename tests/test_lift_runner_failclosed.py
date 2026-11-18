@@ -57,6 +57,11 @@ class RunnerFailClosedTest(unittest.TestCase):
             self.assertNotIsInstance(c.exception, SystemExit); self.assertIsInstance(c.exception, KeyError)
         self.assertEqual(Rec.writes, 0)
 
+    def test_lift_clause_without_set33_is_also_gated(self):
+        with self.assertRaises(SystemExit) as c: self.run_main(self.plan({"set": "31", "lift": {"j2_max_target": 77}}), "--real")   # set이 33이 아니어도 lift 절이 있으면 거부(fail-open 방지)
+        self.assertIn("q3_box", str(c.exception)); self.assertEqual((Rec.created, Rec.writes), (0, 0))
+        self.assertTrue(LP.is_lift_plan({"set": "33"})); self.assertTrue(LP.is_lift_plan({"set": "31", "lift": {}})); self.assertFalse(LP.is_lift_plan({"set": "31"}))
+
     def test_other_sets_are_not_affected(self):
         with self.assertRaises(Exception) as c: self.run_main(self.plan({"set": "31"}), "--real")
         self.assertNotIsInstance(c.exception, SystemExit)                                             # 세트 33 게이트는 다른 세트에 적용하지 않는다
