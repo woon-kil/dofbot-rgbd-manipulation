@@ -3,16 +3,20 @@
 확정 값은 근거 승인 번호를 주석으로 단다. 값 변경은 해당 승인 항목의 재승인이 필요하다."""
 
 
+class ParamsNotFinal(Exception):
+    """미확정 상수가 남아 있어 --real을 거부한다(UNSET을 값으로 쓰려 해도 이 예외)."""
+
+
 class _Unset:
+    """값으로 쓰면 모두 예외: `PARAMS[k] or 기본값` 같은 조용한 대체를 막는다(사용자 결정: 기본값 없음)."""
     def __repr__(self): return "UNSET"
-    def __bool__(self): return False
+    def _no(self, *a, **k): raise ParamsNotFinal("미확정 상수(UNSET)를 값으로 쓸 수 없다")
+    __bool__ = __eq__ = __ne__ = __lt__ = __le__ = __gt__ = __ge__ = _no
+    __add__ = __radd__ = __sub__ = __mul__ = __rmul__ = __truediv__ = __getitem__ = __iter__ = __len__ = __int__ = __float__ = __index__ = __contains__ = _no
+    __hash__ = object.__hash__
 
 
 UNSET = _Unset()
-
-
-class ParamsNotFinal(Exception):
-    """미확정 상수가 남아 있어 --real을 거부한다."""
 
 
 PARAMS = {
@@ -45,7 +49,7 @@ def unset_names(params=None):
 
 
 def check_real_allowed(mode, params=None):
-    """mode == 'real'이고 UNSET이 하나라도 있으면 ParamsNotFinal. fake·dry_run은 미확정이어도 통과(쓰기 없음)."""
-    if mode == "real":
+    """허용 목록 방식: mode가 'fake'·'dry_run'이 아니면(real·모르는 문자열 포함) UNSET이 하나라도 있을 때 ParamsNotFinal."""
+    if mode not in ("fake", "dry_run"):
         miss = unset_names(params)
         if miss: raise ParamsNotFinal("미확정 상수가 있어 --real을 거부한다: %s" % ", ".join(miss))

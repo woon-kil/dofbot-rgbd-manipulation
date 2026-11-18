@@ -36,5 +36,15 @@ class LiftParamsTest(unittest.TestCase):
         self.assertEqual((d["e1_center_up_px"], d["e1_side_len_px"], d["e1_lateral_px"], d["q3_shift_max_px"], d["q3_response_min"]), (8.0, 0.7, 4.0, 2.0, 0.3))
         self.assertEqual((d["photo_c_skip_e3"], d["hold_skip_e3"], d["return_photo_use"]), ("j6_readback_only", "e2_original", "record_only"))
 
+    def test_unset_cannot_be_used_as_a_value(self):
+        U = P.UNSET
+        for f in (lambda: U or (480, 0, 900, 100), lambda: bool(U), lambda: U == 1, lambda: U + 1, lambda: U[0], lambda: list(U), lambda: len(U), lambda: float(U), lambda: U < 2, lambda: 1 in U):
+            with self.assertRaises(P.ParamsNotFinal): f()
+        self.assertEqual(repr(U), "UNSET")
+
+    def test_unknown_mode_is_refused(self):
+        for mode in ("REAL", "", "Real", "go", None):
+            with self.assertRaises(P.ParamsNotFinal): P.check_real_allowed(mode)
+
 
 if __name__ == "__main__": unittest.main()
