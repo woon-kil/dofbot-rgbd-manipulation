@@ -49,7 +49,7 @@ OUT="${ROOT}/evidence/G01/raw/g01_m0_readonly_${KIND}_${TS}.json"
 echo "M0 읽기 전용 측정(${KIND}). 쓰기 0, 팔 정지 상태여야 한다. 시작합니다."
 RC=0; ssh -t -o ConnectTimeout=8 "${H}" "cd ~/${RD} && python3 g01_m0_readonly.py ${ARGS} --out ~/${RD}/m0_result.json" || RC=$?   # 중단돼도 부분 기록을 가져온다(중단된 본 측정도 그 1세트)
 scp -q -o BatchMode=yes "${H}:${RD}/m0_result.json" "${OUT}" || { echo "기록 파일을 가져오지 못했다. Jetson의 ~/${RD}/m0_result.json 확인 필요"; exit 6; }
-python3 -c "import json,sys;j=json.load(open(sys.argv[1]));j['git_head']=sys.argv[2];json.dump(j,open(sys.argv[1],'w'),ensure_ascii=False,indent=1);print('코드 커밋:',sys.argv[2][:10]);print('기록 확인: mode=',j['mode'],'sanity=',j['sanity'],'n=',j['n_per_condition'],'소요 s=',j['elapsed_s'],'중지=',j['stopped'])" "${OUT}"
+python3 -c "import json,sys;j=json.load(open(sys.argv[1]));j['git_head']=sys.argv[2];json.dump(j,open(sys.argv[1],'w'),ensure_ascii=False,indent=1);print('코드 커밋:',sys.argv[2][:10]);print('기록 확인: mode=',j['mode'],'sanity=',j['sanity'],'n=',j['n_per_condition'],'소요 s=',j['elapsed_s'],'중지=',j['stopped'])" "${OUT}" "${GITHEAD}" || echo "경고: git_head 기록 실패(기록 파일은 위에 있다)"
 echo "저장: ${OUT}"
 [ "${RC}" = 0 ] || echo "주의: 측정 프로세스가 종료 코드 ${RC}로 끝났다(중단 가능). 부분 기록은 위 파일에 있다. 재측정하지 않는다."
 echo "비상 롤백: 이 측정은 쓰기가 없어 되돌릴 상태가 없다. 같은 이름의 기록을 지우지 말고(증거) 다음 실행은 새 이름으로 저장된다."
