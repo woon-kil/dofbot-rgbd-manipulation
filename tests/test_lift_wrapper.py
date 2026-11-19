@@ -45,9 +45,10 @@ class TestStatic(unittest.TestCase):
         for f in ("g01_lift_params.py", "g01_lift_logic.py", "g01_lift_hook.py"): self.assertIn(f, shipped)
 
     def test_set_keyed_clearance_script_knows_set33(self):
-        """run2 간격 스크립트는 plan['set']으로 J1을 고른다. '33'이 빠지면 87.4로 계산되어 거짓 미달(-0.3 mm)이 났다(2026-11-18 실측)."""
+        """run2 간격 스크립트는 J1을 세트 번호가 아니라 계획의 접촉 자세 J1 명령에서 정한다(2026-11-19 변경). 세트 번호 목록에 '33'이 빠지면 87.4로 계산되어 거짓 미달(-0.3 mm)이 났던 사고(2026-11-18)와,
+        J1 85 계획이 세트 33이라는 이유로 86.4로 계산되던 결함을 모두 막는다. 값 시험은 tests/test_lift_j1_assumption.py(j1_raw_for_plan)."""
         src = (ROOT / "evidence" / "G06" / "run2_contact_clearance_261117.py").read_text(encoding="utf-8")
-        self.assertIn("in ('31', '33') else 87.4", src)
+        self.assertIn("j1_raw_for_plan(plan)", src); self.assertNotIn("in ('31', '33') else 87.4", src)
 
     def test_r8_and_classifier_called_and_listed(self):
         for f in ("g01_lift_r8.py", "g01_lift_classify.py"): self.assertIn("scripts/" + f, t33)

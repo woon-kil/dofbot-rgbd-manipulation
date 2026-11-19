@@ -46,12 +46,15 @@ def make_lift_plan(plan31, G=None, C=None):
 
 
 def _make(plan, plan31, G, C):
-    if plan.get("set") != "31": raise ValueError("세트 31 계획이 아니다")
+    if plan.get("set") not in ("31", "34"): raise ValueError("세트 31(J1 86) 또는 세트 34(J1 85) 계획이 아니다")
     run2 = plan["run2"]; pid = run2["contact_pose"]
     k = max(i for i, m in enumerate(plan["moves"], 1) if m.get("pose_id") == pid)          # 접촉 자세에 도착한 마지막 이동 번호(= 완료한 이동 수)
     st = plan["return_routes"][k]["state"]                                                # 접촉 자세 명령 상태 J1~J4
     use_q0 = [int(v) for v in st] == [86, 69, 12, 32]
-    q0 = list(C.Q0) if use_q0 else [float(v) for v in st]                                 # Run 4 접촉 원시 자세와 같으면 그 값, 아니면 명령값 대용(정확도 낮음 → 표시)
+    j1_85 = plan.get("set") == "34" and [int(v) for v in st] == [85, 69, 12, 32]          # 세트 34(J1 85): J2~J4는 Run 4 접촉 원시 자세와 같고 J1만 85(J1은 tilt 계산에 영향이 없다, 원시 J1은 J1 가정 파일 85.4)
+    if j1_85:
+        import g01_lift_marker_ref as LMR; q0 = [LMR.j1_assumption()] + list(C.Q0)[1:]; use_q0 = True
+    else: q0 = list(C.Q0) if use_q0 else [float(v) for v in st]                           # Run 4 접촉 원시 자세와 같으면 그 값, 아니면 명령값 대용(정확도 낮음 → 표시)
     first_target = int(st[1]) + J2_FIRST_UP
     mt = max_target(C, q0, first_target)
     if mt is None: raise ValueError("tilt ≤ %.0f° 안의 두 번째 J2 목표가 없다" % TILT_LIMIT_DEG)
@@ -63,7 +66,7 @@ def _make(plan, plan31, G, C):
             if full < floor - G.EPS: errs.append("들어올린 상태 %s 복귀 경로 최저 %.1f < %.1f" % (state, full, floor))
             idx = len(rets); rets.append({"after_move": idx, "state": state, "route": [{"joint": j, "target": t, "time_ms": tm} for j, t, tm in route], "lift_stage": stage}); index["%s:%d" % (stage, j2)] = idx
     plan["p2k"] = dict(plan["p2k"], hold_s=3.0)   # 세트 33: Gemini 36 s 사진(55 s 정지)을 쓰지 않는다(사진은 P-A 스냅, 기준 사진은 실행 전). 정지는 처짐 감시용 짧은 대기뿐(누름 없음)
-    plan["set"] = "33"; plan["lift"] = {"j2_first_target": first_target, "j2_max_target": int(t_max), "j4_delta": J4_DELTA, "contact_moves_done": k, "q0": q0, "q0_source": "run4_raw" if use_q0 else "command_proxy",
+    plan["set"] = "33"; plan["lift"] = {"j2_first_target": first_target, "j2_max_target": int(t_max), "j4_delta": J4_DELTA, "contact_moves_done": k, "q0": q0, "q0_source": ("run4_raw_j1_assumed" if j1_85 else "run4_raw") if use_q0 else "command_proxy",
                                          "tilt_limit_deg": TILT_LIMIT_DEG, "tilt_peak_at_max_deg": round(peak, 2), "model": "FK UNVERIFIED, 증가 방향 부족 0·J4 넘침 %.1f 최악" % DEC_OVERSHOOT_DEG, "return_index": index}
     plan["gate_errors"] = list(plan.get("gate_errors", [])) + errs
     return plan, errs

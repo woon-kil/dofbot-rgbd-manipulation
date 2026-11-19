@@ -26,6 +26,48 @@ def load(root=None):
     return x, y, j1, os.path.basename(fs[0]), [l for l in lines if l.startswith("#")]
 
 
+def j1_files(root=None): return sorted(glob.glob(os.path.join(root or ROOT, "evidence", "G06", "lift_j1_assumption_*.txt")))
+
+
+def _j1_pair(root=None):
+    """(명령 J1, 원시 가정 J1). `evidence/G06/lift_j1_assumption_<시각>.txt`가 **정확히 1개**이고 데이터 줄이 정확히 1줄 `<명령 정수> <원시 실수>`일 때만. 아니면 MarkerRefError(정렬 NG, fail-closed).
+    마커 기준 파일(lift_marker_ref_*.txt, 정확히 1개 규칙)과 분리된 파일이라 마커 좌표·옛 파일은 건드리지 않는다(플랜 v2 §4 J1 85)."""
+    fs = j1_files(root)
+    if len(fs) != 1: raise MarkerRefError("J1 가정 파일이 %d개다(정확히 1개 필요, evidence/G06/lift_j1_assumption_*.txt)." % len(fs))
+    data = [l for l in open(fs[0], encoding="utf-8").read().splitlines() if l.strip() and not l.startswith("#")]
+    try:
+        if len(data) != 1 or len(data[0].split()) != 2: raise ValueError
+        cmd, raw = int(data[0].split()[0]), float(data[0].split()[1])
+        if cmd <= 0 or raw <= 0: raise ValueError
+    except ValueError: raise MarkerRefError("J1 가정 파일 형식 오류(데이터 1줄 `<명령 정수> <원시 실수>`): " + os.path.basename(fs[0]))
+    return cmd, raw
+
+
+def j1_assumption(root=None): return _j1_pair(root)[1]
+
+
+def j1_command(root=None): return _j1_pair(root)[0]
+
+
+def check_plan_j1(plan_path, root=None):
+    """계획(세트 33)의 접촉 자세 J1 명령이 가정 파일의 명령 J1과 같은지 대조한다. 다르면 MarkerRefError(정렬 NG)."""
+    import json
+    plan = json.load(open(plan_path, encoding="utf-8")); k = plan["lift"]["contact_moves_done"]; j1 = int(plan["return_routes"][k]["state"][0]); cmd = j1_command(root)
+    if j1 != cmd: raise MarkerRefError("계획의 접촉 자세 J1 명령 %d가 J1 가정 파일의 명령 %d와 다르다." % (j1, cmd))
+    return cmd
+
+
+def j1_raw_for_plan(plan, root=None):
+    """계획이 가정하는 J1 원시값(간격·정렬 도구용). **세트 번호가 아니라 계획의 접촉 자세 J1 명령**으로 정한다: 들어올림 계획(plan["lift"])이면 명령이 J1 가정 파일의 명령(85)과 같을 때 그 파일의 원시 가정(85.4),
+    86이면 기존 관례 86.4, 그 밖이면 MarkerRefError. 들어올림이 아닌 계획은 기존 규칙(세트 31 → 86.4, 그 밖 → 87.4)."""
+    if plan.get("lift"):
+        j1 = int(round(float(plan["return_routes"][plan["lift"]["contact_moves_done"]]["state"][0])))
+        if j1 == j1_command(root): return j1_assumption(root)
+        if j1 == 86: return 86.4
+        raise MarkerRefError("계획의 접촉 자세 J1 명령 %d에 대한 원시 가정이 없다(J1 가정 파일 명령 %d, 기존 86)." % (j1, j1_command(root)))
+    return 86.4 if str(plan.get("set")) == "31" else 87.4
+
+
 def _detect(path):
     import cv2; sys.path.insert(0, os.path.join(ROOT, "scripts")); import pa_detect
     d = pa_detect.detect(cv2.imread(path))
@@ -63,7 +105,7 @@ def main():
     try:
         if a.cmd == "register": print("재등록 완료:", register(a.photo, a.approval))
         else:
-            x, y, j1, name, meta = load(); print("%s (%.2f, %.2f) J1 %.1f" % (name, x, y, j1)) if a.cmd == "check" else print("%s 재등록 사진 (%.2f, %.2f)" % (name, x, y))
+            x, y, j1, name, meta = load(); print("%s (%.2f, %.2f) 마커 파일의 옛 J1 %.1f / J1 가정 파일: 명령 %d → 원시 %.1f" % (name, x, y, j1, j1_command(), j1_assumption())) if a.cmd == "check" else print("%s 재등록 사진 (%.2f, %.2f)" % (name, x, y))
     except MarkerRefError as e: print("오류:", e); sys.exit(7)
 
 
