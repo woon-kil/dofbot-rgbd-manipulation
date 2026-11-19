@@ -20,7 +20,7 @@ done
 [ "${PLANCHECK}" = 1 ] && [ -z "${START_ARG}" ] && { echo "--plan-check는 --start J1,J2,J3,J4,J5,J6이 필요하다(Jetson을 읽지 않는다)"; exit 2; }
 SET=33; BASE=31   # 세트 33 = 세트 31 계획 + 들어올림 후처리. 간격 검증은 세트 31과 같은 명령·같은 상수를 쓴다
 TS="$(date +%y%m%d-%H%M%S)"; KIND="s42${SET}"; OUT="${ROOT}/evidence/G01/raw/g01_5b4_${KIND}_result-${MODE}-${TS}.json"
-for f in scripts/g01_p2k_test.py scripts/g01_5a_gripper_test.py scripts/g01_s42_plan_p2k.py scripts/g01_s4_2_path.py scripts/g01_s3_path.py scripts/g01_pose_generator.py scripts/g01_5b4_joint_test.py scripts/gripper_adapter.py scripts/g01_lift_params.py scripts/g01_lift_logic.py scripts/g01_lift_hook.py scripts/g01_s42_plan_lift.py scripts/g01_lift_bridge.py scripts/g01_lift_classify.py scripts/g01_lift_r8.py scripts/g01_lift_marker_ref.py scripts/pa_driver.sh scripts/pa_snap_mac.sh scripts/pa_snap.py scripts/pa_detect.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
+for f in scripts/g01_p2k_test.py scripts/g01_5a_gripper_test.py scripts/g01_s42_plan_p2k.py scripts/g01_s4_2_path.py scripts/g01_s3_path.py scripts/g01_pose_generator.py scripts/g01_5b4_joint_test.py scripts/gripper_adapter.py scripts/g01_lift_params.py scripts/g01_lift_logic.py scripts/g01_lift_hook.py scripts/g01_read_guard.py scripts/g01_s42_plan_lift.py scripts/g01_lift_bridge.py scripts/g01_lift_classify.py scripts/g01_lift_r8.py scripts/g01_lift_marker_ref.py scripts/pa_driver.sh scripts/pa_snap_mac.sh scripts/pa_snap.py scripts/pa_detect.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
 cmp -s "${ROOT}/src/control/gripper_adapter.py" "${ROOT}/scripts/gripper_adapter.py" || { echo "scripts/gripper_adapter.py가 src/control/gripper_adapter.py와 다르다. 복사 후 재실행"; exit 2; }
 VPY="${P1_CHECK_PY:-${ROOT}/.venv/bin/python}"
 if [ "${PLANCHECK}" = 0 ]; then
@@ -58,7 +58,7 @@ if [ "${PLANCHECK}" = 1 ]; then echo "계획·간격 검증 통과(Mac만, 계�
 echo "S4-2${SET}(들어올림 시험), 모드: ${MODE}. 대화형 확인이 시작된다. 사람이 입회한 상태에서만 계속하라."
 RD=dofbot-g01_5b4   # 모터 제어 코드는 공용 /tmp가 아니라 전용 폴더(권한 700)에서 실행한다
 "${SSH[@]}" "mkdir -p ~/${RD} && chmod 700 ~/${RD} && rm -f ~/${RD}/result.json ~/${RD}/lift_photo_ref.json ~/${RD}/lift_photo_A.json ~/${RD}/lift_photo_B.json ~/${RD}/lift_photo_C.json"   # 이전 실행 기록·사진 결과가 섞이지 않게 먼저 지운다(정확한 이름만, 와일드카드 없음)
-scp -q -o BatchMode=yes "${ROOT}/scripts/g01_dabai_probe.py" "${ROOT}/scripts/g01_dabai_expsweep.py" "${ROOT}/scripts/g01_p2k_test.py" "${ROOT}/scripts/g01_5a_gripper_test.py" "${ROOT}/scripts/g01_5b4_joint_test.py" "${ROOT}/scripts/gripper_adapter.py" "${ROOT}/scripts/g01_lift_params.py" "${ROOT}/scripts/g01_lift_logic.py" "${ROOT}/scripts/g01_lift_hook.py" "${H}:${RD}/"
+scp -q -o BatchMode=yes "${ROOT}/scripts/g01_dabai_probe.py" "${ROOT}/scripts/g01_dabai_expsweep.py" "${ROOT}/scripts/g01_p2k_test.py" "${ROOT}/scripts/g01_5a_gripper_test.py" "${ROOT}/scripts/g01_5b4_joint_test.py" "${ROOT}/scripts/gripper_adapter.py" "${ROOT}/scripts/g01_lift_params.py" "${ROOT}/scripts/g01_lift_logic.py" "${ROOT}/scripts/g01_lift_hook.py" "${ROOT}/scripts/g01_read_guard.py" "${H}:${RD}/"
 scp -q -o BatchMode=yes "${PLAN}" "${H}:${RD}/plan.json"
 PA_MAXSEC=1800; PA_STARTED=0
 pa_ssh() { local act="$1"; shift; ssh -o BatchMode=yes -o ConnectTimeout=8 p620 "ACTION=${act} $* bash -s" < "${ROOT}/scripts/pa_driver.sh"; }

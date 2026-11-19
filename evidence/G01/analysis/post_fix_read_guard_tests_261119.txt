@@ -1,0 +1,22 @@
+
+[이동 6/9] J3 -> 72 (time 3000 ms): 2초 뒤 이동합니다. ▶ **J3를 지켜보세요.** 이상하면 Ctrl-C.
+  -> 최종 회독 J1=89, J2=90, J3=71, J4=51 (이번 J3 목표 72), J5=90, J6=100
+
+[이동 7/9] J4 -> 72 (time 1500 ms): 2초 뒤 이동합니다. ▶ **J4를 지켜보세요.** 이상하면 Ctrl-C.
+  -> 최종 회독 J1=89, J2=90, J3=71, J4=71 (이번 J4 목표 72), J5=90, J6=100
+
+[이동 8/9] J3 -> 91 (time 1500 ms): 2초 뒤 이동합니다. ▶ **J3를 지켜보세요.** 이상하면 Ctrl-C.
+  -> 최종 회독 J1=89, J2=90, J3=90, J4=71 (이번 J3 목표 91), J5=90, J6=100
+
+[이동 9/9] J4 -> 91 (time 1500 ms): 2초 뒤 이동합니다. ▶ **J4를 지켜보세요.** 이상하면 Ctrl-C.
+  -> 최종 회독 J1=89, J2=90, J3=90, J4=90 (이번 J4 목표 91), J5=90, J6=100
+기록 저장: /var/folders/75/cj_81kb13p53s1sl226g40v40000gn/T/tmpjcf943av.json
+/Users/woonkil/projects/dofbot-rgbd-manipulation/tests/vclock.py:26: ResourceWarning: unclosed file <_io.TextIOWrapper name='/var/folders/75/cj_81kb13p53s1sl226g40v40000gn/T/tmpjcf943av.json' mode='r' encoding='utf-8'>
+  return json.load(open(out, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.641s
+
+OK

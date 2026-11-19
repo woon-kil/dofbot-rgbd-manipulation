@@ -240,6 +240,9 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         pose_rec.setdefault("run2", {})["open_readback"] = last
         h = p2k_hold(plan, "0", arm, {"pose_id": pid}, a); pose_rec["run2"]["hold_open50"] = h
         say("\n[정렬 확인] Mac 화면의 정렬 보고(d_x, 캡별 옆 여유)를 읽으세요. **|d_x| ≤ 3 mm 이고 두 캡 옆 여유가 모두 6 mm 이상이며 블록 마커가 기준 사진과 1 px 이내**일 때만 y. 아니거나 보고가 없으면 N(하강 없이 복귀합니다).")
+        if plan["set"] == "33":   # M6(플랜 v2, 사용자 승인 D2·ALIGN_TIMEOUT_S 15 s): 정렬 판정이 OK가 아니면 **사람 입력 없이** N(입력 버퍼에 미리 들어온 y가 NG를 우회하지 못한다). dry_run은 위에서 이미 반환
+            import g01_lift_hook as LH_; ok_, why_ = LH_.align_gate(LIFT_CHANNEL or LH_.FilePhotoChannel(say), P2K["run_id"]); pose_rec["run2"]["align_verdict"] = {"go": bool(ok_), "reason": why_}
+            if not ok_: pose_rec["run2"]["align_confirmed"] = False; raise Abort("정렬 판정 통과 아님(%s): 사람 입력 없이 N, 하강하지 않고 복귀합니다." % why_)
         ok = ask("정렬 확인이 모두 맞습니까?"); pose_rec["run2"]["align_confirmed"] = bool(ok)
         if not ok: raise Abort("정렬 확인 N(또는 보고 없음): 하강하지 않고 복귀합니다.")
         return
@@ -422,6 +425,8 @@ def main():
             if ":" in tok: k, v = tok.split(":"); floors[int(k)] = int(v)
         ps = plan["start"]
         arm = FakeArmS({int(k): v for k, v in ps.items()}, a.fake_ignore, floors, a.fake_drop_nth, a.fake_read_quiet, tuple(float(x) for x in a.fake_hyst.split(",")) if a.fake_hyst else None) if a.fake else __import__("Arm_Lib").Arm_Device()
+        if plan["set"] == "33":   # M5(플랜 v2, 사용자 승인 2026-11-19): 세트 33 실행 전체(모드 무관)에서 같은 서보 재읽기를 응답 끝 뒤 ≥ 0.05 s로 보장하는 가드. 세트 29·31은 그대로
+            import g01_read_guard as RG; arm = RG.ReadGuardArm(arm); P2K["guard"] = arm
         state = {i: read_valid(arm, i) for i in range(1, 7)}; result["state0"] = state; start_all = dict(state); P2K["start_all"] = start_all   # Run 2: J6를 일부러 움직이므로 이동 중 "명령하지 않은 관절" 감시값(start_all[6])을 훅이 갱신한다
         say("b-4-0 현재 회독(SDK 각도): " + ", ".join("J%d=%s" % (i, v) for i, v in state.items()))
         if any(state[i] is None for i in range(1, 7)): raise Abort("회독 None이 있다. 쓰기 없음.")

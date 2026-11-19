@@ -111,7 +111,7 @@ class R8RealFakeRunTest(unittest.TestCase):
             det = lambda n: pa_detect.detect(cv2.imread(str(pa / ("lift_%s_%s.color.png" % (TS, n)))))
             shaf = lambda n: sha(pa / ("lift_%s_%s.color.png" % (TS, n)))
             ref = dict(TH.REF, detect=det("ref"), image_sha256=shaf("ref"))
-            ph = {n: {"started_epoch": 1.5, "detect": det(n), "image_sha256": shaf(n)} for n in "ABC"}; ph["A"]["gate"] = {"go": True, "tilt_check": {"ok": True, "margin": 0.21, "plan_max": 77}}
+            ph = {n: {"started_epoch": 1.5, "detect": det(n), "image_sha256": shaf(n)} for n in "ABC"}; ph["A"]["gate"] = {"go": True, "tilt_check": {"ok": True, "margin": 0.21, "plan_max": 77}}; ph["align_verdict"] = {"run_id": "reg", "verdict": "OK"}   # M6: 정렬 판정 OK
             t = TH.LiftHookTest("test_happy_path_lifts_drops_and_returns_with_j6_closed"); r = t.run33(TH.FakeChannel(ref, ph))
             r = copy.deepcopy(r); r["mode"] = "real"; j = R8.judge(r, str(root), TS, ref, None, detect_fn=pa_detect.detect)
             self.assertEqual(j["state"], "들어올림 완료"); self.assertEqual(j["verdicts"]["E2"], "합격"); self.assertEqual(j["verdicts"]["E3"], "합격"); self.assertEqual(j["verdicts"]["Q3"], "합격")

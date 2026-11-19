@@ -7,6 +7,8 @@ import g01_lift_logic as L
 import g01_lift_params as LP
 
 REF_NAME = "ref"
+ALIGN_TIMEOUT_S = 15   # g01_lift_bridge.ALIGN_TIMEOUT_S와 같은 값(사용자 승인 2026-11-19: 용도가 다른 기존 상수를 Jetson 정렬 판정 대기 상한에도 사용, 시간 초과는 자동 N)
+ALIGN_NAME = "align_verdict"
 
 
 class PhotoChannel:
@@ -44,6 +46,19 @@ class FilePhotoChannel(PhotoChannel):
         return None
 
 
+def align_gate(ch, run_id, timeout_s=None):
+    """M6: Mac 다리가 보낸 정렬 판정을 최대 ALIGN_TIMEOUT_S 기다린다. 반환 (통과 여부, 사유). **OK는 이번 요청 토큰·이번 run_id의 응답이 형식대로 `verdict == "OK"`일 때만 통과**한다
+    (NG·없음·시간 초과·옛 요청(토큰 불일치)·다른 실행(run_id 불일치)·형식 오류는 모두 통과 아님 → 호출부가 사람 입력 없이 N 처리)."""
+    tok = ch.request(ALIGN_NAME, run_id); res = ch.wait(ALIGN_NAME, ALIGN_TIMEOUT_S if timeout_s is None else timeout_s, tok)
+    if res is None: return False, "정렬 판정이 %d s 안에 오지 않았다(시간 초과)" % (ALIGN_TIMEOUT_S if timeout_s is None else timeout_s)
+    if not isinstance(res, dict): return False, "정렬 판정 형식 오류"
+    if res.get("request_id") != tok: return False, "정렬 판정이 이번 요청의 것이 아니다(옛 파일)"
+    if res.get("run_id") != run_id: return False, "정렬 판정의 run_id %r가 이번 실행 %r와 다르다" % (res.get("run_id"), run_id)
+    v = res.get("verdict")
+    if v == "OK": return True, ""
+    return False, "정렬 판정 %r" % (v,)
+
+
 def new_clock(params):
     return L.PressClock(time.monotonic, params)
 
@@ -65,7 +80,40 @@ def _adapter(ctx, joint, target):
     ad = ctx["Adapter"](ctx["arm"], {"approved": True, "expires": today.isoformat(), "allowed_times_ms": [ctx["params"]["move_time_ms"]], "first_move_min_ms": ctx["params"]["first_move_min_ms"],
                                      "max_writes": 3, "delta_deg": 1, "joint_id": joint, "direction": 1, "angle_window": list(ctx["WINDOWS"][joint]), "pattern": "list"}, today=today, dry_run=False)
     if ctx.get("_lift_adapters") is not None: ctx["_lift_adapters"].append((joint, int(target), ad))   # 기록 전용: read_start가 None으로 실패해도 어댑터 로그("read", None)가 결과 JSON에 남는다(재실행 #1: 로그가 어댑터째 사라졌다)
-    s = ad.read_start(); ad.set_targets([s, int(target)]); return ad
+    s = _read_start_retry(ad); ad.set_targets([s, int(target)]); return _BeforeRetry(ad, ctx["Abort"])
+
+
+def _set_label(ctx, label):
+    try: f = getattr(ctx.get("arm"), "set_label", None)
+    except (AttributeError, AssertionError): return   # 가드 없는 팔(가짜 팔은 알 수 없는 속성에 AssertionError)
+    if f is not None: f(label)
+
+
+def _last_read_was_none(ad): return bool(getattr(ad, "log", None)) and ad.log[-1] == ("read", None)
+
+
+def _read_start_retry(ad):
+    """M5b(플랜 v2, 사용자 승인 2026-11-19): `read_start`가 None이면 기존 `_raw`의 3회 규칙(총 3회)으로 다시 읽는다. 재시도 간격은 가드(g01_read_guard)의 같은 서보 ≥ 0.05 s가 보장한다(별도 sleep 없음).
+    None일 때만 재시도한다: 승인 창 밖 값 등 다른 사유의 거부는 그대로 던진다. 실패하면 어댑터 `_start`가 비어 있어 재호출할 수 있다."""
+    for i in range(3):
+        try: return ad.read_start()
+        except Exception:
+            if i == 2 or not _last_read_was_none(ad): raise
+
+
+class _BeforeRetry(object):
+    """M5b: 이 어댑터의 첫 `read_position`(= `run_move`의 `before`)이 None이면 같은 3회 규칙으로 다시 읽고, 끝내 None이면 쓰기 전에 중단한다(새 중단 경로: 기존에는 `width0 = 0`으로 무반응·재전송 검사가 조용히 꺼진 채 쓰기가 나갔다).
+    이후의 읽기(watch 폴링)는 그대로 통과한다. 어댑터의 나머지 속성·메서드는 그대로 전달한다."""
+    def __init__(self, ad, abort_cls): self.__dict__.update(_ad=ad, _abort=abort_cls, _first=True)
+    def read_position(self):
+        if not self._first: return self._ad.read_position()
+        self.__dict__["_first"] = False
+        for _ in range(3):
+            v = self._ad.read_position()
+            if v is not None: return v
+        e = self._abort("이동 전 회독(before)이 3회 모두 None이다: 쓰기 없이 중단합니다(쓰기 0회).")
+        e.before_none = True; raise e
+    def __getattr__(self, name): return getattr(self.__dict__["_ad"], name)
 
 
 def classify_abort(exc):
@@ -90,6 +138,15 @@ def _raw(ctx, joint, label=None):
     raise ctx["Abort"]("J%d 원시 각도 읽기 실패(None). 추가 이동 없음." % joint)
 
 
+def _raw_j24(ctx):
+    """한 번의 `raw_set`에서 J2·J4를 함께 얻는다(둘 중 하나라도 None이면 `_raw`와 같은 3회·0.05 s 재시도). `_stage_idx`가 읽기를 두 번 하던 것을 한 번으로 줄인다(같은 서보 재읽기 간격 가드의 대기와 시계 소모를 줄임, 새 숫자 없음)."""
+    for _ in range(3):
+        q = _read4(ctx)
+        if q[2] is not None and q[4] is not None: return q
+        time.sleep(0.05)
+    raise ctx["Abort"]("J%d 원시 각도 읽기 실패(None). 추가 이동 없음." % (2 if q[2] is None else 4))
+
+
 def _raw_all(ctx, label):
     """같은 읽기에서 J1~J4를 모두 돌려준다. 재시도는 변경 전 `_raw(ctx, 2)`와 같게 J2가 None일 때만(J3·J4 None은 재읽기 없이 호출자가 기록·처리한다)."""
     for _ in range(3):
@@ -109,7 +166,7 @@ def _stage_idx(ctx):
     """현재 상태에 가장 가까운 복귀 항목의 색인: 접촉 자세 항목(첫 이동이 실패한 경우)과 들어올린 상태 항목들 중에서 J2·J4 정수 회독 거리가 가장 작은 것.
     (접촉 항목이 후보에 없으면 첫 이동 실패 때 들어올린 상태 경로를 접촉 깊이에서 실행하게 된다 — 16라운드)"""
     plan = ctx["plan"]; k = plan["lift"]["contact_moves_done"]; cs = plan["return_routes"][k]["state"]
-    j2, j4 = _int_read(_raw(ctx, 2), 2), _int_read(_raw(ctx, 4), 4); cand = [(abs(cs[1] - j2) + abs(cs[3] - j4), k, "contact")]
+    q = _raw_j24(ctx); j2, j4 = _int_read(q[2], 2), _int_read(q[4], 4); cand = [(abs(cs[1] - j2) + abs(cs[3] - j4), k, "contact")]
     for key, idx in plan["lift"]["return_index"].items():
         st = plan["return_routes"][idx]["state"]; cand.append((abs(st[1] - j2) + abs(st[3] - j4), idx, key))
     d, idx, key = min(cand); ctx["rec"].setdefault("lift", {})["return_index_used"] = {"index": idx, "key": key, "distance": d, "j2": j2, "j4": j4}
@@ -157,6 +214,7 @@ def lift_after_stall(ctx):
     def do_move(step, joint, target, k):
         nonlocal lifted
         if not clk.may_start(step, ubs[step]): raise _ClockStop(step)
+        _set_label(ctx, step)   # 읽기 가드의 대기 기록용 단계 라벨(기록 전용, 가드가 없으면 아무 일도 하지 않는다)
         # 어댑터 생성(read_start)은 쓰기가 나가기 전이다. 여기서 실패하면(예: 서보 회독 None) 복귀 색인·cmd를 실제 상태 기준으로 돌린 뒤 다시 던진다(재실행 #1 사고: PROG["sent"]가 '이 이동이 끝난 뒤' 색인으로 남아 복귀가 쓰기 없이 멈췄다)
         try: ad = _adapter(ctx, joint, target)
         except BaseException as exc_:
@@ -173,7 +231,9 @@ def lift_after_stall(ctx):
         mv = {"joint": joint, "target": int(target), "time_ms": ms, "phase": "L", "pose_id": None}
         try: st = ctx["run_move"](ads, arm, mv, cmd, start_all, rec, n0 + k, n0 + 3, ctx["mode"], P["move_countdown_s"])
         except BaseException as exc_:
-            lift["abort_class"] = classify_abort(exc_); save_logs()
+            lift["abort_class"] = classify_abort(exc_)
+            if getattr(exc_, "before_none", False): lift["code"] = "BEFORE_NONE"; lift["lifted_once"] = bool(lifted)   # 쓰기 전 중단: 이 이동 전까지의 상태(181행 `lifted = True`보다 먼저 잡는다)
+            save_logs()
             try:
                 PROG["sent"] = _stage_idx(ctx)                                                     # 중단되면 실제 상태에 가장 가까운 복귀 항목(불일치면 do_return이 쓰기 없이 멈춘다)
                 for j_, v_ in zip((1, 2, 3, 4), plan["return_routes"][PROG["sent"]]["state"]): cmd[j_] = v_   # run_move가 중단 전에 cmd에 적은 '목표'(예: 무반응이었던 77)를 실제 상태 항목 값으로 되돌린다(복귀의 비명령 관절 이탈 검사)

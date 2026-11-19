@@ -137,7 +137,7 @@ class SetThirtyThreeIntegrationTest(unittest.TestCase):
         cnt = {"n": 0}; orig = LH._adapter
         def wrapped(ctx, joint, target):
             cnt["n"] += 1; ad = orig(ctx, joint, target)
-            if cnt["n"] == nth: ctx["arm"].forced_none[joint] = 99
+            if cnt["n"] == nth: ctx["arm"].forced_none[joint] = 3   # before 3회 시도를 모두 None으로(그 뒤 복귀 읽기는 정상)
             return ad
         LH._adapter = wrapped; return self.run33()
     def test_before_persistent_none_in_move1_aborts_before_write(self):

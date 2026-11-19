@@ -9,7 +9,7 @@ PLAN=""; while [ $# -gt 0 ]; do case "$1" in --plan) PLAN="${2:-}"; shift;; *) e
 PLAN="$(cd "$(dirname "${PLAN}")" && pwd)/$(basename "${PLAN}")"   # 브리지는 절대 경로로 받는다
 TS="$(date +%y%m%d-%H%M%S)"; VPY="${P1_CHECK_PY:-${ROOT}/.venv/bin/python}"; RD=dofbot-g01_5b4
 H="${JETSON_HOST:-$(grep '^LG_JETSON_HOST=' "${HOME}/projects/learned-grasp-poc/.env" | cut -d= -f2- | tr -d '"')}"; SSH=(ssh -o BatchMode=yes -o ConnectTimeout=8 "${H}")
-for f in scripts/g01_lift_params.py scripts/g01_lift_logic.py scripts/g01_lift_hook.py scripts/g01_lift_bridge.py scripts/g01_lift_dryrun_stub.py scripts/g01_lift_dryrun_report.py scripts/g01_s42_plan_lift.py scripts/g01_lift_marker_ref.py scripts/pa_driver.sh scripts/pa_snap_mac.sh scripts/pa_snap.py scripts/pa_detect.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
+for f in scripts/g01_lift_params.py scripts/g01_lift_logic.py scripts/g01_lift_hook.py scripts/g01_read_guard.py scripts/g01_lift_bridge.py scripts/g01_lift_dryrun_stub.py scripts/g01_lift_dryrun_report.py scripts/g01_s42_plan_lift.py scripts/g01_lift_marker_ref.py scripts/pa_driver.sh scripts/pa_snap_mac.sh scripts/pa_snap.py scripts/pa_detect.py; do [ -f "${ROOT}/${f}" ] || { echo "파일 없음: ${f}"; exit 2; }; done
 [ -t 0 ] && [ -t 1 ] || { echo "대화형 터미널(TTY)이 아니다. 사람이 입회한 별도 터미널에서 실행하라."; exit 5; }
 "${VPY}" -I "${ROOT}/scripts/g01_lift_marker_ref.py" info >/dev/null || { echo "세트 33 마커 기준이 재등록되어 있지 않다(정렬 보고 경로가 NG 보고만 낸다). 중단"; exit 7; }
 read -r -p "dry run 전 확인: 사람이 화면 밖에 있고 팔은 K1에서 명령이 없으며 P-A가 꺼져 있습니까? (y 이외는 중단) [y/N] " _ok; [ "${_ok}" = y ] || { echo "중단(아무것도 시작하지 않았다)"; exit 7; }
@@ -33,7 +33,7 @@ import hashlib; sha=hashlib.sha256(open('${ROOT}/data/g04/pa/lift_${TS}_ref.colo
 json.dump(B.make_ref('${TS}', det, float(m.group(1)), ${PA_MAXSEC}, time.time(), sha), open('${REF}','w',encoding='utf-8'), ensure_ascii=False)" || { echo "P-A 기준 결과 생성 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
 # 기준 결과를 Jetson에 원자적으로 둔다(러너 기동 직전: 러너는 이 파일의 elapsed_at_ref_s에 자기 경과를 더해 P-A 경과를 판단한다)
 scp -q -o BatchMode=yes "${REF}" "${H}:${RD}/.lift_photo_ref.json.tmp" && "${SSH[@]}" "mv ~/${RD}/.lift_photo_ref.json.tmp ~/${RD}/lift_photo_ref.json" || { echo "기준 결과 전달 실패. 중단(팔은 움직이지 않았다)"; exit 7; }
-scp -q -o BatchMode=yes "${ROOT}/scripts/g01_lift_params.py" "${ROOT}/scripts/g01_lift_logic.py" "${ROOT}/scripts/g01_lift_hook.py" "${ROOT}/scripts/g01_lift_dryrun_stub.py" "${H}:${RD}/" || { echo "스텁 전달 실패. 중단"; exit 7; }
+scp -q -o BatchMode=yes "${ROOT}/scripts/g01_lift_params.py" "${ROOT}/scripts/g01_lift_logic.py" "${ROOT}/scripts/g01_lift_hook.py" "${ROOT}/scripts/g01_read_guard.py" "${ROOT}/scripts/g01_lift_dryrun_stub.py" "${H}:${RD}/" || { echo "스텁 전달 실패. 중단"; exit 7; }
 BLOG="${ROOT}/evidence/G01/raw/lift_dryrun_bridge_${TS}.log"; RLOG="${ROOT}/evidence/G01/raw/lift_runner_${TS}.log"
 STUBCMD="cd ~/${RD} && python3 g01_lift_dryrun_stub.py --run-id ${TS} --out ~/${RD}/dryrun_stub_result.json"
 ssh -t -o ConnectTimeout=8 "${H}" "${STUBCMD}" | tee >(beep_watch) >("${VPY}" -I "${ROOT}/scripts/g01_lift_bridge.py" --run-id "${TS}" --ref "${REF}" --plan "${PLAN}" --host "${H}" --rd "${RD}" --name-prefix "lift_${TS}" --log "${BLOG}") "${RLOG}" || echo "(시험 프로세스가 비정상 종료. 기록이 있으면 가져온다)"

@@ -11,13 +11,20 @@ ALIGN_MARK = "[정렬 확인]"
 ALIGN_FAIL = "\n[정렬 보고 없음] 보고를 만들지 못했다(%s) → 러너 질문에 N(하강 없이 복귀)\n"
 ALIGN_NOTE = "※ 참고 수치: P-A 스냅 기반, 36 s 도구와 동등성 미검증. 허용값 |d_x| ≤ 3 mm, 캡 옆 여유 ≥ 6 mm, 마커 관문 ≤ 1.0 px. 보고가 없거나 NG면 N."
 ALIGN_TIMEOUT_S = 15   # 보고 계산이 멈춰도 뒤의 사진 A 처리를 막지 않도록 하강 시간보다 훨씬 짧게
-REQ_RE = re.compile(r"\[사진 요청 ([ABC]) id=(\S+?)(?: q=[-0-9.,]+)?\]")
+REQ_RE = re.compile(r"\[사진 요청 (A|B|C|align_verdict) id=(\S+?)(?: q=[-0-9.,]+)?\]")
 
 
 def parse_request(line):
     """러너 출력 한 줄에서 (이름, 토큰) 또는 None."""
     m = REQ_RE.search(line)
     return (m.group(1), m.group(2)) if m else None
+
+
+def align_verdict(text, run_id, request_id):
+    """M6(플랜 v1.3·v2, 사용자 승인 D2): 정렬 보고 문자열 → Jetson에 전달할 판정 dict. **OK는 보고에 명시적인 `결과: 정렬 OK` 줄이 있고 `결과: 정렬 NG` 줄이 없을 때만**이다
+    (보고가 없거나 형식이 다르거나 계산 실패 문구면 NG). d_x는 기록용으로만 싣는다(판정은 보고의 결과 줄)."""
+    lines = (text or "").splitlines(); ok = any(l.strip().startswith("결과: 정렬 OK — ") for l in lines) and not any(l.strip().startswith("결과: 정렬 NG") for l in lines)
+    m = re.search(r"d_x = ([+-][0-9.]+) mm", text or ""); return {"run_id": run_id, "request_id": request_id, "name": "align_verdict", "verdict": "OK" if ok else "NG", "d_x_mm": float(m.group(1)) if m else None}
 
 
 def dx_block_mm(ref_detect, a_detect, root=None):
@@ -106,6 +113,13 @@ class Bridge:
         req = parse_request(line)
         if req is None: return None
         name, tok = req
+        if name == "align_verdict":                                   # M6: 러너가 정렬 판정을 기다린다. 이미 계산한 정렬 보고(self.done["align"])로 판정하고, 보고가 없으면 NG
+            if (name, tok) in self.done_ids: return None
+            self.done_ids.add((name, tok)); run_id = tok.rsplit("-align_verdict-", 1)[0]
+            res = align_verdict(self.done.get("align"), run_id, tok)
+            try: self.push(name, res)
+            except Exception as e: self.say("[다리] 정렬 판정 전달 실패: %r" % (e,)); return None
+            self.say("[다리] 정렬 판정 %s 전달" % res["verdict"]); return res
         if (name, tok) in self.done_ids: self.say("[다리] 사진 %s 요청이 다시 왔다(무시, 같은 토큰)" % name); return None   # 토큰이 같을 때만 중복(dry run은 같은 이름을 반복 요청한다)
         self.done_ids.add((name, tok))
         t0 = self.now()

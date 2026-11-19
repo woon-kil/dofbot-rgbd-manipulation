@@ -44,8 +44,13 @@ class AlignGateTest(unittest.TestCase):
     def test_ok_passes(self):
         (go, why), el = self.gate({"run_id": "reg", "verdict": "OK"}); self.assertTrue(go, why)
     def test_ng_and_garbage_fail(self):
-        for resp in ({"run_id": "reg", "verdict": "NG"}, {"run_id": "reg"}, {"run_id": "reg", "verdict": "ok"}, {"run_id": "reg", "verdict": "OK "}, {"verdict": "OK"}, {"run_id": "reg", "verdict": None}, "not a dict"):
+        for resp in ({"run_id": "reg", "verdict": "NG"}, {"run_id": "reg"}, {"run_id": "reg", "verdict": "ok"}, {"run_id": "reg", "verdict": "OK "}, {"verdict": "OK"}, {"run_id": "reg", "verdict": None}):
             (go, why), _ = self.gate(resp); self.assertFalse(go, resp)
+    def test_non_dict_response_fails(self):
+        class Ch:
+            def request(self, name, run_id, extra=""): return "tok"
+            def wait(self, name, timeout_s, token): return "not a dict"
+        self.assertFalse(LH.align_gate(Ch(), "reg")[0])
     def test_other_run_id_fails_even_if_ok(self):
         (go, why), _ = self.gate({"run_id": "old-run", "verdict": "OK"}); self.assertFalse(go); self.assertIn("run_id", why)
     def test_stale_request_token_fails(self):
@@ -67,7 +72,7 @@ class RunnerAlignIntegrationTest(unittest.TestCase):
     def setUp(self): self.old = (R.LIFT_CHANNEL, R.ask); self.asked = []
     def tearDown(self): R.LIFT_CHANNEL, R.ask = self.old
     def run33(self, resp):
-        photos = dict(T.photos()); 
+        photos = dict(T.photos()); photos.pop("align_verdict")
         if resp is not None: photos["align_verdict"] = resp
         R.LIFT_CHANNEL = T.FakeChannel(T.REF, photos)
         def ask(msg, default=False): self.asked.append(msg); return True    # 사람이 미리 y를 쳐 둔 상황(입력 버퍼의 y)
@@ -76,8 +81,9 @@ class RunnerAlignIntegrationTest(unittest.TestCase):
     def align_questions(self): return [m for m in self.asked if QUESTION in m]
     def test_ng_is_n_without_asking_even_if_y_is_pre_typed(self):
         r = self.run33({"run_id": "reg", "verdict": "NG"}); self.assertEqual(self.align_questions(), [])
-        run2 = r["poses"][-1]["run2"] if r.get("poses") else {}; self.assertFalse(any(p.get("run2", {}).get("align_confirmed") for p in r.get("poses", [])))
-        self.assertIn("정렬", str(r.get("error")))
+        runs = [p.get("run2", {}) for p in r.get("poses", [])]; self.assertFalse(any(q.get("align_confirmed") for q in runs))
+        verdicts = [q["align_verdict"] for q in runs if "align_verdict" in q]; self.assertEqual(len(verdicts), 1); self.assertFalse(verdicts[0]["go"]); self.assertIn("NG", verdicts[0]["reason"])
+        self.assertEqual(r["ended"], "aborted")   # 하강하지 않고 복귀(Abort)
     def test_missing_verdict_is_n_without_asking(self):
         r = self.run33(None); self.assertEqual(self.align_questions(), [])
     def test_other_run_verdict_is_n_without_asking(self):
