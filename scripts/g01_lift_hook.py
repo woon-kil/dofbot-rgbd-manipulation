@@ -282,7 +282,7 @@ def lift_after_stall(ctx):
     save_logs()
     # --- 낙하 열기(시계의 끝) ---
     if not lifted: start_all[6] = ctx["cfg"]["open_j6"]; return "no_lift"
-    lift["elapsed_before_open_s"] = clk.elapsed()   # 기록 전용(B): 열기 명령 직전 경과 = 누름 구간(플랜 R2 "D 제외" 예산)의 끝. `elapsed_at_open_s`는 열기 뒤 폴링이 끝난 시각이라 낙하(D) 시간을 포함한다
+    lift["elapsed_before_open_s"] = clk.elapsed()   # 기록 전용(B): 사진 C까지 끝난 뒤 열기 직전 경과(= 플랜 R2 예산의 끝). 실제 열기 쓰기는 이 시각 + QUIET_S 0.3 s. `elapsed_at_open_s`는 열기 뒤 폴링이 끝난 시각이라 열기 시간을 포함한다
     lift["open_readback"] = ctx["release"](); lift["elapsed_at_open_s"] = clk.elapsed(); ctx["start_all"][6] = ctx["cfg"]["open_j6"]   # 열린 뒤 J6 감시 기준을 열림 값으로 되돌린다
     return "lifted"
 

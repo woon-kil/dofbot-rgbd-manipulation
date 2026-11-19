@@ -165,7 +165,7 @@ class SetThirtyThreeIntegrationTest(unittest.TestCase):
     def test_clock_log_and_guard_waits_saved_on_failure_paths(self):
         """M7: 실패·중단 경로(before 끝내 None)에서도 clock_log가 저장되고 가드 대기 기록이 남는다."""
         r = self._persistent_before_none(3); lift = self.lift(r)
-        self.assertTrue(lift.get("clock_log")); self.assertEqual(lift["clock_log"][0][0], "photo_a" if False else lift["clock_log"][0][0])
+        self.assertTrue(lift.get("clock_log")); self.assertEqual(lift["clock_log"][0][0], "close145")   # 첫 단계 기록(145 닫기부터 센다)
         self.assertTrue(any(l[0] in ("lift1", "lift2", "lift3") for l in lift["clock_log"])); self.assertIn("guard_waits", lift); self.assertTrue(all(len(w) == 3 for w in lift["guard_waits"]))
     def test_before_persistent_none_in_move1_aborts_before_write(self):
         """새 중단 경로(이동 1): before가 끝내 None이면 쓰기 전 중단, 쓰기 0, lifted_once False, 전용 라벨, 복귀가 쓰기 없이 멈추지 않는다."""
