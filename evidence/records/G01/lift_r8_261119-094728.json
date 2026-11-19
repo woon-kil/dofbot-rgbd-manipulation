@@ -1,0 +1,147 @@
+{
+  "ts": "261119-094728",
+  "r8_code_commit": "ccd452f70bd2d138046007fa1ba2d773e336db35",
+  "post_return_record": {
+    "available": true,
+    "found": true,
+    "detect": {
+      "found": true,
+      "center": [
+        672.25,
+        259.0
+      ],
+      "side_px": 28.786527970074076,
+      "yaw_deg": -178.73371945007932
+    },
+    "yaw_delta_deg": -0.52,
+    "center_shift_px": [
+      -0.75,
+      -9.0
+    ],
+    "note": "기록 전용(판정 아님). 마커가 가려지거나 복귀가 안 끝나면 없음. 낙하 뒤 복귀 경로 간격은 블록 yaw 약 5° 이내에서만 2 mm(오프라인 UNVERIFIED)"
+  },
+  "classification": {
+    "judgement_record": "R8 구현 뒤 기준별 입력으로 계산(현재 미계산)",
+    "counted": true,
+    "attempt": "시도(정체)",
+    "close_writes": [
+      120,
+      130,
+      135,
+      140,
+      145,
+      150
+    ],
+    "wrote_145": true,
+    "outcome": "no_lift",
+    "code": "ADAPTER_BEFORE_WRITE",
+    "lifted_once": true
+  },
+  "state": "들어올림 중단(첫 이동 뒤 열림)",
+  "criteria": {
+    "E2": {
+      "verdict": "합격",
+      "stall_command": 150,
+      "stall_readback": 146,
+      "minus_146": 0,
+      "note": "R3 진행 조건(명령 150, 회독 ≤ 147)과 동일하며 독립 증거가 아니다. 146과의 차이는 기록만, 곡선 허용 폭은 첫 기록 이후 별도 결정"
+    },
+    "E1": {
+      "verdict": "판정 불가(들어올림 중단)"
+    },
+    "E3": {
+      "verdict": "판정 불가(들어올림 중단)"
+    },
+    "Q3": {
+      "verdict": "판정 불가(들어올림 중단)"
+    }
+  },
+  "verdicts": {
+    "E2": "합격",
+    "E1": "판정 불가(들어올림 중단)",
+    "E3": "판정 불가(들어올림 중단)",
+    "Q3": "판정 불가(들어올림 중단)"
+  },
+  "success": false,
+  "judged_record": false,
+  "weak_signal_label": false,
+  "photos": {
+    "ref": {
+      "ok": true,
+      "path": "/Users/woonkil/projects/dofbot-rgbd-manipulation/data/g04/pa/lift_261119-094728_ref.color.png",
+      "why": "",
+      "sha256": "e5b466eac3870a84842cb45fbf9d850e3729cd8b045c878f5740f6c2a7f4ed22"
+    },
+    "A": {
+      "ok": true,
+      "path": "/Users/woonkil/projects/dofbot-rgbd-manipulation/data/g04/pa/lift_261119-094728_A.color.png",
+      "why": "",
+      "sha256": "e81219e21b89074eeb1d8558ab640c186af6fdce52172d919dacba64346364cb",
+      "requested": true,
+      "started_epoch": 1795049705.2896318,
+      "redetect_equal": true
+    },
+    "B": {
+      "ok": false,
+      "why": "요청하지 않음",
+      "requested": false
+    },
+    "C": {
+      "ok": false,
+      "why": "요청하지 않음",
+      "requested": false
+    }
+  },
+  "params": {
+    "clock_start": "145_write",
+    "clock_limit_s": 26.8,
+    "move_countdown_s": 0,
+    "move_time_ms": 1500,
+    "photo_wait_max_s": 3.0,
+    "pa_elapsed_margin_s": 300,
+    "j2_window": [
+      66,
+      110
+    ],
+    "first_move_min_ms": null,
+    "photo_c_skip_e3": "j6_readback_only",
+    "hold_skip_e3": "e2_original",
+    "hold_s": 3.0,
+    "photo_c_included": true,
+    "return_photo_use": "record_only",
+    "e1_center_up_px": 8.0,
+    "e1_side_len_px": 0.7,
+    "e1_lateral_px": 4.0,
+    "q3_shift_max_px": 2.0,
+    "q3_response_min": 0.3,
+    "lift_j2_refuse_at_or_below": 75,
+    "tilt_selfcheck_tol": 0.01,
+    "lift_j2_min_effective_step_deg": 3.5,
+    "lift_j2_no_response_deg": 0.5,
+    "g2_deadzone_px": 0.75,
+    "g2_s_range_mm": [
+      -1.26,
+      -0.77
+    ],
+    "g2_magnitude_mm": 3.0,
+    "g2_dx_depth_bound_mm": 3.0,
+    "g2_near_mm": 2.5,
+    "g4_side_px": 0.75,
+    "g5_yaw_deg": 3.0,
+    "g2_deadzone_metric": "x",
+    "e3_gemini_center_metric": "dist",
+    "lift_j2_max_target": "UNSET",
+    "q3_box": [
+      800,
+      0,
+      900,
+      100
+    ],
+    "q3_zncc_min": 0.9
+  },
+  "notes": [
+    "E1'(가려짐 대체 지표)·E1-R 경로는 구현하지 않는다. E-2a 미실시. 첫 시도가 쥔 상태 마커 가림의 첫 관측일 수 있다.",
+    "E4(사람 입력·영상)는 기록 전용.",
+    "사진 다리 로그 대조함"
+  ]
+}
