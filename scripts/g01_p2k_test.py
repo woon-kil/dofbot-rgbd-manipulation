@@ -298,7 +298,9 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
         r2["close_steps"] = steps; r2["stall_in_band"] = (stalled is not None and 138 <= stalled <= 146); r2["stall_readback"] = stalled; r2["stall_command"] = steps[-1]["target"] if stalled is not None else None
         if lift_clock is not None and stalled is not None and steps[-1]["target"] == 150:   # 들어올림 진행 조건 = 정체 명령 150(R3). 150 미만 정체·정체 없음은 아래 기존 열기 경로
             def _release():   # J6 열기 1회 + 도착 확인(아래 기존 열기와 같은 순서)
-                adc.confirm_hands_clear(); time.sleep(QUIET_S); adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
+                adc.confirm_hands_clear(); time.sleep(QUIET_S)
+                r2.setdefault("lift", {})["elapsed_open_write_s"] = lift_clock.elapsed()   # M7(사용자 조건 2026-11-19): 145 쓰기부터 열기 명령(쓰기)까지의 경과, 기록 전용
+                adc.return_to_start(cfg["release_ms"]); P2K["cur6"] = s; P2K["contact"] = False
                 sr_ = poll(adc, 2 * cfg["release_ms"] + 1000); return next((v for _, v in reversed(sr_) if v is not None), None)
             out_ = LH.lift_after_stall({"plan": plan, "arm": arm, "adc": adc, "cfg": cfg, "rec": r2, "params": lparams, "clock": lift_clock, "channel": lch, "ref": lref, "run_move": run_move, "raw_set": raw_set,
                                         "Adapter": GripperTestAdapter, "WINDOWS": WINDOWS, "PROG": PROG, "P2K": P2K, "say": say, "cmd": P2K["cmd"], "start_all": P2K["start_all"], "ads": P2K["ads"], "mode": mode,

@@ -57,6 +57,7 @@ class LiftHookTest(unittest.TestCase):
         self.assertEqual(ch.photo_requests, ["A", "B", "C"]); self.assertEqual(r["ended"], "completed"); self.assertTrue(r["returned_to_start"])
         self.assertEqual([(m["joint"], m["target"]) for m in L["moves"]], [(2, 74), (2, 77), (4, 27)])        # 첫 J2 74 → 최대 목표 77(P10) → J4 −5
         self.assertTrue(L["hold_done"] and L["photo_c_done"]); self.assertEqual(L["ended_reason"], "완료"); self.assertLessEqual(L["elapsed_before_open_s"] + 0.3, 26.8)   # 누름 구간: 145 쓰기 → 열기 쓰기(기록 시각 + QUIET_S 0.3 s), 플랜 R2 "합계 ≤ 26.8 s, 초과 시 즉시 열기"(사진 C까지). 열기 뒤 폴링까지 합친 값은 아래 별도 시험
+        self.assertLessEqual(L["elapsed_before_open_s"] + 0.3, L["elapsed_open_write_s"] + 1e-6); self.assertLessEqual(L["elapsed_open_write_s"], L["elapsed_at_open_s"]); self.assertLessEqual(L["elapsed_open_write_s"], 26.8)   # M7: "145 쓰기→열기 명령"과 "→열기 완료"를 따로 기록(사용자 조건)
         self.assertIsNotNone(L["open_readback"]); self.assertEqual(r["poses"][3]["run2"]["stall_command"], 150); self.assertIsNotNone(r.get("j6_k1_close_readback"))
         self.assertEqual(len(r["steps"]), self.plan33["lift"]["contact_moves_done"])                           # 남은 계획 이동은 건너뜀(상승 자세 없음)
         self.assertTrue(L["gate"]["go"]); self.assertEqual(L["gate"]["tilt_check"]["margin"], 0.21); self.assertAlmostEqual(L["j6_after_close"], 146)
