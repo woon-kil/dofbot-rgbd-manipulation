@@ -15,8 +15,9 @@ def params(**kw):
 class ClockTest(unittest.TestCase):
     def test_step_upper_bounds_match_plan_2_1(self):
         d = dict(L.step_upper_bounds())
-        self.assertAlmostEqual(d["close145"], 4.4); self.assertAlmostEqual(d["stall150"], 4.1); self.assertAlmostEqual(d["lift1"], 3.65)
-        self.assertEqual((d["photo_a"], d["photo_b"], d["photo_c"], d["hold"]), (3.0, 3.0, 3.0, 3.0))
+        self.assertAlmostEqual(d["close145"], 4.4); self.assertAlmostEqual(d["stall150"], 4.1); self.assertAlmostEqual(d["lift1"], 3.65 + L.GUARD_WAIT_UB_S["lift1"])   # 3.65 + 읽기 가드 대기 상한 0.4(플랜 v2 §5)
+        self.assertAlmostEqual(d["lift3"], 3.65 + 0.5); self.assertAlmostEqual(d["photo_c"], 3.0 + 0.1)
+        self.assertEqual((d["photo_a"], d["photo_b"], d["hold"]), (3.0, 3.0, 3.0))
 
     def run_case(self, cd, acts):
         return L.simulate(acts, params(move_countdown_s=cd))
@@ -26,7 +27,7 @@ class ClockTest(unittest.TestCase):
         s, e = self.run_case(0, [2.2, 2.8, 1.052, mt, mt, mt, 1.052, 3.0, 1.052]); self.assertIsNone(s); self.assertAlmostEqual(e, 20.01, 2)
         s, e = self.run_case(0, [2.2, 3.8, 1.052, mb, mb, mb, 1.052, 3.0, 1.052]); self.assertIsNone(s); self.assertAlmostEqual(e, 23.11, 2)
         s, e = self.run_case(0, [4.4, 3.8, 1.052, mb, mb, mb, 1.052, 3.0, 1.052]); self.assertEqual(s, "photo_c"); self.assertAlmostEqual(e, 24.25, 2)
-        ubs = [u for _, u in L.step_upper_bounds()]; s, e = self.run_case(0, ubs); self.assertEqual(s, "hold"); self.assertAlmostEqual(e, 25.45, 2)
+        ubs = [u for _, u in L.step_upper_bounds()]; s, e = self.run_case(0, ubs); self.assertEqual(s, "hold"); self.assertAlmostEqual(e, 26.75, 2)   # 가드 대기 상한 가산 전 25.45 → 후 26.75(이동 3개 +1.3 s)
 
     def test_plan_2_1_table_countdown_1(self):
         mt, mb = 3.95, 4.65

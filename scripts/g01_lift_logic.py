@@ -10,14 +10,19 @@ WATCH_TAIL_S = 0.1       # 이동마다 J5·J6 읽기 등 여유(플랜 §2-1 �
 
 
 # ---------- 시계(R2, P3) ----------
+# 읽기 간격 가드(g01_read_guard, 플랜 v2 §5)의 단계별 대기 상한(초): 읽기 시간 0인 가짜 팔·가상 시계로 구한 단계별 최대 대기(lift1 0.2, lift2 0.2, lift3 0.3, photo_c 0.1)에
+# `read_start`·`before` 재시도 최악(입구 2개 × 추가 2회 × 0.05 s = 0.2 s, 이동 단계만)을 더한 값. 새 간격 값이 아니라 기존 0.05 s 가드의 최악 누적이며, tests/test_lift_read_guard.py가 시뮬레이션 최대치 ≤ 이 값을 단언한다.
+GUARD_WAIT_UB_S = {"lift1": 0.4, "lift2": 0.4, "lift3": 0.5, "photo_c": 0.1}
+
+
 def step_upper_bounds(P=None):
     """누름 창의 단계 상한(초, 코드 상수). 순서 = 실행 순서."""
     P = PARAMS if P is None else P
     watch = (1.5 * P["move_time_ms"] + 1000) / 1000.0
     mv = P["move_countdown_s"] + QUIET_S + watch + WATCH_TAIL_S
-    pw = P["photo_wait_max_s"]
+    pw = P["photo_wait_max_s"]; g = GUARD_WAIT_UB_S
     return [("close145", (2 * CLOSE_MS + 1000) / 1000.0 + POLL_S + QUIET_S), ("stall150", (2 * CLOSE_MS + 1000) / 1000.0 + POLL_S),
-            ("photo_a", pw), ("lift1", mv), ("lift2", mv), ("lift3", mv), ("photo_b", pw), ("hold", P["hold_s"]), ("photo_c", pw)]
+            ("photo_a", pw), ("lift1", mv + g["lift1"]), ("lift2", mv + g["lift2"]), ("lift3", mv + g["lift3"]), ("photo_b", pw), ("hold", P["hold_s"]), ("photo_c", pw + g["photo_c"])]
 
 
 class PressClock:

@@ -286,6 +286,7 @@ def run2_hook(plan, pid, arm, pose_rec, a, mode):
             if lift_clock is not None and t_ >= 145:   # 누름 시계: 145 쓰기부터, 각 단계는 '경과 + 단계 상한 ≤ 26.8 s'일 때만 시작(아니면 정체 없음으로 보고 기존 열기 경로)
                 if t_ == 145: lift_clock.start()
                 if not lift_clock.may_start("close145" if t_ == 145 else "stall150", lub["close145" if t_ == 145 else "stall150"]): break
+                if type(arm).__name__ == "ReadGuardArm": arm.set_label("close145" if t_ == 145 else "stall150")   # 읽기 가드의 대기 기록용 라벨(가드 없는 세트에서는 아무 일도 하지 않는다)
             adc.move(t_, cfg["close_ms"]); P2K["cur6"] = t_
             P2K["contact"] = True; series, settled = poll_stall(adc, t_, cfg["close_ms"], 2 * cfg["close_ms"] + 1000); vals = [v for _, v in series if v is not None]   # 명령 시간 뒤 같은 값 3회 연속이면 바로 끝(누름 시간 최소화, 가짜 정체 방지)
             if FAKE.get("abort_close") == len(steps) + 1: raise KeyboardInterrupt()   # 가짜 시험: 닫기 계단 중 중단 주입

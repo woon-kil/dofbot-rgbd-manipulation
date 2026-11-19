@@ -57,7 +57,7 @@ if [ "${PLANCHECK}" = 1 ]; then echo "계획·간격 검증 통과(Mac만, 계�
 [ -t 0 ] && [ -t 1 ] || { echo "대화형 터미널(TTY)이 아니다. 사람이 입회한 별도 터미널에서 실행하라. 명령은 보내지 않았다."; exit 5; }
 echo "S4-2${SET}(들어올림 시험), 모드: ${MODE}. 대화형 확인이 시작된다. 사람이 입회한 상태에서만 계속하라."
 RD=dofbot-g01_5b4   # 모터 제어 코드는 공용 /tmp가 아니라 전용 폴더(권한 700)에서 실행한다
-"${SSH[@]}" "mkdir -p ~/${RD} && chmod 700 ~/${RD} && rm -f ~/${RD}/result.json ~/${RD}/lift_photo_ref.json ~/${RD}/lift_photo_A.json ~/${RD}/lift_photo_B.json ~/${RD}/lift_photo_C.json"   # 이전 실행 기록·사진 결과가 섞이지 않게 먼저 지운다(정확한 이름만, 와일드카드 없음)
+"${SSH[@]}" "mkdir -p ~/${RD} && chmod 700 ~/${RD} && rm -f ~/${RD}/result.json ~/${RD}/lift_photo_ref.json ~/${RD}/lift_photo_A.json ~/${RD}/lift_photo_B.json ~/${RD}/lift_photo_C.json ~/${RD}/lift_photo_align_verdict.json"   # 이전 실행 기록·사진 결과가 섞이지 않게 먼저 지운다(정확한 이름만, 와일드카드 없음)
 scp -q -o BatchMode=yes "${ROOT}/scripts/g01_dabai_probe.py" "${ROOT}/scripts/g01_dabai_expsweep.py" "${ROOT}/scripts/g01_p2k_test.py" "${ROOT}/scripts/g01_5a_gripper_test.py" "${ROOT}/scripts/g01_5b4_joint_test.py" "${ROOT}/scripts/gripper_adapter.py" "${ROOT}/scripts/g01_lift_params.py" "${ROOT}/scripts/g01_lift_logic.py" "${ROOT}/scripts/g01_lift_hook.py" "${ROOT}/scripts/g01_read_guard.py" "${H}:${RD}/"
 scp -q -o BatchMode=yes "${PLAN}" "${H}:${RD}/plan.json"
 PA_MAXSEC=1800; PA_STARTED=0

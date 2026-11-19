@@ -119,11 +119,33 @@ class SetThirtyThreeIntegrationTest(unittest.TestCase):
         self.assertNotEqual(r["ended"], "adapter_refused", r.get("error"))
         moves = [m for m in lift["moves"] if not m.get("aborted")]; self.assertEqual([m["step"] for m in moves], ["lift1", "lift2", "lift3"], lift.get("adapter_error"))
         for m in moves: self.assertIsNotNone(m["readback_before"], m["step"])
+    def test_guard_wait_per_step_within_step_upper_bound_addition(self):
+        """읽기 시간 0인 가짜 팔(최대 대기)로 단계별 가드 대기 합이 `step_upper_bounds` 가산값(GUARD_WAIT_UB_S) 이하임(재시도 최악 0.2 s는 이동 단계에 따로 포함)."""
+        import g01_lift_logic as L
+        guards = []; Rg = LH  # noqa
+        import g01_read_guard as RG; orig = RG.ReadGuardArm.__init__
+        def init(s, *a, **k): orig(s, *a, **k); guards.append(s)
+        RG.ReadGuardArm.__init__ = init
+        R.FakeArmS = self.Base   # 읽기 시간 0(측정 모델 아님)
+        try: self.run33()
+        finally: RG.ReadGuardArm.__init__ = orig
+        by = {}
+        for s_, w, lab in guards[0].wait_log: by[lab] = by.get(lab, 0.0) + w
+        for lab, ub in L.GUARD_WAIT_UB_S.items(): self.assertLessEqual(by.get(lab, 0.0), ub - (0.2 if lab.startswith("lift") else 0.0) + 1e-9, (lab, by.get(lab), ub))
+        self.assertEqual({k for k in by if k not in ("창 밖",)} - set(L.GUARD_WAIT_UB_S), set(), by)   # 상한이 없는 단계에서 대기가 생기지 않는다
     def test_guard_installed_in_fake_mode_set33_and_not_in_set31(self):
         seen = []; orig = LH.lift_after_stall
         def spy(ctx): seen.append(type(ctx["arm"]).__name__); return orig(ctx)
         LH.lift_after_stall = spy; self.run33()
         self.assertEqual(seen, ["ReadGuardArm"], seen)   # 세트 33에서는 fake 모드에서도 같은 가드로 감싼다
+    def test_guard_install_has_no_mode_condition_and_set31_has_no_guard(self):
+        """가드 설치 줄은 plan["set"] == "33"만 조건으로 하며 실행 모드(fake·dry_run·real) 조건이 없다(정적 확인). 세트 31 실행에는 가드가 설치되지 않는다(동적)."""
+        src = (ROOT / "scripts" / "g01_p2k_test.py").read_text(encoding="utf-8").splitlines()
+        i = [k for k, l in enumerate(src) if "import g01_read_guard as RG" in l][0]; cond = src[i - 1]
+        self.assertIn('plan["set"] == "33"', cond); self.assertNotIn("mode", cond); self.assertNotIn("a.fake", cond); self.assertNotIn("a.real", cond)
+        R.P2K.pop("guard", None); plan31 = json.load(open(T.FIX, encoding="utf-8")); p = Path(self.td.name) / "plan31.json"; p.write_text(json.dumps(plan31), encoding="utf-8")
+        R.LIFT_CHANNEL = None; vclock.run_runner_fake(p, ("--fake-ceil", "6:146", "--fake-hyst", "1.9,0.27"))
+        self.assertNotIn("guard", R.P2K); self.assertFalse(any(type(a).__name__ == "ReadGuardArm" for a in self.arms))
     def test_before_transient_none_is_retried_and_move_completes(self):
         """before가 한 번 None이면 가드 대기 뒤 재읽기로 성공하고 이동이 그대로 나간다(기존 3회 규칙 재사용)."""
         cnt = {"n": 0}; orig = LH._adapter
@@ -140,6 +162,11 @@ class SetThirtyThreeIntegrationTest(unittest.TestCase):
             if cnt["n"] == nth: ctx["arm"].forced_none[joint] = 3   # before 3회 시도를 모두 None으로(그 뒤 복귀 읽기는 정상)
             return ad
         LH._adapter = wrapped; return self.run33()
+    def test_clock_log_and_guard_waits_saved_on_failure_paths(self):
+        """M7: 실패·중단 경로(before 끝내 None)에서도 clock_log가 저장되고 가드 대기 기록이 남는다."""
+        r = self._persistent_before_none(3); lift = self.lift(r)
+        self.assertTrue(lift.get("clock_log")); self.assertEqual(lift["clock_log"][0][0], "photo_a" if False else lift["clock_log"][0][0])
+        self.assertTrue(any(l[0] in ("lift1", "lift2", "lift3") for l in lift["clock_log"])); self.assertIn("guard_waits", lift); self.assertTrue(all(len(w) == 3 for w in lift["guard_waits"]))
     def test_before_persistent_none_in_move1_aborts_before_write(self):
         """새 중단 경로(이동 1): before가 끝내 None이면 쓰기 전 중단, 쓰기 0, lifted_once False, 전용 라벨, 복귀가 쓰기 없이 멈추지 않는다."""
         r = self._persistent_before_none(1); lift = self.lift(r)

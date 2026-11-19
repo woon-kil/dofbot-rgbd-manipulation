@@ -187,13 +187,17 @@ def lift_after_stall(ctx):
     lift["j6_after_close"] = ctx["stalled"]
     def done(reason): lift["ended_reason"] = reason; lift["clock_log"] = list(clk.log)
     adapters = ctx.setdefault("_lift_adapters", [])
-    def save_logs(): lift["adapter_logs"] = [{"joint": j_, "target": t_, "log": [list(l_) for l_ in a_.log]} for j_, t_, a_ in adapters]   # 기록 전용(성공·실패 무관)
+    def save_logs():   # 기록 전용(성공·실패 무관): 어댑터 로그와 시계 로그(M7: 실패·중단 경로에서도 clock_log를 남긴다, 재실행 #1은 clock_log가 None이었다), 읽기 가드 대기 기록(M5)
+        lift["adapter_logs"] = [{"joint": j_, "target": t_, "log": [list(l_) for l_ in a_.log]} for j_, t_, a_ in adapters]; lift["clock_log"] = list(clk.log)
+        wl = getattr(ctx.get("arm"), "wait_log", None) if type(ctx.get("arm")).__name__ == "ReadGuardArm" else None
+        if wl is not None: lift["guard_waits"] = [list(w) for w in wl]
     def photo(name):
         extra = ""
         if name == "A":   # P10 런타임 확인용: 접촉 자세의 실제 원시 q(높이 관문에서 읽은 값)를 요청 줄에 실어 Mac 관문이 두 번째 J2 최대 목표를 다시 풀게 한다. 없으면 필드를 생략(관문이 거부)
             q_ = (ctx["rec"] or {}).get("raw_q_at_contact")
             if q_ and all(v is not None for v in q_): extra = " q=" + ",".join("%.3f" % v for v in q_)
         if not clk.may_start("photo_" + name.lower(), ubs["photo_" + name.lower()]): return None
+        _set_label(ctx, "photo_" + name.lower())
         t_req, e_req = time.monotonic(), time.time(); tok = ch.request(name, ctx["run_id"], extra); r = ch.wait(name, P["photo_wait_max_s"], tok)
         if r is not None and r.get("request_id") != tok: r = None                                  # 요청 토큰이 다르면 응답이 아니다(방어)
         lift["photos"][name] = r; lift.setdefault("photo_times", {})[name] = {"req_mono": t_req, "rx_mono": time.monotonic(), "wait_s": round(time.monotonic() - t_req, 3), "req_epoch": e_req, "rx_epoch": time.time(), "request_id": tok}
@@ -264,6 +268,7 @@ def lift_after_stall(ctx):
         b = photo("B"); lift["hold_done"] = False; lift["photo_c_done"] = False
         if b is not None and L.same_start([ref.get("started_epoch"), b.get("started_epoch")]):
             if clk.may_start("hold", ubs["hold"]):
+                _set_label(ctx, "hold")
                 time.sleep(P["hold_s"]); lift["hold_done"] = True
                 c = photo("C"); lift["photo_c_done"] = c is not None and L.same_start([ref.get("started_epoch"), c.get("started_epoch")])
         lift["j6_after_lift"] = ctx["adc"].read_position()
@@ -277,6 +282,7 @@ def lift_after_stall(ctx):
     save_logs()
     # --- 낙하 열기(시계의 끝) ---
     if not lifted: start_all[6] = ctx["cfg"]["open_j6"]; return "no_lift"
+    lift["elapsed_before_open_s"] = clk.elapsed()   # 기록 전용(B): 열기 명령 직전 경과 = 누름 구간(플랜 R2 "D 제외" 예산)의 끝. `elapsed_at_open_s`는 열기 뒤 폴링이 끝난 시각이라 낙하(D) 시간을 포함한다
     lift["open_readback"] = ctx["release"](); lift["elapsed_at_open_s"] = clk.elapsed(); ctx["start_all"][6] = ctx["cfg"]["open_j6"]   # 열린 뒤 J6 감시 기준을 열림 값으로 되돌린다
     return "lifted"
 
