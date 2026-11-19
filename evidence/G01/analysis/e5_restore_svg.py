@@ -13,6 +13,7 @@ def box(c): h = side*Z/2; x, y = D(c); return "%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1
 xb0, yb0 = PA.inv_P(REF[0], REF[1], 0.030); xb1, yb1 = PA.inv_P(cur[0], cur[1], 0.030); mx, my = xb0-xb1, yb0-yb1
 px_r = PA.inv_P(REF[0]+1, REF[1], 0.030)[0]-xb0; px_d = PA.inv_P(REF[0], REF[1]+1, 0.030)[1]-yb0
 cx, cy = D(cur); tx, ty = D(REF)
+LR = '오른쪽' if mx >= 0 else '왼쪽'; UD = '사용자 쪽(아래)' if my >= 0 else '베이스 쪽(위)'
 svg = f'''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1040" height="1060" viewBox="0 0 1040 1060">
 <rect width="1040" height="1060" fill="#fff"/>
 <image id="photo" x="0" y="0" width="1040" height="800" xlink:href="data:image/jpeg;base64,{b64}"/>
@@ -23,9 +24,9 @@ svg = f'''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org
 <line id="scale" x1="20" y1="780" x2="{20+10/abs(px_r)*Z:.1f}" y2="780" stroke="#000" stroke-width="5"/>
 <text x="{30+10/abs(px_r)*Z:.1f}" y="786" font-size="22" fill="#000">= 10 mm(가로)</text>
 <text x="20" y="28" font-size="22" fill="#e00" font-weight="bold">빨강 실선: 지금 블록 윗면 마커 / 초록 점선: 놓을 자리(등록 기준 {REF[0]}, {REF[1]})</text>
-<text x="20" y="830" font-size="24" fill="#000">사진 방향: 위 = 베이스 쪽, 아래 = 사용자 쪽, 오른쪽 = 사용자 오른쪽(D3 문서 기준)</text>
-<text x="20" y="862" font-size="24" fill="#06f" font-weight="bold">블록을 사용자 쪽(아래)으로 약 {my:.1f} mm 옮긴다</text>
-<text x="20" y="892" font-size="24" fill="#06f" font-weight="bold">좌우는 그대로({abs(mx):.1f} mm, 1 px 미만이라 손으로 맞출 수 없음)</text>
+<text x="20" y="830" font-size="24" fill="#000">사진 방향: 위 = 베이스 쪽, 아래 = 사용자 쪽, 오른쪽 = 사용자 오른쪽(G07-D0 승인 요청 문서 90행 기준, 추론 기록 포함)</text>
+<text x="20" y="862" font-size="24" fill="#06f" font-weight="bold">블록을 {LR}으로 약 {abs(mx):.1f} mm, {UD}으로 약 {abs(my):.1f} mm 옮긴다</text>
+<text x="20" y="892" font-size="24" fill="#06f" font-weight="bold">(직선 {np.hypot(mx,my):.1f} mm. 1 mm 안팎이면 손으로 살짝 미는 정도)</text>
 <text x="20" y="926" font-size="18" fill="#333">환산: 높이 30 mm 평면 역투영(inv_P), 1 px 오른쪽 = {px_r:+.3f} mm, 1 px 아래 = {px_d:+.3f} mm.</text>
 <text x="20" y="944" font-size="16" fill="#555">사진: {img_path}</text>
 <text x="20" y="966" font-size="18" fill="#333">참고값이며 판정은 놓은 뒤 세션이 찍는 사진의 마커 재측정으로 한다(기준에 최대한 가깝게, 1.0 px는 상한).</text>
